@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>🐜 Ant Colony — Admin</title>
+<title>🐜 Ant Colony - Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -217,12 +217,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           <div class="live-tag">🟢 LIVE</div>
         </div>
         <div class="stat-grid">
-          <div class="stat-box"><div class="stat-val" id="dsTotalPlayers">—</div><div class="stat-lbl">PLAYERS</div></div>
-          <div class="stat-box green"><div class="stat-val" id="dsTotalAnt">—</div><div class="stat-lbl">$ANT TOTAL</div></div>
-          <div class="stat-box"><div class="stat-val" id="dsTotalWorkers">—</div><div class="stat-lbl">WORKERS</div></div>
-          <div class="stat-box"><div class="stat-val" id="dsAvgBalance">—</div><div class="stat-lbl">AVG BALANCE</div></div>
-          <div class="stat-box"><div class="stat-val" id="dsTopPlayer" style="font-size:12px">—</div><div class="stat-lbl">TOP PLAYER</div></div>
-          <div class="stat-box"><div class="stat-val" id="dsMineRate">1×</div><div class="stat-lbl">MINE RATE</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsTotalPlayers">-</div><div class="stat-lbl">PLAYERS</div></div>
+          <div class="stat-box green"><div class="stat-val" id="dsTotalAnt">-</div><div class="stat-lbl">$ANT TOTAL</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsTotalWorkers">-</div><div class="stat-lbl">WORKERS</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsAvgBalance">-</div><div class="stat-lbl">AVG BALANCE</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsTopPlayer" style="font-size:12px">-</div><div class="stat-lbl">TOP PLAYER</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsMineRate">1x</div><div class="stat-lbl">MINE RATE</div></div>
         </div>
         <div class="card">
           <div class="card-title">⚡ Quick Actions</div>
@@ -268,8 +268,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="findPlayer()">Search</button></div>
           </div>
           <div id="foundPlayerCard" style="display:none;background:var(--bg-mid);border:1px solid var(--border-br);border-radius:12px;padding:14px;margin-top:8px">
-            <div style="font-weight:700;font-size:14px;margin-bottom:4px" id="fpName">—</div>
-            <div style="font-size:11px;color:var(--text-dim);font-family:'Orbitron'" id="fpId">—</div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px" id="fpName">-</div>
+            <div style="font-size:11px;color:var(--text-dim);font-family:'Orbitron'" id="fpId">-</div>
             <div style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
               <div><div class="mono" id="fpBalance">0</div><div style="font-size:10px;color:var(--text-dim)">$ANT</div></div>
               <div><div class="mono" id="fpWorkers">0</div><div style="font-size:10px;color:var(--text-dim)">Workers</div></div>
@@ -328,7 +328,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <div class="form-row"><div class="form-group"><input class="form-input" id="resetUsername" placeholder="@username or Telegram ID"/></div><button class="btn btn-danger" onclick="resetPlayerBalance()">Reset</button></div>
           </div>
           <div class="danger-zone" style="margin-bottom:0">
-            <div class="danger-title">☢️ FULL WIPEOUT — ALL PLAYERS</div>
+            <div class="danger-title">☢️ FULL WIPEOUT - ALL PLAYERS</div>
             <div class="danger-desc">Delete EVERY player's data. The entire game resets. Type "WIPEOUT ALL" to confirm.</div>
             <input class="form-input" id="wipeConfirmText" placeholder='Type "WIPEOUT ALL"' style="margin-bottom:10px"/>
             <button class="btn btn-danger btn-full" onclick="wipeoutAll()">☢️ EXECUTE FULL WIPEOUT</button>
@@ -356,16 +356,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <div class="form-group"><div class="form-label">👑 Queen Guard ($ANT/sec)</div><input class="form-input" id="inQueenRate" type="number" step="0.00001" placeholder="0.001"/></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><div class="form-label">🌍 Global Multiplier</div><select class="form-select" id="globalMultiplier"><option value="1">1× Normal</option><option value="2">2× Double</option><option value="3">3× Triple</option><option value="5">5× Event</option><option value="0.5">0.5× Half</option></select></div>
+            <div class="form-group"><div class="form-label">🌍 Global Multiplier</div><select class="form-select" id="globalMultiplier"><option value="1">1x Normal</option><option value="2">2x Double</option><option value="3">3x Triple</option><option value="5">5x Event</option><option value="0.5">0.5x Half</option></select></div>
             <div class="form-group"><div class="form-label">Harvest Interval (sec)</div><input class="form-input" id="harvestIntervalAdmin" type="number" placeholder="60"/></div>
           </div>
           <button class="btn btn-primary btn-full" onclick="saveMiningRates()">💾 Save Mining Rates</button>
         </div>
         <div class="card">
           <div class="card-title">🎮 Event Boosts</div>
-          <div class="toggle-row"><div><div class="t-title">Rain Season Raid (2×)</div><div class="t-sub">Active event</div></div><div class="sw on" id="swEvent1" onclick="this.classList.toggle('on')"></div></div>
-          <div class="toggle-row"><div><div class="t-title">Weekend Bonus (1.5×)</div><div class="t-sub">Auto Sat-Sun</div></div><div class="sw" id="swEvent2" onclick="this.classList.toggle('on')"></div></div>
-          <div class="toggle-row"><div><div class="t-title">New Player Boost (3×/24h)</div><div class="t-sub">Boosted start</div></div><div class="sw on" id="swEvent3" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div><div class="t-title">Rain Season Raid (2x)</div><div class="t-sub">Active event</div></div><div class="sw on" id="swEvent1" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div><div class="t-title">Weekend Bonus (1.5x)</div><div class="t-sub">Auto Sat-Sun</div></div><div class="sw" id="swEvent2" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div><div class="t-title">New Player Boost (3x/24h)</div><div class="t-sub">Boosted start</div></div><div class="sw on" id="swEvent3" onclick="this.classList.toggle('on')"></div></div>
         </div>
       </div>
 
@@ -396,7 +396,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <h1 style="font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br);margin-bottom:16px">📢 Announcements</h1>
         <!-- Token warning if not set -->
         <div id="annTokenWarning" style="display:none;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.3);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px">
-          ⚠️ Bot token not set — messages won't be sent to Telegram!
+          ⚠️ Bot token not set - messages won't be sent to Telegram!
           <button class="btn btn-danger btn-sm" style="margin-left:10px" onclick="showPanel('security')">Set Token →</button>
         </div>
         <div class="card">
@@ -426,7 +426,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
               <div style="display:flex;align-items:center;gap:10px">
                 <div id="fpThumb" style="font-size:30px;flex-shrink:0">📄</div>
                 <div style="flex:1;min-width:0">
-                  <div id="fpName" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+                  <div id="fpName" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
                   <div id="fpSize" style="font-size:11px;color:var(--text-dim);margin-top:2px"></div>
                   <div id="fpType" style="font-size:10px;color:var(--amber);font-family:\'Orbitron\';margin-top:2px"></div>
                 </div>
@@ -468,7 +468,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="panel" id="panel-security">
         <h1 style="font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br);margin-bottom:16px">🔐 Security & Config</h1>
 
-        <!-- BOT TOKEN — PERSISTS ACROSS REFRESHES -->
+        <!-- BOT TOKEN - PERSISTS ACROSS REFRESHES -->
         <div class="card">
           <div class="card-title">🤖 Bot Token (Persistent)</div>
           <div class="token-status-bar" id="tokenStatusBar">
@@ -476,7 +476,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <button class="btn btn-danger btn-sm" id="tokenClearBtn" style="display:none" onclick="clearBotToken()">Clear</button>
           </div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.6">
-            Enter your bot token from <b>@BotFather</b>. It's saved permanently in your browser — survives refreshes and closing the tab.
+            Enter your bot token from <b>@BotFather</b>. It's saved permanently in your browser - survives refreshes and closing the tab.
           </div>
           <div class="form-group" style="margin-bottom:10px">
             <div class="form-label">Paste Bot Token Here</div>
@@ -490,7 +490,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           <div class="card-title">👑 Registered Admin ID</div>
           <div style="background:var(--bg-mid);border:1px solid var(--border-br);border-radius:12px;padding:16px;margin-bottom:12px">
             <div style="font-size:11px;color:var(--text-dim)">Current Admin ID</div>
-            <div style="font-family:'Orbitron';font-size:20px;color:var(--amber-br);margin-top:4px" id="secAdminId">—</div>
+            <div style="font-family:'Orbitron';font-size:20px;color:var(--amber-br);margin-top:4px" id="secAdminId">-</div>
             <div style="font-size:11px;color:var(--green-br);margin-top:4px">✅ Only this ID can log in</div>
           </div>
           <div class="form-group" style="margin-bottom:10px"><div class="form-label">New Admin Telegram ID</div><input class="form-input" id="newAdminId" placeholder="Telegram User ID"/></div>
@@ -502,8 +502,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="card">
           <div class="card-title">🔑 Session</div>
           <div style="display:flex;flex-direction:column;gap:0">
-            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">Logged in as</span><span class="mono" id="secLoggedInAs">—</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">Session started</span><span style="font-family:'Orbitron';font-size:11px;color:var(--amber)" id="secLoginTime">—</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">Logged in as</span><span class="mono" id="secLoggedInAs">-</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">Session started</span><span style="font-family:'Orbitron';font-size:11px;color:var(--amber)" id="secLoginTime">-</span></div>
             <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0"><span style="color:var(--text-dim)">Secret code</span><span style="font-family:'Orbitron';font-size:9px;color:var(--amber)">28d483d1df4643d513eaa93b4b6bf046</span></div>
           </div>
           <button class="btn btn-danger btn-sm" style="margin-top:12px" onclick="logout()">🔒 Logout</button>
@@ -542,9 +542,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <div id="adminToast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
+// ===============================================================
 //  FIREBASE CONFIG
-// ═══════════════════════════════════════════════════════════════
+// ===============================================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBrjz60NH_C02VnuSlU9WQ68C471QMc6f0",
   authDomain: "ant-colony-game.firebaseapp.com",
@@ -558,7 +558,7 @@ const FIREBASE_CONFIG = {
 
 const ADMIN_SECRET   = '28d483d1df4643d513eaa93b4b6bf046';
 const ADMIN_STORE    = 'ac_admin_v2';    // localStorage key for admin ID
-const TOKEN_STORE    = 'ac_bot_token';   // localStorage key for bot token — PERMANENT
+const TOKEN_STORE    = 'ac_bot_token';   // localStorage key for bot token - PERMANENT
 const SETTINGS_STORE = 'ac_settings_v1';
 
 let db = null;
@@ -570,7 +570,7 @@ let lbSortKey = 'colonySize';
 let sessionStart = new Date();
 let annButtons = [];
 
-// ── FIREBASE ─────────────────────────────────────────────────
+// -- FIREBASE -------------------------------------------------
 function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
@@ -579,23 +579,23 @@ function initFirebase() {
   } catch(e) { db = null; console.error('Firebase error:', e); }
 }
 
-// ── BOT TOKEN (PERMANENT — localStorage survives all refreshes) ──
+// -- BOT TOKEN (PERMANENT - localStorage survives all refreshes) --
 function saveBotToken() {
   const input = document.getElementById('botTokenInput');
   const token = input.value.trim();
-  if (!token) { toast('❌ Paste your bot token first'); return; }
-  if (!token.includes(':')) { toast('❌ Invalid token format — should contain ":"'); return; }
+  if (!token) { toast('[X] Paste your bot token first'); return; }
+  if (!token.includes(':')) { toast('[X] Invalid token format - should contain ":"'); return; }
   localStorage.setItem(TOKEN_STORE, token);
   input.value = '';
   updateTokenStatus();
-  toast('✅ Bot token saved permanently! Survives all refreshes.');
+  toast('[OK] Bot token saved permanently! Survives all refreshes.');
 }
 
 function clearBotToken() {
   if (!confirm('Remove saved bot token?')) return;
   localStorage.removeItem(TOKEN_STORE);
   updateTokenStatus();
-  toast('🗑️ Bot token removed');
+  toast('[del] Bot token removed');
 }
 
 function getBotToken() {
@@ -610,20 +610,20 @@ function updateTokenStatus() {
   const annWarn  = document.getElementById('annTokenWarning');
   if (token) {
     dot.className = 'token-dot set';
-    text.textContent = '✅ Token saved — announcements ready!';
+    text.textContent = '[OK] Token saved - announcements ready!';
     text.style.color = 'var(--green-br)';
     if (clearBtn) clearBtn.style.display = 'inline-flex';
     if (annWarn) annWarn.style.display = 'none';
   } else {
     dot.className = 'token-dot unset';
-    text.textContent = '⚠️ Not configured — go to Security tab';
+    text.textContent = '[!] Not configured - go to Security tab';
     text.style.color = 'var(--red)';
     if (clearBtn) clearBtn.style.display = 'none';
     if (annWarn) annWarn.style.display = 'flex';
   }
 }
 
-// ── AUTH ──────────────────────────────────────────────────────
+// -- AUTH ------------------------------------------------------
 function attemptLogin() {
   const secret = document.getElementById('secretInput').value.trim();
   const err = document.getElementById('loginErr');
@@ -659,7 +659,7 @@ function logout() {
   document.getElementById('secretInput').value = '';
 }
 
-// ── FIREBASE DATA ─────────────────────────────────────────────
+// -- FIREBASE DATA ---------------------------------------------
 function refreshData() {
   if (!db) { loadDemo(); return; }
   db.ref('players').once('value').then(snap => {
@@ -675,12 +675,12 @@ function loadDemo() {
     'demo1': { tgId:'demo1', tgName:'ShadowColony', tgUsername:'shadow', chatId:'demo1', balance:5.2, totalMined:5.2, colonySize:5, referrals:0, workers:{scout:5} },
   };
   updateDashboard(); updateLeaderboard(); updateGiftList();
-  toast('⚠️ Firebase not reachable — demo mode');
+  toast('[!] Firebase not reachable - demo mode');
 }
 
 function getPlayers() { return Object.values(allPlayers).filter(p => p && p.tgName); }
 
-// ── DASHBOARD ─────────────────────────────────────────────────
+// -- DASHBOARD -------------------------------------------------
 function updateDashboard() {
   const pl = getPlayers();
   const totAnt = pl.reduce((s,p) => s+(p.balance||0), 0);
@@ -690,16 +690,16 @@ function updateDashboard() {
   document.getElementById('dsTotalAnt').textContent     = totAnt.toFixed(2);
   document.getElementById('dsTotalWorkers').textContent = fmtK(totWork);
   document.getElementById('dsAvgBalance').textContent   = pl.length ? (totAnt/pl.length).toFixed(2) : '0';
-  document.getElementById('dsTopPlayer').textContent    = top ? top.tgName : '—';
-  document.getElementById('dsMineRate').textContent     = (getSettings().miningMultiplier||1) + '×';
+  document.getElementById('dsTopPlayer').textContent    = top ? top.tgName : '-';
+  document.getElementById('dsMineRate').textContent     = (getSettings().miningMultiplier||1) + 'x';
 
   const recent = [...pl].reverse().slice(0, 5);
   document.getElementById('recentPlayersList').innerHTML = recent.length
-    ? recent.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${esc(p.tgName)}</div><div style="font-size:11px;color:var(--text-dim)">@${esc(p.tgUsername||p.tgId||'—')}</div></div><div style="text-align:right"><div class="mono">${(p.balance||0).toFixed(2)} $ANT</div><div style="font-size:10px;color:var(--text-dim)">${fmtK(p.colonySize||0)} workers</div></div></div>`).join('')
+    ? recent.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${esc(p.tgName)}</div><div style="font-size:11px;color:var(--text-dim)">@${esc(p.tgUsername||p.tgId||'-')}</div></div><div style="text-align:right"><div class="mono">${(p.balance||0).toFixed(2)} $ANT</div><div style="font-size:10px;color:var(--text-dim)">${fmtK(p.colonySize||0)} workers</div></div></div>`).join('')
     : '<div style="color:var(--text-dim)">No players yet</div>';
 }
 
-// ── LEADERBOARD ───────────────────────────────────────────────
+// -- LEADERBOARD -----------------------------------------------
 function sortLb(key, el) {
   lbSortKey = key;
   document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
@@ -709,29 +709,29 @@ function sortLb(key, el) {
 
 function updateLeaderboard() {
   const pl = [...getPlayers()].sort((a,b) => (b[lbSortKey]||0) - (a[lbSortKey]||0));
-  const medals = ['🥇','🥈','🥉'];
+  const medals = ['#1','#2','#3'];
   const bc = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
   document.getElementById('lbBody').innerHTML = pl.map((p,i) =>
     `<tr>
       <td><span class="rank-badge ${bc(i)}">${i<3?medals[i]:'#'+(i+1)}</span></td>
-      <td><div class="player-name">${esc(p.tgName)}</div><div class="player-id">@${esc(p.tgUsername||p.tgId||'—')}</div></td>
+      <td><div class="player-name">${esc(p.tgName)}</div><div class="player-id">@${esc(p.tgUsername||p.tgId||'-')}</div></td>
       <td class="mono">${fmtK(p.colonySize||0)}</td>
       <td class="mono">${(p.totalMined||0).toFixed(2)}</td>
       <td class="mono">${p.referrals||0}</td>
       <td><div style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="quickBalance('${p.tgId||i}')">💰</button>
-        <button class="btn btn-danger btn-sm" onclick="confirmWipePlayer('${p.tgId||i}','${esc(p.tgName)}')">🗑️</button>
+        <button class="btn btn-ghost btn-sm" onclick="quickBalance('${p.tgId||i}')">$</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmWipePlayer('${p.tgId||i}','${esc(p.tgName)}')">[del]</button>
       </div></td>
     </tr>`
   ).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim)">No players</td></tr>';
 }
 
-// ── BALANCE ───────────────────────────────────────────────────
+// -- BALANCE ---------------------------------------------------
 let foundPlayerId = null;
 function findPlayer() {
   const q = document.getElementById('balUsername').value.trim().replace('@','');
   const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q || x.tgName===q);
-  if (!p) { toast('❌ Player not found'); return; }
+  if (!p) { toast('[X] Player not found'); return; }
   foundPlayerId = p.tgId;
   document.getElementById('fpName').textContent    = p.tgName;
   document.getElementById('fpId').textContent      = '@'+(p.tgUsername||p.tgId);
@@ -748,11 +748,11 @@ function quickBalance(id) {
 }
 
 function applyBalance() {
-  if (!foundPlayerId) { toast('❌ Search for a player first'); return; }
-  if (!db) { toast('⚠️ Firebase not connected'); return; }
+  if (!foundPlayerId) { toast('[X] Search for a player first'); return; }
+  if (!db) { toast('[!] Firebase not connected'); return; }
   const op  = document.getElementById('balOp').value;
   const amt = parseFloat(document.getElementById('balAmount').value);
-  if (isNaN(amt) || amt < 0) { toast('❌ Enter a valid amount'); return; }
+  if (isNaN(amt) || amt < 0) { toast('[X] Enter a valid amount'); return; }
 
   db.ref('players/'+foundPlayerId).once('value').then(snap => {
     const p = snap.val() || {};
@@ -762,11 +762,11 @@ function applyBalance() {
     else                 newBal = amt;
     newBal = parseFloat(newBal.toFixed(4));
     return db.ref('players/'+foundPlayerId).update({ balance: newBal, adminBalanceOverride: newBal });
-  }).then(() => { toast('✅ Balance updated! Player gets it on next sync.'); refreshData(); })
-    .catch(e => toast('❌ ' + e.message));
+  }).then(() => { toast('[OK] Balance updated! Player gets it on next sync.'); refreshData(); })
+    .catch(e => toast('[X] ' + e.message));
 }
 
-// ── GIFTS ─────────────────────────────────────────────────────
+// -- GIFTS -----------------------------------------------------
 function setGiftTarget(t) {
   giftTarget = t;
   document.getElementById('giftAllBtn').className    = t==='all'    ? 'btn btn-primary' : 'btn btn-ghost';
@@ -787,15 +787,15 @@ function sendGifts() {
   const ant     = parseFloat(document.getElementById('giftAnt').value || 0);
   const workers = parseInt(document.getElementById('giftWorkers').value || 0);
   const msg     = document.getElementById('giftMsg').value.trim();
-  if (!ant && !workers) { toast('❌ Enter $ANT or Workers to gift'); return; }
-  if (!db) { toast('⚠️ Firebase not connected'); return; }
+  if (!ant && !workers) { toast('[X] Enter $ANT or Workers to gift'); return; }
+  if (!db) { toast('[!] Firebase not connected'); return; }
 
   let targets = giftTarget==='all'
     ? getPlayers().map(p => p.tgId).filter(Boolean)
     : Array.from(document.querySelectorAll('.gift-check:checked')).map(c => c.value);
-  if (!targets.length) { toast('❌ No players selected'); return; }
+  if (!targets.length) { toast('[X] No players selected'); return; }
 
-  confirmAction('🎁','Send Gifts?',`Send ${ant} $ANT + ${workers} workers to ${targets.length} player(s)?`, () => {
+  confirmAction('[gift]','Send Gifts?',`Send ${ant} $ANT + ${workers} workers to ${targets.length} player(s)?`, () => {
     const updates = {};
     targets.forEach(id => {
       const p = allPlayers[id]; if(!p) return;
@@ -806,55 +806,55 @@ function sendGifts() {
       if (msg) updates[`players/${id}/pendingGiftMsg`] = msg;
     });
     db.ref().update(updates)
-      .then(() => { toast(`🎁 Gifts sent to ${targets.length} players!`); refreshData(); })
-      .catch(e => toast('❌ '+e.message));
+      .then(() => { toast(`[gift] Gifts sent to ${targets.length} players!`); refreshData(); })
+      .catch(e => toast('[X] '+e.message));
   });
 }
 
-// ── WIPEOUT ───────────────────────────────────────────────────
+// -- WIPEOUT ---------------------------------------------------
 function confirmWipePlayer(id, name) {
-  confirmAction('💣','Wipe Player?',`Delete ALL data for "${name}"? Cannot be undone.`, () => {
-    if (!db) { toast('⚠️ Firebase not connected'); return; }
+  confirmAction('[!]','Wipe Player?',`Delete ALL data for "${name}"? Cannot be undone.`, () => {
+    if (!db) { toast('[!] Firebase not connected'); return; }
     db.ref('players/'+id).remove()
-      .then(() => { toast('🗑️ Player wiped'); refreshData(); })
-      .catch(e => toast('❌ '+e.message));
+      .then(() => { toast('[del] Player wiped'); refreshData(); })
+      .catch(e => toast('[X] '+e.message));
   });
 }
 
 function wipePlayer() {
-  if (!db) { toast('⚠️ Firebase not connected'); return; }
+  if (!db) { toast('[!] Firebase not connected'); return; }
   const q = document.getElementById('wipeUsername').value.trim().replace('@','');
   const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q || x.tgName===q);
-  if (!p) { toast('❌ Player not found'); return; }
+  if (!p) { toast('[X] Player not found'); return; }
   confirmWipePlayer(p.tgId, p.tgName);
 }
 
 function resetPlayerBalance() {
-  if (!db) { toast('⚠️ Firebase not connected'); return; }
+  if (!db) { toast('[!] Firebase not connected'); return; }
   const q = document.getElementById('resetUsername').value.trim().replace('@','');
   const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q || x.tgName===q);
-  if (!p) { toast('❌ Player not found'); return; }
-  confirmAction('⚡','Reset Balance?',`Reset "${p.tgName}" balance to 0?`, () => {
+  if (!p) { toast('[X] Player not found'); return; }
+  confirmAction('[!]','Reset Balance?',`Reset "${p.tgName}" balance to 0?`, () => {
     db.ref('players/'+p.tgId).update({ balance:0, adminBalanceOverride:0 })
-      .then(() => { toast('✅ Balance reset'); refreshData(); }).catch(e => toast('❌ '+e.message));
+      .then(() => { toast('[OK] Balance reset'); refreshData(); }).catch(e => toast('[X] '+e.message));
   });
 }
 
 function wipeoutAll() {
-  if (!db) { toast('⚠️ Firebase not connected'); return; }
+  if (!db) { toast('[!] Firebase not connected'); return; }
   if (document.getElementById('wipeConfirmText').value.trim() !== 'WIPEOUT ALL') {
-    toast('❌ Type "WIPEOUT ALL" exactly'); return;
+    toast('[X] Type "WIPEOUT ALL" exactly'); return;
   }
-  confirmAction('☢️','FULL WIPEOUT — FINAL WARNING','Delete ALL player data permanently? Every player starts from scratch.',() => {
+  confirmAction('[nuke]','FULL WIPEOUT - FINAL WARNING','Delete ALL player data permanently? Every player starts from scratch.',() => {
     db.ref('players').remove().then(() => {
       allPlayers = {}; updateDashboard(); updateLeaderboard();
       document.getElementById('wipeConfirmText').value = '';
-      toast('☢️ Complete wipeout done');
-    }).catch(e => toast('❌ '+e.message));
+      toast('[nuke] Complete wipeout done');
+    }).catch(e => toast('[X] '+e.message));
   }, true);
 }
 
-// ── MINING SETTINGS ───────────────────────────────────────────
+// -- MINING SETTINGS -------------------------------------------
 function getSettings() {
   const def = { scoutRate:0.0001, soldierRate:0.0002, carrierRate:0.0003, queenRate:0.001, miningMultiplier:1, harvestInterval:60, refWorkers:5, refAnt:0.1, joinWorkers:3, joinAnt:0.05 };
   try { return { ...def, ...JSON.parse(localStorage.getItem(SETTINGS_STORE)||'{}') }; } catch(e){ return def; }
@@ -900,7 +900,7 @@ function saveMiningRates() {
   s.harvestInterval  = gi('harvestIntervalAdmin') || 60;
   saveSettings(s);
   loadSettingsIntoForms();
-  toast(db ? '✅ Mining rates saved & pushed to Firebase!' : '✅ Mining rates saved locally!');
+  toast(db ? '[OK] Mining rates saved & pushed to Firebase!' : '[OK] Mining rates saved locally!');
 }
 
 function saveReferralRates() {
@@ -911,10 +911,10 @@ function saveReferralRates() {
   s.joinAnt     = parseFloat(document.getElementById('inJoinAnt')?.value) || 0.05;
   saveSettings(s);
   loadSettingsIntoForms();
-  toast(db ? '✅ Referral rates saved & pushed to Firebase!' : '✅ Referral rates saved locally!');
+  toast(db ? '[OK] Referral rates saved & pushed to Firebase!' : '[OK] Referral rates saved locally!');
 }
 
-// ── ANNOUNCEMENTS ─────────────────────────────────────────────
+// -- ANNOUNCEMENTS ---------------------------------------------
 function addAnnBtn() {
   annButtons.push({ text:'', url:'' });
   renderAnnBtns();
@@ -925,7 +925,7 @@ function renderAnnBtns() {
     `<div class="ann-btn-item">
       <input class="form-input" placeholder="Button text" value="${esc(b.text)}" oninput="annButtons[${i}].text=this.value;updateAnnPreview()"/>
       <input class="form-input" placeholder="https://..." value="${esc(b.url)}" oninput="annButtons[${i}].url=this.value"/>
-      <button class="remove-btn" onclick="annButtons.splice(${i},1);renderAnnBtns()">✕</button>
+      <button class="remove-btn" onclick="annButtons.splice(${i},1);renderAnnBtns()">x</button>
     </div>`
   ).join('');
 }
@@ -943,12 +943,12 @@ function insertEmoji(e) { document.getElementById('annText').value += e; updateA
 function updateAnnPreview() {
   const text = document.getElementById('annText').value;
   let html = esc(text).replace(/\*(.*?)\*/g,'<b>$1</b>').replace(/_(.*?)_/g,'<i>$1</i>').replace(/\[(.*?)\]\((.*?)\)/g,'<a href="$2" style="color:var(--amber-br)">$1</a>').replace(/\n/g,'<br>');
-  if (annButtons.length) html += '<br><br>' + annButtons.filter(b=>b.text).map(b=>`<span style="display:inline-block;background:var(--bg-mid);border:1px solid var(--border-br);border-radius:8px;padding:5px 12px;font-size:12px;margin:2px">${esc(b.text)} ↗</span>`).join(' ');
+  if (annButtons.length) html += '<br><br>' + annButtons.filter(b=>b.text).map(b=>`<span style="display:inline-block;background:var(--bg-mid);border:1px solid var(--border-br);border-radius:8px;padding:5px 12px;font-size:12px;margin:2px">${esc(b.text)} ^</span>`).join(' ');
   document.getElementById('annPreview').innerHTML = html || '<span style="color:var(--text-dim)">Preview...</span>';
 }
 
-// ── TELEGRAM API ──────────────────────────────────────────────
-// ── TELEGRAM API ─────────────────────────────────────────────
+// -- TELEGRAM API ----------------------------------------------
+// -- TELEGRAM API ---------------------------------------------
 // Send plain text message
 async function tgSendRaw(chatId, text, extra={}) {
   const token = getBotToken();
@@ -961,7 +961,7 @@ async function tgSendRaw(chatId, text, extra={}) {
   } catch(e) { return { ok:false, description: e.message }; }
 }
 
-// Upload image to Telegra.ph (Telegram's own CDN — free, no key, CORS-safe)
+// Upload image to Telegra.ph (Telegram's own CDN - free, no key, CORS-safe)
 async function uploadImageToHost(file) {
   const form = new FormData();
   form.append('file', file, file.name);
@@ -1015,39 +1015,39 @@ async function tgSend(chatId, text, extra={}) {
 // Test to self - full diagnostics
 async function testAnnouncement() {
   const token = getBotToken();
-  if (!token) { toast('❌ Add bot token in Security tab first!'); showPanel('security'); return; }
-  if (!currentAdminId) { toast('❌ Not logged in'); return; }
+  if (!token) { toast('[X] Add bot token in Security tab first!'); showPanel('security'); return; }
+  if (!currentAdminId) { toast('[X] Not logged in'); return; }
 
-  toast('📤 Testing...');
-  const text = document.getElementById('annText').value.trim() || '🐜 Test message from Admin Panel!';
+  toast('[send] Testing...');
+  const text = document.getElementById('annText').value.trim() || '[ant] Test message from Admin Panel!';
 
   if (selectedFile && selectedFileType === 'photo') {
-    toast('⏳ Uploading image...');
+    toast('[wait] Uploading image...');
     const url = await uploadImageToHost(selectedFile);
-    if (!url) { toast('❌ Image upload failed — sending text only'); }
+    if (!url) { toast('[X] Image upload failed - sending text only'); }
     else {
       const d = await tgSendPhotoUrl(currentAdminId, url, text, {});
-      if (d.ok) { toast('✅ Photo sent! Check your Telegram.'); return; }
-      else { toast('❌ Photo failed: ' + (d.description||'unknown')); return; }
+      if (d.ok) { toast('[OK] Photo sent! Check your Telegram.'); return; }
+      else { toast('[X] Photo failed: ' + (d.description||'unknown')); return; }
     }
   }
 
   const d = await tgSendRaw(currentAdminId, text, {});
-  if (d.ok) toast('✅ Test sent! Check your Telegram chat.');
-  else      toast('❌ Failed: ' + (d.description || 'unknown error'));
+  if (d.ok) toast('[OK] Test sent! Check your Telegram chat.');
+  else      toast('[X] Failed: ' + (d.description || 'unknown error'));
 }
 
 async function sendAnnouncement() {
   const text = document.getElementById('annText').value.trim();
-  if (!text && !selectedFile) { toast('❌ Write a message or attach a file'); return; }
+  if (!text && !selectedFile) { toast('[X] Write a message or attach a file'); return; }
   const token = getBotToken();
-  if (!token) { toast('❌ Add bot token in Security tab!'); showPanel('security'); return; }
+  if (!token) { toast('[X] Add bot token in Security tab!'); showPanel('security'); return; }
 
   let players = getPlayers();
   const target = document.getElementById('annTarget').value;
   if (target === 'top10') players = [...players].sort((a,b)=>(b.colonySize||0)-(a.colonySize||0)).slice(0,10);
   const chatIds = [...new Set(players.map(p => p.chatId||p.tgId).filter(id => id && String(id)!=='99999999'))];
-  if (!chatIds.length) { toast('❌ No real players in database yet'); return; }
+  if (!chatIds.length) { toast('[X] No real players in database yet'); return; }
 
   const validBtns = annButtons.filter(b => b.text && b.url);
   const extra = validBtns.length ? { reply_markup:{ inline_keyboard:[validBtns.map(b=>({text:b.text,url:b.url}))] } } : {};
@@ -1058,15 +1058,15 @@ async function sendAnnouncement() {
   const progSub=document.getElementById('sendProgressSub');
   prog.style.display='block'; progBar.style.width='0%';
 
-  // If file attached — upload image ONCE first, reuse URL for all players
+  // If file attached - upload image ONCE first, reuse URL for all players
   let hostedPhotoUrl = null;
   if (selectedFile && selectedFileType === 'photo') {
-    progText.textContent = '⏳ Uploading image...';
+    progText.textContent = '[wait] Uploading image...';
     hostedPhotoUrl = await uploadImageToHost(selectedFile);
     if (!hostedPhotoUrl) {
-      toast('⚠️ Image upload failed — will send text only');
+      toast('[!] Image upload failed - will send text only');
     } else {
-      toast('✅ Image uploaded! Sending to players...');
+      toast('[OK] Image uploaded! Sending to players...');
     }
   }
 
@@ -1079,9 +1079,7 @@ async function sendAnnouncement() {
         d = await tgSendPhotoUrl(chatIds[i], hostedPhotoUrl, text||null, extra);
       } else if (selectedFile && selectedFileType !== 'photo') {
         // For video/doc without hosting, just send the text with a note
-        d = await tgSendRaw(chatIds[i], (text?text+'
-
-':'')+'📎 _[File attachment — open the game to see it]_', extra);
+        d = await tgSendRaw(chatIds[i], (text ? text + '\n\n' : '') + '[file] _[File attachment]_', extra);
       } else {
         d = await tgSendRaw(chatIds[i], text, extra);
       }
@@ -1090,7 +1088,7 @@ async function sendAnnouncement() {
 
     progBar.style.width = Math.round((i+1)/chatIds.length*100)+'%';
     progText.textContent = 'Sending... '+(i+1)+' / '+chatIds.length;
-    progSub.textContent  = '✅ '+sent+' sent   ❌ '+failed+' failed';
+    progSub.textContent  = '[OK] '+sent+' sent   [X] '+failed+' failed';
     await new Promise(r=>setTimeout(r,80));
   }
 
@@ -1100,22 +1098,22 @@ async function sendAnnouncement() {
 
   if (failed>0) {
     const topErr = [...new Set(errors)][0]||'';
-    toast('⚠️ '+sent+' sent, '+failed+' failed. '+topErr.substring(0,60));
+    toast('[!] '+sent+' sent, '+failed+' failed. '+topErr.substring(0,60));
   } else {
-    toast('📢 Done! ✅ All '+sent+' messages sent!');
+    toast('[msg] Done! [OK] All '+sent+' messages sent!');
   }
 
   document.getElementById('annText').value='';
   clearFile(); annButtons=[]; renderAnnBtns(); updateAnnPreview();
 }
 
-// ── SECURITY ──────────────────────────────────────────────────
+// -- SECURITY --------------------------------------------------
 function updateSecurityPanel() {
   const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
   const el = document.getElementById('secAdminId');
-  if (el) el.textContent = stored.adminId || '—';
+  if (el) el.textContent = stored.adminId || '-';
   const li = document.getElementById('secLoggedInAs');
-  if (li) li.textContent = currentAdminId || '—';
+  if (li) li.textContent = currentAdminId || '-';
   const lt = document.getElementById('secLoginTime');
   if (lt) lt.textContent = sessionStart.toLocaleTimeString();
 }
@@ -1123,16 +1121,16 @@ function updateSecurityPanel() {
 function updateAdminId() {
   const newId  = document.getElementById('newAdminId').value.trim();
   const secret = document.getElementById('confirmSecret').value.trim();
-  if (secret !== ADMIN_SECRET) { toast('❌ Wrong secret code'); return; }
-  if (!newId || !/^\d+$/.test(newId)) { toast('❌ Invalid Telegram ID (numbers only)'); return; }
+  if (secret !== ADMIN_SECRET) { toast('[X] Wrong secret code'); return; }
+  if (!newId || !/^\d+$/.test(newId)) { toast('[X] Invalid Telegram ID (numbers only)'); return; }
   const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
   stored.adminId = newId;
   localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
-  toast('✅ Admin ID updated! Re-login with new ID.');
+  toast('[OK] Admin ID updated! Re-login with new ID.');
   updateSecurityPanel();
 }
 
-// ── MODAL ─────────────────────────────────────────────────────
+// -- MODAL -----------------------------------------------------
 function confirmAction(icon, title, desc, fn, danger=false) {
   pendingModal = fn;
   document.getElementById('modalIcon').textContent = icon;
@@ -1145,7 +1143,7 @@ function closeModal() { document.getElementById('confirmModal').classList.remove
 function executeModal() { if(pendingModal) pendingModal(); closeModal(); }
 document.getElementById('confirmModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
 
-// ── NAVIGATION ─────────────────────────────────────────────────
+// -- NAVIGATION -------------------------------------------------
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item,.mobile-nav-item').forEach(n => n.classList.remove('active'));
@@ -1158,12 +1156,12 @@ function showPanel(id) {
   if (id === 'mining' || id === 'referral') loadSettingsIntoForms();
 }
 
-// ── UTILS ─────────────────────────────────────────────────────
+// -- UTILS -----------------------------------------------------
 function fmtK(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':String(n||0);}
 function esc(s){const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML;}
 function toast(msg){const t=document.getElementById('adminToast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),3500);}
 
-// ── FILE UPLOAD ───────────────────────────────────────────────
+// -- FILE UPLOAD -----------------------------------------------
 let selectedFile = null;
 let selectedFileType = null;
 
@@ -1172,7 +1170,7 @@ function handleFileSelect(file) {
   selectedFile = file;
   selectedFileType = file.type.startsWith('image/') ? 'photo'
                   : file.type.startsWith('video/') ? 'video' : 'document';
-  const icons = { photo:'🖼️', video:'🎥', document:'📄' };
+  const icons = { photo:'[img]', video:'[vid]', document:'[doc]' };
   const sizeMB = (file.size / 1024 / 1024).toFixed(2);
   const ua = document.getElementById('uploadArea');
   const fp = document.getElementById('filePreview');
@@ -1189,7 +1187,7 @@ function handleFileSelect(file) {
     r.onload = e => { img.src=e.target.result; img.style.display='block'; };
     r.readAsDataURL(file);
   } else if (img) { img.style.display='none'; }
-  toast('📎 ' + file.name + ' ready to send!');
+  toast('[file] ' + file.name + ' ready to send!');
 }
 
 function clearFile() {
@@ -1208,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── BOOT ──────────────────────────────────────────────────────
+// -- BOOT ------------------------------------------------------
 checkSession();
 </script>
 </body>
