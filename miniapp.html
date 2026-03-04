@@ -1001,14 +1001,14 @@ body::before {
 
 
   <!-- OFFLINE EARNINGS POPUP -->
-  <div class="offline-popup" id="offlinePopup" style="display:none">
+  <div class="offline-popup" id="offlinePopup" style="display:none" onclick="collectOffline()">
     <div class="offline-popup-inner">
       <div class="offline-moon">🌙</div>
       <div class="offline-title">Welcome Back!</div>
-      <div class="offline-sub">Your colony mined while you were away</div>
-      <div class="offline-earned" id="offlineAmount">+0.000</div>
-      <div class="offline-earned-sub" id="offlineTime">for 0 hours</div>
-      <button class="offline-collect-btn" onclick="collectOffline()">⛏️ COLLECT</button>
+      <div class="offline-sub">Your colony kept mining while away</div>
+      <div class="offline-earned" id="offlineAmount">+0.000 $ANT</div>
+      <div class="offline-earned-sub" id="offlineTime">Away 0h 0m</div>
+      <button class="offline-collect-btn" onclick="collectOffline()">⛏️ CLAIM OFFLINE EARNINGS</button>
     </div>
   </div>
 
@@ -1234,7 +1234,7 @@ function saveAccount() {
     dailyClaimedDate: STATE.dailyClaimedDate,
     lastHarvest: STATE.lastHarvest,
     purchasedUpgrades: STATE.purchasedUpgrades || {},
-    lastSeen: Date.now(),
+    // lastSeen is only updated on pagehide — not here
     referredBy: STATE.referredBy || null,
     missionsDone: STATE.missionsDone || {},
     missionStats: STATE.missionStats || {},
@@ -1608,6 +1608,10 @@ function initUI() {
   setInterval(saveAccount, 30000);
   window.addEventListener('pagehide', saveLastSeen);
   window.addEventListener('beforeunload', saveLastSeen);
+  // Mobile: save when app goes to background
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveLastSeen();
+  });
 }
 
 // ── DAILY CLAIM ──
@@ -2240,12 +2244,12 @@ function checkOfflineEarnings() {
   const earned = rate * cappedHours * 3600;
   if (earned < 0.001) return;
 
-  // Show popup
-  document.getElementById('offlineAmount').textContent = '+' + earned.toFixed(3) + ' $ANT';
-  const h = Math.floor(cappedHours), m = Math.floor((cappedHours % 1) * 60);
-  document.getElementById('offlineTime').textContent = `mined over ${h}h ${m}m`;
-  document.getElementById('offlinePopup').style.display = 'flex';
+  // Show popup with claim button
   window._offlineEarned = earned;
+  const h = Math.floor(cappedHours), m = Math.floor((cappedHours % 1) * 60);
+  document.getElementById('offlineAmount').textContent = '+' + earned.toFixed(3) + ' $ANT';
+  document.getElementById('offlineTime').textContent = 'Away ' + (h>0?h+'h ':'') + m + 'm — tap to collect!';
+  document.getElementById('offlinePopup').style.display = 'flex';
 }
 
 function collectOffline() {
