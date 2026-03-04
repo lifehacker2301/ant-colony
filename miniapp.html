@@ -1313,8 +1313,8 @@ function createAccount() {
 function restoreAccount(saved) {
   STATE.createdAt    = saved.createdAt || Date.now();
   STATE.userId       = saved.tgId;
-  STATE.balance      = Math.min(saved.balance || 0, 99999);   // hard cap — prevents runaway sync bugs
-  STATE.totalMined   = Math.min(saved.totalMined || 0, 99999);
+  STATE.balance      = saved.balance || 0;
+  STATE.totalMined   = saved.totalMined || 0;
   STATE.todayMined   = saved.todayMined || 0;
   STATE.bestDay      = saved.bestDay || 0;
   STATE.referrals    = saved.referrals || 0;
@@ -2209,14 +2209,16 @@ function updateEventTimer(){
 // ============================================================
 function checkOfflineEarnings() {
   const saved = loadAccount();
-  if (!saved || !saved.lastHarvest) return;
+  if (!saved) return;
   const now = Date.now();
-  const away = now - (saved.lastSeen || saved.lastHarvest || now);
+  // Use lastSeen first, fallback to lastHarvest
+  const lastActive = saved.lastSeen || saved.lastHarvest || now;
+  const away = now - lastActive;
   const awayHours = away / 3600000;
-  if (awayHours < 0.25) return; // less than 15 min — skip
+  if (awayHours < 0.083) return; // less than 5 min — skip
 
-  // Calculate what was mined while away (cap at 8 hours)
-  const cappedHours = Math.min(awayHours, 8);
+  // Calculate what was mined while away (cap at 24 hours)
+  const cappedHours = Math.min(awayHours, 24);
   let rate = 0;
   WORKER_TYPES.forEach(w => { rate += (STATE.workers[w.key]||0) * w.rate; });
   const earned = rate * cappedHours * 3600;
