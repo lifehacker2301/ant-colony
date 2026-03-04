@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🐜 Ant Colony — Admin Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet"/>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+:root {
+  --bg:       #060402;
+  --bg-card:  #0e0900;
+  --bg-mid:   #120c00;
+  --amber:    #f5a623;
+  --amber-br: #ffd060;
+  --gold:     #d4800a;
+  --red:      #e74c3c;
+  --green:    #27ae60;
+  --green-br: #2ecc71;
+  --blue:     #3498db;
+  --purple:   #8e44ad;
+  --border:   rgba(245,166,35,0.15);
+  --border-br:rgba(245,166,35,0.35);
+  --text:     #f0e6c8;
+  --text-dim: #7a6a40;
+  --danger:   #c0392b;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
+
+/* ── SCANLINE BACKGROUND ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{
+  position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,#0f0900 0%,#060402 100%);
+}
+.login-box{
+  width:90%;max-width:380px;text-align:center;
+  background:linear-gradient(145deg,#0e0900,#1a1200);
+  border:1px solid var(--border-br);border-radius:24px;padding:36px 28px;
+  box-shadow:0 0 80px rgba(245,166,35,0.1);
+  animation:fadeUp 0.8s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.login-logo{font-size:56px;margin-bottom:12px;animation:pulse-logo 2s ease-in-out infinite;}
+@keyframes pulse-logo{0%,100%{filter:drop-shadow(0 0 8px rgba(245,166,35,0.4));}50%{filter:drop-shadow(0 0 20px rgba(245,166,35,0.8));}}
+.login-title{font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--text-dim);margin-bottom:24px;}
+.login-input{
+  width:100%;background:rgba(10,7,0,0.8);border:1px solid var(--border-br);
+  border-radius:12px;padding:14px 16px;font-family:'Orbitron';font-size:12px;
+  color:var(--amber);outline:none;letter-spacing:1px;text-align:center;
+  margin-bottom:10px;transition:border-color 0.2s;
+}
+.login-input:focus{border-color:var(--amber);}
+.login-input::placeholder{color:var(--text-dim);font-family:'Rajdhani';letter-spacing:0;}
+.login-btn{
+  width:100%;background:linear-gradient(135deg,#f5a623,#d4800a);border:none;
+  border-radius:12px;padding:14px;font-family:'Orbitron';font-size:12px;
+  font-weight:900;color:#0a0500;cursor:pointer;letter-spacing:2px;
+  box-shadow:0 4px 20px rgba(245,166,35,0.3);transition:all 0.15s;margin-top:4px;
+}
+.login-btn:active{transform:scale(0.97);}
+.login-err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+.login-setup-note{font-size:11px;color:var(--text-dim);margin-top:16px;line-height:1.5;padding:10px;background:rgba(245,166,35,0.04);border-radius:8px;border:1px solid var(--border);}
+
+/* ── MAIN ADMIN APP ── */
+#adminApp{display:none;min-height:100vh;position:relative;z-index:1;}
+
+/* TOP BAR */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,4,2,0.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-br);
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+}
+.topbar-brand{display:flex;align-items:center;gap:10px;}
+.topbar-logo{font-size:28px;filter:drop-shadow(0 0 8px rgba(245,166,35,0.5));}
+.topbar-title{font-family:'Cinzel Decorative';font-size:13px;color:var(--amber-br);line-height:1.2;}
+.topbar-sub{font-size:10px;color:var(--text-dim);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.admin-badge{background:rgba(245,166,35,0.12);border:1px solid var(--border-br);border-radius:20px;padding:4px 12px;font-family:'Orbitron';font-size:10px;color:var(--amber);display:flex;align-items:center;gap:6px;}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--green-br);animation:blink 1.2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.logout-btn{background:none;border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--red);cursor:pointer;}
+
+/* SIDE NAV */
+.layout{display:flex;min-height:calc(100vh - 57px);}
+.sidenav{
+  width:220px;flex-shrink:0;
+  background:linear-gradient(180deg,#0e0900,#080600);
+  border-right:1px solid var(--border);padding:16px 10px;
+  position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;
+}
+.nav-section-lbl{font-size:10px;color:var(--text-dim);letter-spacing:2px;padding:8px 10px 4px;text-transform:uppercase;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+  cursor:pointer;margin-bottom:2px;transition:all 0.15s;font-size:13px;font-weight:600;
+  color:var(--text-dim);
+}
+.nav-item:hover{background:rgba(245,166,35,0.08);color:var(--text);}
+.nav-item.active{background:rgba(245,166,35,0.12);border:1px solid var(--border-br);color:var(--amber-br);}
+.nav-item .nav-icon{font-size:18px;width:24px;text-align:center;}
+.nav-item .nav-badge{margin-left:auto;background:var(--red);border-radius:10px;padding:1px 7px;font-size:10px;color:#fff;font-family:'Orbitron';}
+
+/* CONTENT */
+.content{flex:1;padding:20px;overflow-y:auto;}
+.panel{display:none;}
+.panel.active{display:block;animation:fadeIn 0.25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:translateX(0);}}
+
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;}
+.card-title{font-family:'Orbitron';font-size:13px;color:var(--amber-br);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.stat-box{background:var(--bg-mid);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-val{font-family:'Orbitron';font-size:22px;color:var(--amber-br);margin-bottom:4px;}
+.stat-lbl{font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+.stat-box.danger{border-color:rgba(231,76,60,0.3);background:rgba(231,76,60,0.04);}
+.stat-box.danger .stat-val{color:var(--red);}
+.stat-box.green{border-color:rgba(39,174,96,0.3);background:rgba(39,174,96,0.04);}
+.stat-box.green .stat-val{color:var(--green-br);}
+
+/* TABLE */
+.admin-table{width:100%;border-collapse:collapse;font-size:13px;}
+.admin-table th{text-align:left;padding:10px 12px;font-family:'Orbitron';font-size:10px;color:var(--text-dim);letter-spacing:1px;border-bottom:1px solid var(--border);background:rgba(245,166,35,0.03);}
+.admin-table td{padding:10px 12px;border-bottom:1px solid rgba(245,166,35,0.06);vertical-align:middle;}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:rgba(245,166,35,0.03);}
+.rank-badge{font-family:'Orbitron';font-size:11px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.rank-badge.gold{background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3);}
+.rank-badge.silver{background:rgba(192,192,192,0.15);color:#c0c0c0;border:1px solid rgba(192,192,192,0.3);}
+.rank-badge.bronze{background:rgba(205,127,50,0.15);color:#cd7f32;border:1px solid rgba(205,127,50,0.3);}
+.rank-badge.normal{background:rgba(245,166,35,0.08);color:var(--text-dim);border:1px solid var(--border);}
+.player-name{font-weight:600;color:var(--text);}
+.player-id{font-family:'Orbitron';font-size:9px;color:var(--text-dim);}
+.mono{font-family:'Orbitron';font-size:11px;color:var(--amber);}
+
+/* INPUTS */
+.form-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px;}
+.form-label{font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;}
+.form-input{background:rgba(10,7,0,0.8);border:1px solid var(--border-br);border-radius:10px;padding:10px 14px;font-family:'Rajdhani';font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;width:100%;}
+.form-input:focus{border-color:var(--amber);}
+.form-select{background:rgba(10,7,0,0.8);border:1px solid var(--border-br);border-radius:10px;padding:10px 14px;font-family:'Rajdhani';font-size:14px;color:var(--text);outline:none;width:100%;cursor:pointer;}
+.form-textarea{background:rgba(10,7,0,0.8);border:1px solid var(--border-br);border-radius:10px;padding:10px 14px;font-family:'Rajdhani';font-size:14px;color:var(--text);outline:none;resize:vertical;width:100%;min-height:80px;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:10px;padding:10px 20px;font-family:'Orbitron';font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+.btn:active{transform:scale(0.96);}
+.btn-primary{background:linear-gradient(135deg,#f5a623,#d4800a);color:#0a0500;box-shadow:0 3px 12px rgba(245,166,35,0.3);}
+.btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;box-shadow:0 3px 12px rgba(231,76,60,0.3);}
+.btn-green{background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;box-shadow:0 3px 12px rgba(39,174,96,0.3);}
+.btn-ghost{background:rgba(245,166,35,0.1);border:1px solid var(--border-br);color:var(--amber);}
+.btn-sm{padding:6px 14px;font-size:10px;}
+.btn-full{width:100%;}
+
+/* DANGER ZONE */
+.danger-zone{background:rgba(231,76,60,0.05);border:1px solid rgba(231,76,60,0.25);border-radius:14px;padding:18px;}
+.danger-title{font-family:'Orbitron';font-size:12px;color:var(--red);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.danger-desc{font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5;}
+
+/* GIFT SELECTOR */
+.player-check-list{display:flex;flex-direction:column;gap:6px;max-height:250px;overflow-y:auto;margin:10px 0;padding-right:4px;}
+.player-check-item{display:flex;align-items:center;gap:10px;background:var(--bg-mid);border:1px solid var(--border);border-radius:10px;padding:8px 12px;cursor:pointer;}
+.player-check-item.selected{border-color:var(--amber);background:rgba(245,166,35,0.06);}
+.player-check-item input[type=checkbox]{accent-color:var(--amber);width:16px;height:16px;}
+
+/* ANNOUNCEMENT BUILDER */
+.announce-preview{background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px;font-size:13px;line-height:1.6;min-height:60px;white-space:pre-wrap;}
+.btn-row{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.btn-pair{display:flex;gap:8px;}
+.ann-btn-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.ann-btn-item{display:flex;gap:8px;align-items:center;}
+.ann-btn-item .form-input{flex:1;}
+.remove-btn{background:none;border:1px solid rgba(231,76,60,0.4);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:14px;flex-shrink:0;}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info .t-title{font-size:13px;font-weight:600;}
+.toggle-info .t-sub{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.sw{width:44px;height:24px;background:rgba(100,100,100,0.3);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.sw.on{background:var(--amber);}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform 0.2s;}
+.sw.on::after{transform:translateX(20px);}
+
+/* TOAST */
+#adminToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,#1a1200,#2a1e00);border:1px solid var(--border-br);border-radius:12px;padding:12px 24px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
+#adminToast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* CONFIRM MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:5000;display:flex;align-items:center;justify-content:center;display:none;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:linear-gradient(145deg,#0e0900,#1a1000);border:1px solid var(--border-br);border-radius:20px;padding:28px;max-width:320px;width:90%;text-align:center;animation:fadeUp 0.3s ease;}
+.modal-icon{font-size:44px;margin-bottom:12px;}
+.modal-title{font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br);margin-bottom:8px;}
+.modal-desc{font-size:13px;color:var(--text-dim);margin-bottom:20px;line-height:1.5;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns .btn{flex:1;}
+
+/* MOBILE RESPONSIVE */
+@media(max-width:700px){
+  .sidenav{display:none;}
+  .layout{flex-direction:column;}
+  .content{padding:14px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .form-row{flex-direction:column;}
+}
+.mobile-nav{display:none;}
+@media(max-width:700px){
+  .mobile-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;
+    background:rgba(6,4,2,0.97);border-top:1px solid var(--border);
+    padding:8px 4px env(safe-area-inset-bottom);overflow-x:auto;gap:4px;
+  }
+  .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;cursor:pointer;border-radius:8px;flex-shrink:0;}
+  .mobile-nav-item.active{background:rgba(245,166,35,0.12);}
+  .mobile-nav-icon{font-size:20px;}
+  .mobile-nav-lbl{font-size:9px;color:var(--text-dim);white-space:nowrap;}
+  .mobile-nav-item.active .mobile-nav-lbl{color:var(--amber);}
+  .content{padding-bottom:70px;}
+}
+
+.live-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.4);border-radius:10px;padding:3px 10px;font-size:10px;font-family:'Orbitron';color:var(--green-br);}
+.section-divider{height:1px;background:var(--border);margin:20px 0;}
+.setup-card{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.3);border-radius:14px;padding:20px;text-align:center;}
+.setup-icon{font-size:40px;margin-bottom:10px;}
+.setup-title{font-family:'Orbitron';font-size:13px;color:var(--amber-br);margin-bottom:6px;}
+.setup-desc{font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.5;}
+.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🐜</div>
+    <div class="login-title">Admin Control</div>
+    <div class="login-sub">Ant Colony • Restricted Access</div>
+    <input class="login-input" id="secretInput" type="password" placeholder="Enter secret code" maxlength="64"/>
+    <input class="login-input" id="adminIdInput" type="text" placeholder="Your Telegram User ID" maxlength="20"/>
+    <button class="login-btn" onclick="attemptLogin()">🔐 ACCESS CONTROL PANEL</button>
+    <div class="login-err" id="loginErr">❌ Invalid credentials</div>
+    <div class="login-setup-note">
+      First time? Enter your secret code + Telegram User ID to register as admin.<br/>
+      Once registered, only your ID can access this panel.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADMIN APP ═══════════════ -->
+<div id="adminApp">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🐜</div>
+      <div>
+        <div class="topbar-title">Ant Colony</div>
+        <div class="topbar-sub">Admin Control Panel</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="admin-badge"><div class="online-dot"></div>ADMIN</div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDE NAV -->
+    <nav class="sidenav">
+      <div class="nav-section-lbl">Overview</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+      <div class="nav-item" onclick="showPanel('leaderboard')"><span class="nav-icon">🏆</span>Leaderboard</div>
+
+      <div class="nav-section-lbl" style="margin-top:10px">Player Management</div>
+      <div class="nav-item" onclick="showPanel('balance')"><span class="nav-icon">💰</span>Change Balance</div>
+      <div class="nav-item" onclick="showPanel('gifts')"><span class="nav-icon">🎁</span>Gift Rewards</div>
+      <div class="nav-item" onclick="showPanel('wipeout')"><span class="nav-icon">💣</span>Wipeout System</div>
+
+      <div class="nav-section-lbl" style="margin-top:10px">Game Settings</div>
+      <div class="nav-item" onclick="showPanel('mining')"><span class="nav-icon">⛏️</span>Mining Rate</div>
+      <div class="nav-item" onclick="showPanel('referral')"><span class="nav-icon">🔗</span>Referral Rate</div>
+
+      <div class="nav-section-lbl" style="margin-top:10px">Communication</div>
+      <div class="nav-item" onclick="showPanel('announce')"><span class="nav-icon">📢</span>Announcements</div>
+
+      <div class="nav-section-lbl" style="margin-top:10px">Security</div>
+      <div class="nav-item" onclick="showPanel('security')"><span class="nav-icon">🔐</span>Admin Security</div>
+    </nav>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="panel active" id="panel-dashboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br)">Colony Overview</h1>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Real-time game statistics</div>
+          </div>
+          <div class="live-tag">🟢 LIVE DATA</div>
+        </div>
+
+        <div class="stat-grid" id="dashStats">
+          <div class="stat-box"><div class="stat-val" id="dsTotalPlayers">—</div><div class="stat-lbl">TOTAL PLAYERS</div></div>
+          <div class="stat-box green"><div class="stat-val" id="dsTotalAnt">—</div><div class="stat-lbl">$ANT CIRCULATING</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsTotalWorkers">—</div><div class="stat-lbl">TOTAL WORKERS</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsAvgBalance">—</div><div class="stat-lbl">AVG BALANCE</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsTopPlayer">—</div><div class="stat-lbl">TOP PLAYER</div></div>
+          <div class="stat-box"><div class="stat-val" id="dsMiningRate" id="dsMiningRate">—</div><div class="stat-lbl">GLOBAL MINE RATE</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚡ Quick Actions</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+            <button class="btn btn-green" onclick="showPanel('gifts')">🎁 Send Gift All</button>
+            <button class="btn btn-primary" onclick="showPanel('announce')">📢 Announce</button>
+            <button class="btn btn-ghost" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn btn-danger" onclick="showPanel('wipeout')">💣 Wipeout</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">👥 Recent Players</div>
+          <div id="recentPlayersList" style="font-size:13px;color:var(--text-dim)">Loading...</div>
+        </div>
+      </div>
+
+      <!-- ── LEADERBOARD ── -->
+      <div class="panel" id="panel-leaderboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br)">Real-Time Leaderboard</h1>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="sortLb('colonySize')">By Workers</button>
+            <button class="btn btn-ghost btn-sm" onclick="sortLb('totalMined')">By $ANT</button>
+            <button class="btn btn-ghost btn-sm" onclick="sortLb('referrals')">By Recruits</button>
+            <button class="btn btn-primary btn-sm" onclick="refreshData()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="admin-table" id="lbTable">
+            <thead><tr>
+              <th>#</th><th>Player</th><th>Workers</th><th>$ANT Mined</th><th>Recruits</th><th>Queens</th><th>Action</th>
+            </tr></thead>
+            <tbody id="lbBody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim)">Loading players...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── BALANCE ── -->
+      <div class="panel" id="panel-balance">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:20px">💰 Change Player Balance</h1>
+        <div class="card">
+          <div class="card-title">🔍 Find Player</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">Telegram Username or ID</div>
+              <input class="form-input" id="balUsername" placeholder="@username or user ID"/>
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn btn-ghost" onclick="findPlayer()">Search</button>
+            </div>
+          </div>
+          <div id="foundPlayerCard" style="display:none;background:var(--bg-mid);border:1px solid var(--border-br);border-radius:12px;padding:14px;margin-top:10px;">
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px" id="fpName">—</div>
+            <div style="font-size:11px;color:var(--text-dim);font-family:'Orbitron'" id="fpId">—</div>
+            <div style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+              <div><div class="mono" id="fpBalance">0</div><div style="font-size:10px;color:var(--text-dim)">$ANT</div></div>
+              <div><div class="mono" id="fpWorkers">0</div><div style="font-size:10px;color:var(--text-dim)">Workers</div></div>
+              <div><div class="mono" id="fpMined">0</div><div style="font-size:10px;color:var(--text-dim)">Total Mined</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">💸 Adjust Balance</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">Operation</div>
+              <select class="form-select" id="balOp">
+                <option value="add">➕ Add $ANT</option>
+                <option value="subtract">➖ Subtract $ANT</option>
+                <option value="set">🎯 Set Exact Balance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Amount ($ANT)</div>
+              <input class="form-input" id="balAmount" type="number" placeholder="0.000" step="0.001"/>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">Reason (optional note)</div>
+            <input class="form-input" id="balReason" placeholder="Admin adjustment, reward, correction..."/>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="applyBalance()">⚡ Apply Balance Change</button>
+        </div>
+      </div>
+
+      <!-- ── GIFTS ── -->
+      <div class="panel" id="panel-gifts">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:20px">🎁 Gift Rewards</h1>
+        <div class="card">
+          <div class="card-title">🎯 Gift Target</div>
+          <div style="display:flex;gap:10px;margin-bottom:14px">
+            <button class="btn btn-primary" id="giftAllBtn" onclick="setGiftTarget('all')">👥 All Players</button>
+            <button class="btn btn-ghost" id="giftSelectBtn" onclick="setGiftTarget('select')">✅ Select Players</button>
+          </div>
+          <div id="giftPlayerList" style="display:none">
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Check players to receive gift:</div>
+            <div style="margin-bottom:6px;display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="selectAllPlayers()">Select All</button>
+              <button class="btn btn-ghost btn-sm" onclick="deselectAllPlayers()">Deselect All</button>
+            </div>
+            <div class="player-check-list" id="playerCheckList"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📦 Gift Contents</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">$ANT Amount</div>
+              <input class="form-input" id="giftAnt" type="number" placeholder="0.00" step="0.01"/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Workers Bonus</div>
+              <input class="form-input" id="giftWorkers" type="number" placeholder="0"/>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">Gift Message (shown to players)</div>
+            <textarea class="form-textarea" id="giftMsg" placeholder="🎁 Surprise from the Colony Admin! Happy mining!"></textarea>
+          </div>
+          <button class="btn btn-green btn-full" onclick="sendGifts()">🚀 Send Gifts</button>
+        </div>
+      </div>
+
+      <!-- ── WIPEOUT ── -->
+      <div class="panel" id="panel-wipeout">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--red);margin-bottom:20px">💣 Wipeout System</h1>
+        <div class="card" style="border-color:rgba(231,76,60,0.2)">
+          <div style="background:rgba(231,76,60,0.08);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#ff8888;line-height:1.6">
+            ⚠️ <strong>Warning:</strong> These actions are permanent and cannot be undone. Player data will be permanently deleted from the database.
+          </div>
+
+          <div class="danger-zone" style="margin-bottom:14px">
+            <div class="danger-title">🗑️ Wipe Single Player</div>
+            <div class="danger-desc">Delete all data for one specific player. They will need to start over.</div>
+            <div class="form-row">
+              <div class="form-group">
+                <input class="form-input" id="wipeUsername" placeholder="@username or Telegram ID"/>
+              </div>
+              <button class="btn btn-danger" onclick="wipePlayer()">💣 Wipe Player</button>
+            </div>
+          </div>
+
+          <div class="danger-zone" style="margin-bottom:14px">
+            <div class="danger-title">⚡ Reset Player Progress</div>
+            <div class="danger-desc">Reset a player's balance to 0 but keep their account. Good for punishing cheaters.</div>
+            <div class="form-row">
+              <div class="form-group">
+                <input class="form-input" id="resetUsername" placeholder="@username or Telegram ID"/>
+              </div>
+              <button class="btn btn-danger" onclick="resetPlayerBalance()">Reset Balance</button>
+            </div>
+          </div>
+
+          <div class="danger-zone">
+            <div class="danger-title">☢️ FULL DATABASE WIPEOUT</div>
+            <div class="danger-desc">Delete ALL player data permanently. This resets the entire game for everyone. Requires typing "WIPEOUT ALL" to confirm.</div>
+            <input class="form-input" id="wipeConfirmText" placeholder='Type "WIPEOUT ALL" to confirm' style="margin-bottom:10px"/>
+            <button class="btn btn-danger btn-full" onclick="wipeoutAll()">☢️ EXECUTE FULL WIPEOUT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MINING RATE ── -->
+      <div class="panel" id="panel-mining">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:20px">⛏️ Mining Rate Control</h1>
+        <div class="stat-grid" style="margin-bottom:16px">
+          <div class="stat-box"><div class="stat-val" id="mrScout">0.0001</div><div class="stat-lbl">Scout Rate/sec</div></div>
+          <div class="stat-box"><div class="stat-val" id="mrSoldier">0.0002</div><div class="stat-lbl">Soldier Rate/sec</div></div>
+          <div class="stat-box"><div class="stat-val" id="mrCarrier">0.0003</div><div class="stat-lbl">Carrier Rate/sec</div></div>
+          <div class="stat-box"><div class="stat-val" id="mrQueen">0.001</div><div class="stat-lbl">Queen Guard Rate/sec</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ Adjust Worker Mining Rates</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">🔍 Scout Rate ($ANT/sec)</div>
+              <input class="form-input" id="inScout" type="number" step="0.00001" placeholder="0.0001"/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">⚔️ Soldier Rate ($ANT/sec)</div>
+              <input class="form-input" id="inSoldier" type="number" step="0.00001" placeholder="0.0002"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">📦 Carrier Rate ($ANT/sec)</div>
+              <input class="form-input" id="inCarrier" type="number" step="0.00001" placeholder="0.0003"/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">👑 Queen Guard Rate ($ANT/sec)</div>
+              <input class="form-input" id="inQueenRate" type="number" step="0.00001" placeholder="0.001"/>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">🌍 Global Mining Multiplier</div>
+              <select class="form-select" id="globalMultiplier">
+                <option value="1">1× Normal</option>
+                <option value="2">2× Double Speed</option>
+                <option value="3">3× Triple Speed</option>
+                <option value="5">5× Event Mode</option>
+                <option value="0.5">0.5× Half Speed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Harvest Interval (seconds)</div>
+              <input class="form-input" id="harvestIntervalAdmin" type="number" placeholder="60"/>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="saveMiningRates()">💾 Save Mining Rates</button>
+        </div>
+        <div class="card">
+          <div class="card-title">🎮 Event Boosts</div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-title">Rain Season Raid (2× Mining)</div><div class="t-sub">Current active event boost</div></div>
+            <div class="sw on" id="swEvent1" onclick="this.classList.toggle('on');saveEventSettings()"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-title">Weekend Bonus (1.5× Mining)</div><div class="t-sub">Auto-activates Sat-Sun</div></div>
+            <div class="sw" id="swEvent2" onclick="this.classList.toggle('on');saveEventSettings()"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-title">New Player Bonus (3× for 24hrs)</div><div class="t-sub">New players get boosted start</div></div>
+            <div class="sw on" id="swEvent3" onclick="this.classList.toggle('on');saveEventSettings()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REFERRAL ── -->
+      <div class="panel" id="panel-referral">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:20px">🔗 Referral Rate Control</h1>
+        <div class="card">
+          <div class="card-title">Current Referral Settings</div>
+          <div class="stat-grid" style="margin-bottom:0">
+            <div class="stat-box"><div class="stat-val" id="rrRefWorkers">5</div><div class="stat-lbl">Workers per Recruit</div></div>
+            <div class="stat-box"><div class="stat-val" id="rrRefAnt">0.1</div><div class="stat-lbl">$ANT per Recruit</div></div>
+            <div class="stat-box"><div class="stat-val" id="rrJoinBonus">3</div><div class="stat-lbl">Join Bonus (Workers)</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ Adjust Referral Rewards</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">Workers per Successful Recruit</div>
+              <input class="form-input" id="inRefWorkers" type="number" placeholder="5"/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">$ANT Bonus per Recruit</div>
+              <input class="form-input" id="inRefAnt" type="number" step="0.01" placeholder="0.1"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">New Player Join Bonus (Workers)</div>
+              <input class="form-input" id="inJoinBonus" type="number" placeholder="3"/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">New Player $ANT Bonus</div>
+              <input class="form-input" id="inJoinAnt" type="number" step="0.01" placeholder="0.05"/>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">Max Referrals per Player (0 = unlimited)</div>
+            <input class="form-input" id="inMaxRef" type="number" placeholder="0"/>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="saveReferralRates()">💾 Save Referral Settings</button>
+        </div>
+      </div>
+
+      <!-- ── ANNOUNCEMENTS ── -->
+      <div class="panel" id="panel-announce">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:20px">📢 Send Announcement</h1>
+        <div class="card">
+          <div class="card-title">✍️ Compose Message</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <div class="form-label">Message Text (supports bold, links)</div>
+            <textarea class="form-textarea" id="annText" placeholder="🐜 *Big news from the Colony!*&#10;&#10;We just hit 1,000 players! Thank you all..." style="min-height:120px" oninput="updateAnnPreview()"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <button class="btn btn-ghost btn-sm" onclick="insertMarkdown('bold')"><b>Bold</b></button>
+            <button class="btn btn-ghost btn-sm" onclick="insertMarkdown('italic')"><i>Italic</i></button>
+            <button class="btn btn-ghost btn-sm" onclick="insertMarkdown('link')">🔗 Link</button>
+            <button class="btn btn-ghost btn-sm" onclick="insertEmoji('🐜')">🐜</button>
+            <button class="btn btn-ghost btn-sm" onclick="insertEmoji('⚡')">⚡</button>
+            <button class="btn btn-ghost btn-sm" onclick="insertEmoji('🎁')">🎁</button>
+            <button class="btn btn-ghost btn-sm" onclick="insertEmoji('🏆')">🏆</button>
+            <button class="btn btn-ghost btn-sm" onclick="insertEmoji('👑')">👑</button>
+          </div>
+          <div class="card-title">🖼️ Attach Media (optional)</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">Image/File URL</div>
+              <input class="form-input" id="annMedia" placeholder="https://..." oninput="updateAnnPreview()"/>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Media Type</div>
+              <select class="form-select" id="annMediaType">
+                <option value="none">No media</option>
+                <option value="photo">📷 Photo</option>
+                <option value="video">🎥 Video</option>
+                <option value="document">📄 Document</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card-title">🔘 Action Buttons (optional)</div>
+          <div class="ann-btn-list" id="annBtnList"></div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="addAnnButton()">➕ Add Button</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">👁️ Preview</div>
+          <div class="announce-preview" id="annPreview">Your message will appear here...</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📡 Send Options</div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">Send To</div>
+              <select class="form-select" id="annTarget">
+                <option value="all">👥 All Players</option>
+                <option value="top10">🏆 Top 10 Players</option>
+                <option value="inactive">😴 Inactive Players (7+ days)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Pin Message?</div>
+              <select class="form-select" id="annPin">
+                <option value="no">No</option>
+                <option value="yes">📌 Yes, pin it</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" style="flex:1" onclick="sendAnnouncement()">🚀 Send Announcement</button>
+            <button class="btn btn-ghost" onclick="previewAnnouncement()">👁️ Full Preview</button>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⚠️ Announcements are stored in Firebase. Players see them next time they open the game.<br/>
+            For live Telegram messages, bot.js must be running on a server.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECURITY ── -->
+      <div class="panel" id="panel-security">
+        <h1 style="font-family:'Cinzel Decorative';font-size:16px;color:var(--amber-br);margin-bottom:20px">🔐 Admin Security</h1>
+
+        <div class="card">
+          <div class="card-title">👑 Registered Admin ID</div>
+          <div id="secAdminStatus" style="background:var(--bg-mid);border:1px solid var(--border-br);border-radius:12px;padding:16px;margin-bottom:14px">
+            <div style="font-size:12px;color:var(--text-dim)">Current Admin Telegram ID</div>
+            <div style="font-family:'Orbitron';font-size:18px;color:var(--amber-br);margin-top:6px" id="secAdminId">Loading...</div>
+            <div style="font-size:11px;color:var(--green-br);margin-top:4px">✅ Only this ID can access the admin panel</div>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <div class="form-label">Update Admin Telegram ID</div>
+            <input class="form-input" id="newAdminId" placeholder="Enter Telegram User ID"/>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">Confirm Current Secret Code</div>
+            <input class="form-input" id="confirmSecret" type="password" placeholder="Secret code to confirm change"/>
+          </div>
+          <button class="btn btn-primary" onclick="updateAdminId()">🔄 Update Admin ID</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔑 Session Info</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-dim)">Logged in as</span>
+              <span class="mono" id="secLoggedInAs">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-dim)">Session started</span>
+              <span style="font-family:'Orbitron';font-size:11px;color:var(--amber)" id="secLoginTime">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0">
+              <span style="color:var(--text-dim)">Admin panel URL</span>
+              <span style="font-size:11px;color:var(--amber-br)" id="secPanelUrl">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-color:rgba(231,76,60,0.2)">
+          <div class="card-title" style="color:var(--red)">⚠️ Secret Code</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.6">
+            Current secret code is saved locally. Share it only with trusted admins.<br/>
+            The code is: <code style="background:rgba(245,166,35,0.1);padding:2px 8px;border-radius:4px;font-family:'Orbitron';font-size:10px;color:var(--amber)">28d483d1df4643d513eaa93b4b6bf046</code>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="logout()">🔒 Lock Panel (Logout)</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav">
+    <div class="mobile-nav-item active" onclick="showPanel('dashboard')"><div class="mobile-nav-icon">📊</div><div class="mobile-nav-lbl">Dashboard</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('leaderboard')"><div class="mobile-nav-icon">🏆</div><div class="mobile-nav-lbl">Leaderboard</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('balance')"><div class="mobile-nav-icon">💰</div><div class="mobile-nav-lbl">Balance</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('gifts')"><div class="mobile-nav-icon">🎁</div><div class="mobile-nav-lbl">Gifts</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('wipeout')"><div class="mobile-nav-icon">💣</div><div class="mobile-nav-lbl">Wipeout</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('mining')"><div class="mobile-nav-icon">⛏️</div><div class="mobile-nav-lbl">Mining</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('announce')"><div class="mobile-nav-icon">📢</div><div class="mobile-nav-lbl">Announce</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('security')"><div class="mobile-nav-icon">🔐</div><div class="mobile-nav-lbl">Security</div></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="modalIcon">⚠️</div>
+    <div class="modal-title" id="modalTitle">Confirm Action</div>
+    <div class="modal-desc" id="modalDesc">Are you sure?</div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modalConfirmBtn" onclick="executeModalAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  FIREBASE CONFIG
+//  ⚠️  Paste your Firebase config below
+//  Get from: Firebase Console → Project Settings → Web App
+// ═══════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBrjz60NH_C02VnuSlU9WQ68C471QMc6f0",
+  authDomain: "ant-colony-game.firebaseapp.com",
+  databaseURL: "https://ant-colony-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ant-colony-game",
+  storageBucket: "ant-colony-game.firebasestorage.app",
+  messagingSenderId: "595563484583",
+  appId: "1:595563484583:web:33b6607e469ce259ba1282",
+  measurementId: "G-SBRPDMR4TJ"
+};
+
+const ADMIN_SECRET = '28d483d1df4643d513eaa93b4b6bf046';
+const ADMIN_STORAGE_KEY = 'antcolony_admin_v1';
+
+let db = null;
+let allPlayers = {};
+let giftTarget = 'all';
+let pendingModalAction = null;
+let currentAdminId = null;
+let lbSortKey = 'colonySize';
+let sessionStartTime = new Date();
+
+// ── FIREBASE INIT ───────────────────────────────────────
+function initFirebase() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    return true;
+  } catch(e) {
+    console.error('Firebase init failed:', e);
+    return false;
+  }
+}
+
+// ── AUTH ────────────────────────────────────────────────
+function attemptLogin() {
+  const secret = document.getElementById('secretInput').value.trim();
+  const userId = document.getElementById('adminIdInput').value.trim();
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+
+  if (secret !== ADMIN_SECRET) { err.textContent = '❌ Wrong secret code'; err.style.display = 'block'; return; }
+  if (!userId || !/^\d+$/.test(userId)) { err.textContent = '❌ Enter a valid Telegram User ID (numbers only)'; err.style.display = 'block'; return; }
+
+  // Check registered admin ID
+  const stored = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || '{}');
+  if (stored.adminId && stored.adminId !== userId) {
+    err.textContent = '🔒 This ID is not authorized. Admin panel is locked to a specific account.';
+    err.style.display = 'block';
+    return;
+  }
+
+  // Register admin ID if first time
+  if (!stored.adminId) {
+    stored.adminId = userId;
+    stored.registeredAt = Date.now();
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(stored));
+    toast('👑 Admin ID registered! Panel locked to your account.');
+  }
+
+  currentAdminId = userId;
+  // Save session
+  sessionStorage.setItem('ac_admin_session', JSON.stringify({ id: userId, time: Date.now() }));
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'block';
+
+  initFirebase();
+  initAdminPanel();
+}
+
+function checkExistingSession() {
+  const sess = sessionStorage.getItem('ac_admin_session');
+  if (!sess) return;
+  const s = JSON.parse(sess);
+  if (Date.now() - s.time > 4 * 3600000) return; // 4hr session
+  const stored = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || '{}');
+  if (stored.adminId !== s.id) return;
+  currentAdminId = s.id;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'block';
+  initFirebase();
+  initAdminPanel();
+}
+
+function logout() {
+  sessionStorage.removeItem('ac_admin_session');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('secretInput').value = '';
+  document.getElementById('adminIdInput').value = '';
+}
+
+// ── INIT ─────────────────────────────────────────────────
+function initAdminPanel() {
+  refreshData();
+  loadGameSettings();
+  initSecurity();
+  // Live data refresh every 30s
+  setInterval(refreshData, 30000);
+}
+
+// ── FIREBASE DATA ────────────────────────────────────────
+function refreshData() {
+  if (!db) { loadDemoData(); return; }
+  db.ref('players').once('value').then(snap => {
+    allPlayers = snap.val() || {};
+    updateDashboard();
+    updateLeaderboard();
+    updateGiftPlayerList();
+  }).catch(() => loadDemoData());
+}
+
+function loadDemoData() {
+  // Demo data when Firebase not configured
+  allPlayers = {
+    'demo1': { tgName:'ShadowColony', tgUsername:'shadowcolony', tgId:'demo1', balance:842.5, totalMined:1200.3, colonySize:24800, referrals:42, queens:{legend:true}, workers:{scout:5000,soldier:3000,carrier:800,queen:200} },
+    'demo2': { tgName:'DiggerKingz', tgUsername:'diggerkingz', tgId:'demo2', balance:631.0, totalMined:900.1, colonySize:18200, referrals:35, queens:{rare:true}, workers:{scout:3000,soldier:2000,carrier:500} },
+    'demo3': { tgName:'AntEmpire99', tgUsername:'antempire99', tgId:'demo3', balance:471.8, totalMined:700.5, colonySize:12450, referrals:28, queens:{}, workers:{scout:2000,soldier:1500,carrier:300} },
+  };
+  updateDashboard();
+  updateLeaderboard();
+  updateGiftPlayerList();
+  toast('⚠️ Firebase not configured — showing demo data');
+}
+
+function getPlayers() { return Object.values(allPlayers).filter(p => p && p.tgName); }
+
+// ── DASHBOARD ────────────────────────────────────────────
+function updateDashboard() {
+  const players = getPlayers();
+  const totalAnt = players.reduce((s,p) => s+(p.balance||0), 0);
+  const totalWorkers = players.reduce((s,p) => s+(p.colonySize||0), 0);
+  const top = players.sort((a,b)=>(b.colonySize||0)-(a.colonySize||0))[0];
+
+  document.getElementById('dsTotalPlayers').textContent = players.length;
+  document.getElementById('dsTotalAnt').textContent = totalAnt.toFixed(1);
+  document.getElementById('dsTotalWorkers').textContent = fmtK(totalWorkers);
+  document.getElementById('dsAvgBalance').textContent = players.length ? (totalAnt/players.length).toFixed(2) : '0';
+  document.getElementById('dsTopPlayer').textContent = top ? top.tgName : '—';
+  document.getElementById('dsMiningRate').textContent = loadGameSettings().miningMultiplier + '×';
+
+  // Recent players
+  const recent = players.slice(-5).reverse();
+  document.getElementById('recentPlayersList').innerHTML = recent.length ? recent.map(p =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-weight:600;font-size:13px">${esc(p.tgName)}</div><div style="font-size:11px;color:var(--text-dim)">@${esc(p.tgUsername||'—')}</div></div>
+      <div style="text-align:right"><div class="mono">${(p.balance||0).toFixed(2)} $ANT</div><div style="font-size:10px;color:var(--text-dim)">${fmtK(p.colonySize||0)} workers</div></div>
+    </div>`
+  ).join('') : '<div style="color:var(--text-dim);font-size:13px">No players yet</div>';
+}
+
+// ── LEADERBOARD ──────────────────────────────────────────
+function sortLb(key) { lbSortKey = key; updateLeaderboard(); }
+function updateLeaderboard() {
+  const players = getPlayers().sort((a,b) => (b[lbSortKey]||0) - (a[lbSortKey]||0));
+  const medals = ['🥇','🥈','🥉'];
+  const badgeClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
+  document.getElementById('lbBody').innerHTML = players.map((p,i) => {
+    const qCount = Object.values(p.queens||{}).filter(Boolean).length;
+    return `<tr>
+      <td><div class="rank-badge ${badgeClass(i)}">${i<3?medals[i]:'#'+(i+1)}</div></td>
+      <td><div class="player-name">${esc(p.tgName)}</div><div class="player-id">@${esc(p.tgUsername||p.tgId||'—')}</div></td>
+      <td class="mono">${fmtK(p.colonySize||0)}</td>
+      <td class="mono">${(p.totalMined||0).toFixed(2)}</td>
+      <td class="mono">${p.referrals||0}</td>
+      <td class="mono">${qCount} 👑</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="quickBalance('${p.tgId||i}')">💰</button>
+          <button class="btn btn-sm" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:8px;cursor:pointer" onclick="confirmWipePlayer('${p.tgId||i}','${esc(p.tgName)}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim)">No players found</td></tr>';
+}
+
+// ── BALANCE ──────────────────────────────────────────────
+let foundPlayerId = null;
+function findPlayer() {
+  const q = document.getElementById('balUsername').value.trim().replace('@','');
+  const players = getPlayers();
+  const found = players.find(p => p.tgUsername===q || p.tgId===q || p.tgName===q);
+  if (!found) { toast('❌ Player not found'); return; }
+  foundPlayerId = found.tgId;
+  document.getElementById('fpName').textContent = found.tgName;
+  document.getElementById('fpId').textContent = '@'+(found.tgUsername||found.tgId);
+  document.getElementById('fpBalance').textContent = (found.balance||0).toFixed(3);
+  document.getElementById('fpWorkers').textContent = fmtK(found.colonySize||0);
+  document.getElementById('fpMined').textContent = (found.totalMined||0).toFixed(2);
+  document.getElementById('foundPlayerCard').style.display = 'block';
+}
+
+function quickBalance(id) {
+  showPanel('balance');
+  document.getElementById('balUsername').value = id;
+  findPlayer();
+}
+
+function applyBalance() {
+  if (!foundPlayerId) { toast('❌ Search for a player first'); return; }
+  const op = document.getElementById('balOp').value;
+  const amt = parseFloat(document.getElementById('balAmount').value);
+  if (isNaN(amt) || amt < 0) { toast('❌ Enter a valid amount'); return; }
+
+  if (!db) { toast('⚠️ Firebase not connected — cannot save'); return; }
+  const ref = db.ref('players/' + foundPlayerId);
+  ref.once('value').then(snap => {
+    const p = snap.val() || {};
+    let newBal = p.balance || 0;
+    if (op === 'add') newBal += amt;
+    else if (op === 'subtract') newBal = Math.max(0, newBal - amt);
+    else newBal = amt;
+    return ref.update({ balance: newBal });
+  }).then(() => {
+    toast(`✅ Balance updated for player!`);
+    refreshData();
+  }).catch(e => toast('❌ Error: ' + e.message));
+}
+
+// ── GIFTS ────────────────────────────────────────────────
+function setGiftTarget(t) {
+  giftTarget = t;
+  document.getElementById('giftAllBtn').className = t==='all'?'btn btn-primary':'btn btn-ghost';
+  document.getElementById('giftSelectBtn').className = t==='select'?'btn btn-primary':'btn btn-ghost';
+  document.getElementById('giftPlayerList').style.display = t==='select'?'block':'none';
+}
+
+function updateGiftPlayerList() {
+  const list = document.getElementById('playerCheckList');
+  list.innerHTML = getPlayers().map((p,i) =>
+    `<label class="player-check-item" id="gpl_${p.tgId||i}">
+      <input type="checkbox" value="${p.tgId||i}" class="gift-check"/>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(p.tgName)}</div><div style="font-size:11px;color:var(--text-dim)">${fmtK(p.colonySize||0)} workers • ${(p.balance||0).toFixed(1)} $ANT</div></div>
+    </label>`
+  ).join('');
+}
+
+function selectAllPlayers() { document.querySelectorAll('.gift-check').forEach(c => c.checked = true); }
+function deselectAllPlayers() { document.querySelectorAll('.gift-check').forEach(c => c.checked = false); }
+
+function sendGifts() {
+  const ant = parseFloat(document.getElementById('giftAnt').value || 0);
+  const workers = parseInt(document.getElementById('giftWorkers').value || 0);
+  const msg = document.getElementById('giftMsg').value.trim();
+  if (!ant && !workers) { toast('❌ Enter ANT amount or Workers to gift'); return; }
+
+  let targets = [];
+  if (giftTarget === 'all') {
+    targets = getPlayers().map(p => p.tgId).filter(Boolean);
+  } else {
+    targets = Array.from(document.querySelectorAll('.gift-check:checked')).map(c => c.value);
+  }
+  if (!targets.length) { toast('❌ No players selected'); return; }
+
+  confirmAction('🎁', 'Send Gifts?', `Send ${ant} $ANT + ${workers} workers to ${targets.length} player(s)?`, () => {
+    if (!db) { toast('⚠️ Firebase not connected'); return; }
+    const updates = {};
+    targets.forEach(id => {
+      const p = allPlayers[id];
+      if (!p) return;
+      updates[`players/${id}/balance`] = (p.balance||0) + ant;
+      updates[`players/${id}/totalMined`] = (p.totalMined||0) + ant;
+      updates[`players/${id}/colonySize`] = (p.colonySize||0) + workers;
+      if (msg) updates[`players/${id}/pendingGiftMsg`] = msg;
+    });
+    db.ref().update(updates).then(() => {
+      toast(`🎁 Gifts sent to ${targets.length} players!`);
+      refreshData();
+    }).catch(e => toast('❌ ' + e.message));
+  });
+}
+
+// ── WIPEOUT ──────────────────────────────────────────────
+function confirmWipePlayer(id, name) {
+  confirmAction('💣','Wipe Player?',`Permanently delete all data for "${name}"? This cannot be undone.`, () => {
+    if (!db) { toast('⚠️ Firebase not connected'); return; }
+    db.ref('players/'+id).remove().then(() => {
+      toast('🗑️ Player data wiped');
+      refreshData();
+    }).catch(e => toast('❌ ' + e.message));
+  });
+}
+
+function wipePlayer() {
+  const q = document.getElementById('wipeUsername').value.trim().replace('@','');
+  const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q);
+  if (!p) { toast('❌ Player not found'); return; }
+  confirmWipePlayer(p.tgId, p.tgName);
+}
+
+function resetPlayerBalance() {
+  const q = document.getElementById('resetUsername').value.trim().replace('@','');
+  const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q);
+  if (!p) { toast('❌ Player not found'); return; }
+  confirmAction('⚡','Reset Balance?',`Reset balance to 0 for "${p.tgName}"?`, () => {
+    db.ref('players/'+p.tgId).update({ balance:0 }).then(() => {
+      toast('✅ Balance reset to 0');
+      refreshData();
+    }).catch(e => toast('❌ '+e.message));
+  });
+}
+
+function wipeoutAll() {
+  const typed = document.getElementById('wipeConfirmText').value.trim();
+  if (typed !== 'WIPEOUT ALL') { toast('❌ Type "WIPEOUT ALL" exactly'); return; }
+  confirmAction('☢️','FULL WIPEOUT','Delete ALL player data permanently? This resets the entire game.', () => {
+    if (!db) { toast('⚠️ Firebase not connected'); return; }
+    db.ref('players').remove().then(() => {
+      toast('☢️ Full wipeout complete');
+      allPlayers = {};
+      updateDashboard();
+      updateLeaderboard();
+    }).catch(e => toast('❌ '+e.message));
+  }, true);
+}
+
+// ── MINING RATES ─────────────────────────────────────────
+function loadGameSettings() {
+  const def = { scoutRate:0.0001, soldierRate:0.0002, carrierRate:0.0003, queenRate:0.001, miningMultiplier:1, harvestInterval:60, refWorkers:5, refAnt:0.1, joinWorkers:3, joinAnt:0.05 };
+  try { return { ...def, ...JSON.parse(localStorage.getItem('ac_admin_settings')||'{}') }; } catch(e){ return def; }
+}
+function saveGameSettings(s) { localStorage.setItem('ac_admin_settings', JSON.stringify(s)); if(db) db.ref('gameSettings').set(s); }
+
+function saveMiningRates() {
+  const s = loadGameSettings();
+  s.scoutRate   = parseFloat(document.getElementById('inScout').value) || s.scoutRate;
+  s.soldierRate  = parseFloat(document.getElementById('inSoldier').value) || s.soldierRate;
+  s.carrierRate  = parseFloat(document.getElementById('inCarrier').value) || s.carrierRate;
+  s.queenRate    = parseFloat(document.getElementById('inQueenRate').value) || s.queenRate;
+  s.miningMultiplier = parseFloat(document.getElementById('globalMultiplier').value) || 1;
+  s.harvestInterval  = parseInt(document.getElementById('harvestIntervalAdmin').value) || 60;
+  saveGameSettings(s);
+  updateMiningDisplay(s);
+  toast('✅ Mining rates saved & synced!');
+}
+
+function saveEventSettings() { toast('✅ Event settings saved'); }
+
+function updateMiningDisplay(s) {
+  document.getElementById('mrScout').textContent   = s.scoutRate;
+  document.getElementById('mrSoldier').textContent  = s.soldierRate;
+  document.getElementById('mrCarrier').textContent  = s.carrierRate;
+  document.getElementById('mrQueen').textContent    = s.queenRate;
+}
+
+// ── REFERRAL RATES ───────────────────────────────────────
+function saveReferralRates() {
+  const s = loadGameSettings();
+  s.refWorkers  = parseInt(document.getElementById('inRefWorkers').value) || 5;
+  s.refAnt      = parseFloat(document.getElementById('inRefAnt').value) || 0.1;
+  s.joinWorkers = parseInt(document.getElementById('inJoinBonus').value) || 3;
+  s.joinAnt     = parseFloat(document.getElementById('inJoinAnt').value) || 0.05;
+  s.maxRef      = parseInt(document.getElementById('inMaxRef').value) || 0;
+  saveGameSettings(s);
+  document.getElementById('rrRefWorkers').textContent = s.refWorkers;
+  document.getElementById('rrRefAnt').textContent     = s.refAnt;
+  document.getElementById('rrJoinBonus').textContent  = s.joinWorkers;
+  toast('✅ Referral rates saved & synced!');
+}
+
+// ── ANNOUNCEMENTS ─────────────────────────────────────────
+let annButtons = [];
+function addAnnButton() {
+  const idx = annButtons.length;
+  annButtons.push({ text:'', url:'' });
+  renderAnnButtons();
+}
+
+function renderAnnButtons() {
+  document.getElementById('annBtnList').innerHTML = annButtons.map((b,i) =>
+    `<div class="ann-btn-item">
+      <input class="form-input" placeholder="Button text" value="${esc(b.text)}" oninput="annButtons[${i}].text=this.value;updateAnnPreview()"/>
+      <input class="form-input" placeholder="URL (https://...)" value="${esc(b.url)}" oninput="annButtons[${i}].url=this.value"/>
+      <button class="remove-btn" onclick="annButtons.splice(${i},1);renderAnnButtons()">✕</button>
+    </div>`
+  ).join('');
+}
+
+function insertMarkdown(type) {
+  const t = document.getElementById('annText');
+  const sel = t.value.substring(t.selectionStart, t.selectionEnd) || 'text';
+  const map = { bold:`*${sel}*`, italic:`_${sel}_`, link:`[${sel}](https://)` };
+  const before = t.value.substring(0, t.selectionStart);
+  const after  = t.value.substring(t.selectionEnd);
+  t.value = before + map[type] + after;
+  updateAnnPreview();
+}
+
+function insertEmoji(e) {
+  const t = document.getElementById('annText');
+  t.value += e;
+  updateAnnPreview();
+}
+
+function updateAnnPreview() {
+  const text = document.getElementById('annText').value;
+  // Simple markdown-like preview
+  let html = esc(text)
+    .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color:var(--amber-br)">$1</a>');
+  if (annButtons.length) {
+    html += '<br/><br/>' + annButtons.map(b => b.text ? `<span style="display:inline-block;background:var(--bg-mid);border:1px solid var(--border-br);border-radius:8px;padding:6px 14px;font-size:12px;margin:3px">${esc(b.text)} ↗</span>` : '').join(' ');
+  }
+  document.getElementById('annPreview').innerHTML = html || '<span style="color:var(--text-dim)">Preview will appear here...</span>';
+}
+
+function previewAnnouncement() { updateAnnPreview(); toast('👁️ Preview updated'); }
+
+function sendAnnouncement() {
+  const text = document.getElementById('annText').value.trim();
+  if (!text) { toast('❌ Write a message first'); return; }
+  const target = document.getElementById('annTarget').value;
+  const pin    = document.getElementById('annPin').value;
+  const media  = document.getElementById('annMedia').value.trim();
+  const mediaType = document.getElementById('annMediaType').value;
+
+  const ann = { text, target, pin, media, mediaType, buttons: annButtons, sentAt: Date.now(), sentBy: currentAdminId };
+  if (db) {
+    db.ref('announcements').push(ann).then(() => {
+      toast('📢 Announcement saved! Players will see it on next login.');
+      document.getElementById('annText').value = '';
+      annButtons = [];
+      renderAnnButtons();
+      updateAnnPreview();
+    }).catch(e => toast('❌ ' + e.message));
+  } else {
+    toast('⚠️ Firebase not connected — cannot send');
+  }
+}
+
+// ── SECURITY ─────────────────────────────────────────────
+function initSecurity() {
+  const stored = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || '{}');
+  document.getElementById('secAdminId').textContent = stored.adminId || '—';
+  document.getElementById('secLoggedInAs').textContent = currentAdminId || '—';
+  document.getElementById('secLoginTime').textContent = sessionStartTime.toLocaleTimeString();
+  document.getElementById('secPanelUrl').textContent = window.location.href.split('?')[0];
+}
+
+function updateAdminId() {
+  const newId = document.getElementById('newAdminId').value.trim();
+  const secret = document.getElementById('confirmSecret').value.trim();
+  if (secret !== ADMIN_SECRET) { toast('❌ Wrong secret code'); return; }
+  if (!newId || !/^\d+$/.test(newId)) { toast('❌ Invalid Telegram ID'); return; }
+  const stored = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || '{}');
+  stored.adminId = newId;
+  localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(stored));
+  document.getElementById('secAdminId').textContent = newId;
+  toast('✅ Admin ID updated! Log out and back in with new ID.');
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function confirmAction(icon, title, desc, fn, isDanger=false) {
+  pendingModalAction = fn;
+  document.getElementById('modalIcon').textContent = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalDesc').textContent = desc;
+  document.getElementById('modalConfirmBtn').className = isDanger ? 'btn btn-danger' : 'btn btn-primary';
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('show'); pendingModalAction=null; }
+function executeModalAction() { if(pendingModalAction){ pendingModalAction(); } closeModal(); }
+document.getElementById('confirmModal').addEventListener('click', e => { if(e.target===e.currentTarget)closeModal(); });
+
+// ── NAVIGATION ───────────────────────────────────────────
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => { if(n.textContent.toLowerCase().includes(id.slice(0,4))) n.classList.add('active'); });
+  document.querySelectorAll('.mobile-nav-item').forEach(n => { if(n.querySelector('.mobile-nav-lbl')?.textContent.toLowerCase().includes(id.slice(0,4))) n.classList.add('active'); });
+  // Load panel-specific data
+  if(id==='mining') { const s=loadGameSettings(); document.getElementById('inScout').value=s.scoutRate; document.getElementById('inSoldier').value=s.soldierRate; document.getElementById('inCarrier').value=s.carrierRate; document.getElementById('inQueenRate').value=s.queenRate; document.getElementById('harvestIntervalAdmin').value=s.harvestInterval; updateMiningDisplay(s); }
+  if(id==='referral') { const s=loadGameSettings(); document.getElementById('inRefWorkers').value=s.refWorkers; document.getElementById('inRefAnt').value=s.refAnt; document.getElementById('inJoinBonus').value=s.joinWorkers; document.getElementById('inJoinAnt').value=s.joinAnt; document.getElementById('rrRefWorkers').textContent=s.refWorkers; document.getElementById('rrRefAnt').textContent=s.refAnt; document.getElementById('rrJoinBonus').textContent=s.joinWorkers; }
+  if(id==='security') initSecurity();
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function fmtK(n){return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':String(n||0);}
+function esc(s){ const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML; }
+function toast(msg){ const t=document.getElementById('adminToast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),3000); }
+
+// ── BOOT ──────────────────────────────────────────────────
+checkExistingSession();
+</script>
+</body>
+</html>
