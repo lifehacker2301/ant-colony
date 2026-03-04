@@ -635,17 +635,19 @@ function attemptLogin() {
   if (secret !== ADMIN_SECRET) { err.textContent = '❌ Wrong secret code'; err.style.display='block'; return; }
   if (!userId || !/^\d+$/.test(userId)) { err.textContent = '❌ Telegram ID must be numbers only'; err.style.display='block'; return; }
 
+  // Secret code is always the master key — it can override or register any admin ID
   const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
   if (stored.adminId && stored.adminId !== userId) {
-    err.textContent = '🔒 This ID is not the registered admin.';
-    err.style.display = 'block';
-    return;
-  }
-  if (!stored.adminId) {
+    // Secret code correct + different ID = override registration (admin moved device / cleared storage)
     stored.adminId = userId;
     stored.registeredAt = Date.now();
     localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
-    toast('👑 Your ID has been registered as admin!');
+    toast('🔄 Admin ID updated to ' + userId);
+  } else if (!stored.adminId) {
+    stored.adminId = userId;
+    stored.registeredAt = Date.now();
+    localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
+    toast('👑 Admin ID registered: ' + userId);
   }
 
   currentAdminId = userId;
