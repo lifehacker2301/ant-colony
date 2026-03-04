@@ -171,11 +171,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="login-logo">🐜</div>
     <div class="login-title">Admin Control</div>
     <div class="login-sub">Ant Colony • Restricted Access</div>
-    <input class="login-input" id="secretInput" type="password" placeholder="Secret code"/>
-    <input class="login-input" id="adminIdInput" type="text" placeholder="Your Telegram User ID"/>
+    <input class="login-input" id="secretInput" type="password" placeholder="Enter secret code" onkeydown="if(event.key==='Enter')attemptLogin()"/>
     <button class="login-btn" onclick="attemptLogin()">🔐 ACCESS PANEL</button>
-    <div class="login-err" id="loginErr">❌ Invalid credentials</div>
-    <div class="login-note">First login registers your Telegram ID. Only your ID can access this panel after that.</div>
+    <div class="login-err" id="loginErr">❌ Wrong secret code</div>
   </div>
 </div>
 
@@ -231,7 +229,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
             <button class="btn btn-green" onclick="showPanel('gifts')">🎁 Gift All</button>
             <button class="btn btn-primary" onclick="showPanel('announce')">📢 Announce</button>
-            <button class="btn btn-ghost" onclick="refreshData()">🔄 Refresh</button>
+            
             <button class="btn btn-danger" onclick="showPanel('wipeout')">💣 Wipeout</button>
           </div>
         </div>
@@ -245,7 +243,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="panel" id="panel-leaderboard">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
           <h1 style="font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br)">🏆 Leaderboard</h1>
-          <button class="btn btn-primary btn-sm" onclick="refreshData()">🔄 Refresh</button>
+          
         </div>
         <div class="lb-tabs">
           <div class="lb-tab active" onclick="sortLb('colonySize',this)">🐜 Workers</div>
@@ -628,30 +626,10 @@ function updateTokenStatus() {
 // ── AUTH ──────────────────────────────────────────────────────
 function attemptLogin() {
   const secret = document.getElementById('secretInput').value.trim();
-  const userId = document.getElementById('adminIdInput').value.trim();
   const err = document.getElementById('loginErr');
   err.style.display = 'none';
-
-  if (secret !== ADMIN_SECRET) { err.textContent = '❌ Wrong secret code'; err.style.display='block'; return; }
-  if (!userId || !/^\d+$/.test(userId)) { err.textContent = '❌ Telegram ID must be numbers only'; err.style.display='block'; return; }
-
-  // Secret code is always the master key — it can override or register any admin ID
-  const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
-  if (stored.adminId && stored.adminId !== userId) {
-    // Secret code correct + different ID = override registration (admin moved device / cleared storage)
-    stored.adminId = userId;
-    stored.registeredAt = Date.now();
-    localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
-    toast('🔄 Admin ID updated to ' + userId);
-  } else if (!stored.adminId) {
-    stored.adminId = userId;
-    stored.registeredAt = Date.now();
-    localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
-    toast('👑 Admin ID registered: ' + userId);
-  }
-
-  currentAdminId = userId;
-  sessionStorage.setItem('ac_sess', JSON.stringify({ id: userId, t: Date.now() }));
+  if (secret !== ADMIN_SECRET) { err.style.display = 'block'; return; }
+  sessionStorage.setItem('ac_sess', JSON.stringify({ t: Date.now() }));
   showApp();
 }
 
@@ -660,9 +638,6 @@ function checkSession() {
   if (!sess) return;
   const s = JSON.parse(sess);
   if (Date.now() - s.t > 6 * 3600000) return; // 6hr timeout
-  const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
-  if (stored.adminId !== s.id) return;
-  currentAdminId = s.id;
   showApp();
 }
 
@@ -682,7 +657,6 @@ function logout() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminApp').style.display = 'none';
   document.getElementById('secretInput').value = '';
-  document.getElementById('adminIdInput').value = '';
 }
 
 // ── FIREBASE DATA ─────────────────────────────────────────────
