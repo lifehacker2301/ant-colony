@@ -1233,6 +1233,7 @@ function saveAccount() {
     dailyClaimed: STATE.dailyClaimed,
     dailyClaimedDate: STATE.dailyClaimedDate,
     lastHarvest: STATE.lastHarvest,
+    purchasedUpgrades: STATE.purchasedUpgrades || {},
     lastSeen: Date.now(),
     referredBy: STATE.referredBy || null,
     missionsDone: STATE.missionsDone || {},
@@ -1324,6 +1325,7 @@ function restoreAccount(saved) {
   STATE.dailyClaimed = saved.dailyClaimed || false;
   STATE.dailyClaimedDate = saved.dailyClaimedDate || null;
   STATE.lastHarvest  = saved.lastHarvest || Date.now();
+  STATE.purchasedUpgrades = saved.purchasedUpgrades || {};
   STATE.referredBy   = saved.referredBy || null;
   STATE.missionsDone    = saved.missionsDone || {};
   STATE.missionStats    = saved.missionStats || { boostCount:0, eggsHatched:0, weekMined:0, queenVisits:0 };
@@ -1390,6 +1392,7 @@ const STATE = {
   referrals: 0, workers: { scout:5, soldier:0, carrier:2, queen:0 },
   colonySize: 5, boostActive: false, boostEnd: 0,
   mineProgress: 0, lastHarvest: Date.now(), harvestInterval: 60,
+  purchasedUpgrades: {}, // tracks which upgrade levels have been bought: {scout:[0,1], soldier:[2]}
   rank: Math.floor(Math.random()*500)+100, userId: null,
   dailyClaimed: false, dailyClaimedDate: null, createdAt: null, referredBy: null,
 };
@@ -2155,17 +2158,30 @@ function openUpgrade(key){
   document.getElementById('upgradeTitle').textContent=w.name;
   document.getElementById('upgradeDesc').textContent='Upgrade to mine faster';
   const lv=UPGRADE_LEVELS[key];
-  document.getElementById('upgradeLevels').innerHTML=lv.map((l,i)=>`<div class="upgrade-level-btn" onclick="buyWorkers('${key}',${l.workers},${l.cost})"><div class="ul-left"><div class="ul-rank">LV${l.rank}</div><div><div class="ul-name">+${l.workers} ${l.name}</div><div class="ul-power">+${(w.rate*l.workers*1000).toFixed(2)} $ANT/1000s</div></div></div><div class="ul-cost">${l.cost===0?'FREE':l.cost+' $ANT'}</div></div>`).join('');
+  const bought = STATE.purchasedUpgrades[key] || [];
+  document.getElementById('upgradeLevels').innerHTML=lv.map((l,i)=>{
+    const isBought = bought.includes(i);
+    const style = isBought ? 'opacity:0.5;pointer-events:none;border-color:rgba(39,174,96,0.4);background:rgba(39,174,96,0.06)' : '';
+    const costLabel = isBought ? '<span style="color:#2ecc71;font-family:Orbitron;font-size:10px">OWNED</span>' : (l.cost===0?'FREE':l.cost+' $ANT');
+    const clickAttr = isBought ? '' : `onclick="buyWorkers('${key}',${l.workers},${l.cost},${i})"`;
+    return `<div class="upgrade-level-btn" ${clickAttr} style="${style}"><div class="ul-left"><div class="ul-rank">LV${l.rank}</div><div><div class="ul-name">+${l.workers} ${l.name}</div><div class="ul-power">+${(w.rate*l.workers*1000).toFixed(2)} $ANT/1000s</div></div></div><div class="ul-cost">${costLabel}</div></div>`;
+  }).join('');
   document.getElementById('upgradeModal').classList.add('open');
   if(tgApp?.HapticFeedback)tgApp.HapticFeedback.selectionChanged();
 }
 
-function buyWorkers(key,workers,cost){
+function buyWorkers(key,workers,cost,levelIndex){
+  // Check already bought
+  const bought = STATE.purchasedUpgrades[key] || [];
+  if(bought.includes(levelIndex)){showToast('Already owned!');return;}
   if(cost>0&&STATE.balance<cost){showToast(`❌ Need ${cost} $ANT!`);if(tgApp?.HapticFeedback)tgApp.HapticFeedback.notificationOccurred('error');return;}
   if(cost>0)STATE.balance-=cost;
   STATE.workers[key]=(STATE.workers[key]||0)+workers; STATE.colonySize+=workers;
+  // Mark this level as purchased (one-time only)
+  if(!STATE.purchasedUpgrades[key]) STATE.purchasedUpgrades[key]=[];
+  STATE.purchasedUpgrades[key].push(levelIndex);
   document.getElementById('upgradeModal').classList.remove('open');
-  showToast(`✅ +${workers} ${WORKER_TYPES.find(w=>w.key===key).name}!`);
+  showToast(`✅ +${workers} ${WORKER_TYPES.find(w=>w.key===key).name}! Buy Queens for more workers.`);
   updateTier(); if(tgApp?.HapticFeedback)tgApp.HapticFeedback.notificationOccurred('success'); saveAccount();
 }
 
