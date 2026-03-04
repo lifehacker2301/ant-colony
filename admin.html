@@ -961,47 +961,19 @@ async function tgSendRaw(chatId, text, extra={}) {
   } catch(e) { return { ok:false, description: e.message }; }
 }
 
-// Upload image to Telegra.ph (Telegram's own CDN - free, no key, CORS-safe)
-async function uploadImageToHost(file) {
-  const form = new FormData();
-  form.append('file', file, file.name);
-  try {
-    const res = await fetch('https://telegra.ph/upload', {
-      method: 'POST',
-      body: form
-    });
-    const d = await res.json();
-    // Returns [{"src":"/file/abc123.jpg"}]
-    if (Array.isArray(d) && d[0] && d[0].src) {
-      return 'https://telegra.ph' + d[0].src;
-    }
-    console.warn('Telegraph upload response:', d);
-  } catch(e) {
-    console.warn('Telegraph upload failed:', e.message);
-  }
-  return null;
-}
-
-// Send photo by URL (no CORS issues!)
-async function tgSendPhotoUrl(chatId, photoUrl, caption, extra={}) {
+// Send local file directly to Telegram via multipart/form-data
+// Works for photo, video, document - no external host needed
+async function tgSendFileDirect(chatId, file, fileType, caption, extra={}) {
   const token = getBotToken();
+  const ep    = fileType==='photo' ? 'sendPhoto' : fileType==='video' ? 'sendVideo' : 'sendDocument';
+  const field = fileType==='photo' ? 'photo'     : fileType==='video' ? 'video'     : 'document';
+  const form  = new FormData();
+  form.append('chat_id', String(chatId));
+  form.append(field, file, file.name);
+  if (caption) { form.append('caption', caption); form.append('parse_mode', 'Markdown'); }
+  if (extra.reply_markup) form.append('reply_markup', JSON.stringify(extra.reply_markup));
   try {
-    const res = await fetch('https://api.telegram.org/bot'+token+'/sendPhoto', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ chat_id:String(chatId), photo:photoUrl, caption, parse_mode:'Markdown', ...extra })
-    });
-    return await res.json();
-  } catch(e) { return { ok:false, description: e.message }; }
-}
-
-// Send any document/video by URL
-async function tgSendDocUrl(chatId, docUrl, caption, extra={}) {
-  const token = getBotToken();
-  try {
-    const res = await fetch('https://api.telegram.org/bot'+token+'/sendDocument', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ chat_id:String(chatId), document:docUrl, caption, parse_mode:'Markdown', ...extra })
-    });
+    const res = await fetch('https://api.telegram.org/bot'+token+'/'+ep, { method:'POST', body:form });
     return await res.json();
   } catch(e) { return { ok:false, description: e.message }; }
 }
@@ -1021,15 +993,10 @@ async function testAnnouncement() {
   toast('[send] Testing...');
   const text = document.getElementById('annText').value.trim() || '[ant] Test message from Admin Panel!';
 
-  if (selectedFile && selectedFileType === 'photo') {
-    toast('[wait] Uploading image...');
-    const url = await uploadImageToHost(selectedFile);
-    if (!url) { toast('[X] Image upload failed - sending text only'); }
-    else {
-      const d = await tgSendPhotoUrl(currentAdminId, url, text, {});
-      if (d.ok) { toast('[OK] Photo sent! Check your Telegram.'); return; }
-      else { toast('[X] Photo failed: ' + (d.description||'unknown')); return; }
-    }
+  if (selectedFile) {
+    const d = await tgSendFileDirect(currentAdminId, selectedFile, selectedFileType, text, {});
+    if (d.ok) { toast('[OK] File sent! Check your Telegram.'); return; }
+    else { toast('[X] File failed: ' + (d.description||'unknown')); return; }
   }
 
   const d = await tgSendRaw(currentAdminId, text, {});
@@ -1058,28 +1025,13 @@ async function sendAnnouncement() {
   const progSub=document.getElementById('sendProgressSub');
   prog.style.display='block'; progBar.style.width='0%';
 
-  // If file attached - upload image ONCE first, reuse URL for all players
-  let hostedPhotoUrl = null;
-  if (selectedFile && selectedFileType === 'photo') {
-    progText.textContent = '[wait] Uploading image...';
-    hostedPhotoUrl = await uploadImageToHost(selectedFile);
-    if (!hostedPhotoUrl) {
-      toast('[!] Image upload failed - will send text only');
-    } else {
-      toast('[OK] Image uploaded! Sending to players...');
-    }
-  }
-
   let sent=0, failed=0, errors=[];
 
   for (let i=0; i<chatIds.length; i++) {
     try {
       let d;
-      if (hostedPhotoUrl) {
-        d = await tgSendPhotoUrl(chatIds[i], hostedPhotoUrl, text||null, extra);
-      } else if (selectedFile && selectedFileType !== 'photo') {
-        // For video/doc without hosting, just send the text with a note
-        d = await tgSendRaw(chatIds[i], (text ? text + '\n\n' : '') + '[file] _[File attachment]_', extra);
+      if (selectedFile) {
+        d = await tgSendFileDirect(chatIds[i], selectedFile, selectedFileType, text||null, extra);
       } else {
         d = await tgSendRaw(chatIds[i], text, extra);
       }
