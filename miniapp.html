@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Ant Colony</title>
+<!-- Telegram Mini App SDK — REQUIRED -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg-deep: #050400;
+  --bg-dark: #0a0800;
+  --bg-mid: #110e02;
+  --bg-card: #181200;
+  --amber: #f5a623;
+  --amber-bright: #ffcc44;
+  --amber-dim: #7a5010;
+  --gold: #d4a017;
+  --gold-bright: #ffe066;
+  --earth: #3d2b08;
+  --earth-light: #5a3f0f;
+  --dirt: #2a1c05;
+  --red-ant: #c0392b;
+  --green: #27ae60;
+  --green-bright: #2ecc71;
+  --text-primary: #ffe8a0;
+  --text-secondary: #c8a060;
+  --text-dim: #7a6030;
+  --border: #2a1f05;
+  --border-bright: #5a4010;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Telegram Mini App — respect safe areas */
+  padding-top: var(--safe-top);
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(61,43,8,0.3) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(90,63,15,0.2) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+
+#bgCanvas { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.5; }
+
+#app { position:relative; z-index:2; max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+
+/* ── HEADER ── */
+.header {
+  padding: 10px 16px 10px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,8,0,0.95);
+  position:sticky; top:0; z-index:100;
+  backdrop-filter: blur(10px);
+}
+
+.logo { display:flex; align-items:center; gap:8px; }
+.logo-icon {
+  width:36px; height:36px; border-radius:50%;
+  background: radial-gradient(circle, #f5a623 0%, #7a3d00 100%);
+  display:flex; align-items:center; justify-content:center; font-size:20px;
+  box-shadow: 0 0 12px rgba(245,166,35,0.5);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 12px rgba(245,166,35,0.5);} 50%{box-shadow:0 0 25px rgba(245,166,35,0.9);} }
+
+.logo-text { font-family:'Cinzel Decorative'; font-size:13px; font-weight:900; color:var(--amber-bright); line-height:1.1; }
+.logo-sub { font-size:9px; color:var(--amber-dim); letter-spacing:3px; text-transform:uppercase; }
+
+.header-right { display:flex; align-items:center; gap:8px; }
+.ant-balance {
+  background: linear-gradient(135deg, var(--earth) 0%, var(--dirt) 100%);
+  border: 1px solid var(--amber-dim); border-radius:16px;
+  padding:5px 12px; display:flex; align-items:center; gap:5px;
+  font-family:'Orbitron'; font-size:10px; color:var(--amber-bright);
+}
+
+/* Telegram User Avatar */
+.tg-avatar {
+  width:32px; height:32px; border-radius:50%;
+  border: 2px solid var(--amber); overflow:hidden;
+  background: linear-gradient(135deg, #3d2b08, #1a1200);
+  display:flex; align-items:center; justify-content:center; font-size:16px;
+}
+.tg-avatar img { width:100%; height:100%; object-fit:cover; }
+
+/* ── COLONY HERO ── */
+.colony-hero {
+  margin:12px; border-radius:18px;
+  background:linear-gradient(145deg,#140f00,#0a0700,#1a1200);
+  border:1px solid var(--earth-light); overflow:hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(245,166,35,0.1);
+}
+
+.colony-canvas-wrap { width:100%; height:200px; position:relative; overflow:hidden; }
+#colonyCanvas { width:100%; height:100%; display:block; }
+
+.colony-overlay {
+  position:absolute; bottom:0; left:0; right:0;
+  background:linear-gradient(0deg, rgba(10,8,0,0.95) 0%, transparent 100%);
+  padding:14px 18px; display:flex; align-items:flex-end; justify-content:space-between;
+}
+.colony-name { font-family:'Cinzel Decorative'; font-size:14px; color:var(--amber-bright); text-shadow:0 0 12px rgba(255,204,68,0.6); }
+.colony-rank { font-size:10px; color:var(--text-secondary); letter-spacing:2px; margin-top:2px; }
+.pop-count { font-family:'Orbitron'; font-size:20px; font-weight:900; color:var(--amber-bright); text-shadow:0 0 8px rgba(255,204,68,0.6); }
+.pop-label { font-size:9px; color:var(--text-dim); letter-spacing:2px; }
+
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border-top:1px solid var(--border); }
+.stat-item { background:var(--bg-card); padding:12px 10px; text-align:center; }
+.stat-val { font-family:'Orbitron'; font-size:13px; font-weight:700; color:var(--amber-bright); }
+.stat-lbl { font-size:9px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
+
+/* ── TELEGRAM USER CARD ── */
+.tg-user-card {
+  margin: 0 12px 12px;
+  background: linear-gradient(135deg, rgba(245,166,35,0.06), transparent);
+  border: 1px solid rgba(245,166,35,0.2);
+  border-radius:12px; padding:12px 14px;
+  display:flex; align-items:center; gap:12px;
+}
+.tg-user-name { font-size:14px; font-weight:600; color:var(--text-primary); }
+.tg-user-sub { font-size:11px; color:var(--text-dim); margin-top:1px; }
+.tg-verified { font-size:10px; color:var(--green-bright); margin-top:2px; }
+
+/* ── MINING CARD ── */
+.section { padding:0 12px 12px; }
+.section-title { font-family:'Cinzel Decorative'; font-size:11px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border-bright),transparent); }
+
+.mining-card {
+  background:linear-gradient(135deg,#0d0900,#120c01);
+  border:1px solid var(--earth-light); border-radius:14px; padding:18px; position:relative; overflow:hidden;
+}
+.mining-card::before {
+  content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+  background:conic-gradient(transparent 0deg,rgba(245,166,35,0.04) 60deg,transparent 120deg);
+  animation:spin-slow 20s linear infinite;
+}
+@keyframes spin-slow { to{transform:rotate(360deg);} }
+
+.mining-rate { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.rate-num { font-family:'Orbitron'; font-size:26px; font-weight:900; color:var(--amber-bright); text-shadow:0 0 18px rgba(255,204,68,0.7); }
+.rate-unit { font-size:12px; color:var(--text-secondary); }
+.mine-btn {
+  background:linear-gradient(135deg,#f5a623,#d4800a); border:none; border-radius:10px;
+  padding:11px 20px; font-family:'Orbitron'; font-size:11px; font-weight:700;
+  color:#0a0500; cursor:pointer; transition:all 0.15s;
+  box-shadow:0 4px 16px rgba(245,166,35,0.4); position:relative; z-index:1;
+  text-transform:uppercase; letter-spacing:1px;
+}
+.mine-btn:active { transform:scale(0.94); }
+.mine-btn.boosted { background:linear-gradient(135deg,#ffcc44,#f5a623); animation:btn-pulse 1s ease-in-out infinite; }
+@keyframes btn-pulse { 0%,100%{box-shadow:0 4px 16px rgba(245,166,35,0.4);} 50%{box-shadow:0 4px 36px rgba(255,204,68,0.8);} }
+
+.mine-progress-wrap { height:6px; background:var(--dirt); border-radius:3px; overflow:hidden; position:relative; z-index:1; }
+.mine-progress-bar { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--amber),var(--gold-bright)); box-shadow:0 0 8px rgba(245,166,35,0.6); transition:width 0.5s ease; }
+.mine-info { display:flex; justify-content:space-between; margin-top:6px; position:relative; z-index:1; }
+.mine-info span { font-size:10px; color:var(--text-dim); }
+
+/* ── WORKERS ── */
+.workers-card { background:var(--bg-card); border:1px solid var(--earth-light); border-radius:14px; overflow:hidden; }
+.workers-header { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); background:linear-gradient(90deg,rgba(61,43,8,0.3),transparent); }
+.workers-types { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--border); }
+.worker-type { background:var(--bg-card); padding:14px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:background 0.2s; }
+.worker-type:active { background:rgba(245,166,35,0.05); }
+.worker-emoji { font-size:26px; flex-shrink:0; }
+.worker-name { font-size:12px; font-weight:600; color:var(--text-primary); }
+.worker-count { font-family:'Orbitron'; font-size:15px; font-weight:700; color:var(--amber); }
+.worker-rate { font-size:10px; color:var(--text-dim); margin-top:1px; }
+.worker-upgrade-btn { background:linear-gradient(135deg,var(--earth-light),var(--earth)); border:1px solid var(--amber-dim); border-radius:7px; padding:5px 9px; font-size:9px; font-family:'Orbitron'; color:var(--amber); cursor:pointer; white-space:nowrap; }
+
+/* ── INVITE ── */
+.invite-card {
+  background:linear-gradient(135deg,#0d0b00,#1a1500);
+  border:1px solid var(--gold); border-radius:14px; padding:18px; position:relative; overflow:hidden;
+  box-shadow:0 0 24px rgba(212,160,23,0.12), inset 0 1px 0 rgba(255,204,68,0.1);
+}
+.invite-card::before { content:'🐜'; position:absolute; right:-10px; bottom:-10px; font-size:70px; opacity:0.05; transform:rotate(-20deg); }
+.invite-title { font-family:'Cinzel Decorative'; font-size:15px; color:var(--gold-bright); text-shadow:0 0 12px rgba(255,224,102,0.5); margin-bottom:6px; }
+.invite-subtitle { font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.5; }
+.invite-reward { background:rgba(212,160,23,0.1); border:1px solid rgba(212,160,23,0.3); border-radius:9px; padding:10px 14px; display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.reward-icon { font-size:28px; }
+.reward-text strong { font-family:'Orbitron'; font-size:16px; color:var(--amber-bright); display:block; }
+.reward-text span { font-size:11px; color:var(--text-secondary); }
+.invite-link-box { background:var(--dirt); border:1px solid var(--border-bright); border-radius:9px; padding:10px 12px; display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.invite-link { flex:1; font-size:11px; color:var(--amber); font-family:'Orbitron'; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.copy-btn { background:var(--amber); border:none; border-radius:6px; padding:5px 10px; font-size:10px; font-weight:700; color:#0a0500; cursor:pointer; white-space:nowrap; }
+.copy-btn.copied { background:var(--green-bright); }
+.share-btns { display:flex; gap:8px; }
+.share-btn { flex:1; background:linear-gradient(135deg,var(--earth-light),var(--earth)); border:1px solid var(--border-bright); border-radius:9px; padding:10px; font-family:'Rajdhani'; font-size:12px; font-weight:600; color:var(--text-primary); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+
+/* ── LEADERBOARD ── */
+.lb-item { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+.lb-item.top1 { border-color:var(--gold); background:linear-gradient(90deg,rgba(212,160,23,0.08),transparent); }
+.lb-item.top2 { border-color:#a0a0a0; background:linear-gradient(90deg,rgba(160,160,160,0.05),transparent); }
+.lb-item.top3 { border-color:#cd7f32; }
+.lb-rank { font-family:'Orbitron'; font-size:13px; font-weight:900; width:24px; text-align:center; }
+.lb-item.top1 .lb-rank{color:var(--gold-bright);} .lb-item.top2 .lb-rank{color:#c0c0c0;} .lb-item.top3 .lb-rank{color:#cd7f32;}
+.lb-info { flex:1; }
+.lb-name { font-size:13px; font-weight:600; }
+.lb-sub { font-size:10px; color:var(--text-dim); }
+.lb-amount { font-family:'Orbitron'; font-size:12px; color:var(--amber-bright); text-align:right; }
+.lb-amount span { display:block; font-size:9px; color:var(--text-dim); font-family:'Rajdhani'; }
+
+/* ── MISSIONS ── */
+.mission-item { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+.mission-item.done { opacity:0.5; }
+.mission-icon { font-size:22px; flex-shrink:0; }
+.mission-info { flex:1; }
+.mission-name { font-size:12px; font-weight:600; }
+.mission-progress-wrap { height:3px; background:var(--dirt); border-radius:2px; margin-top:5px; }
+.mission-bar { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--amber),var(--gold-bright)); }
+.mission-reward { font-family:'Orbitron'; font-size:10px; color:var(--amber); }
+.claim-btn { background:linear-gradient(135deg,var(--green),#1a8a40); border:none; border-radius:7px; padding:7px 12px; font-size:10px; font-family:'Rajdhani'; font-weight:700; color:#fff; cursor:pointer; }
+
+/* ── WALLET ── */
+.wallet-card { background:linear-gradient(145deg,#0d0a00,#1a1500); border:1px solid var(--gold); border-radius:18px; padding:22px; text-align:center; box-shadow:0 0 36px rgba(212,160,23,0.1); margin-bottom:14px; }
+.wallet-balance-label { font-size:10px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:6px; }
+.wallet-balance { font-family:'Orbitron'; font-size:36px; font-weight:900; color:var(--amber-bright); text-shadow:0 0 24px rgba(255,204,68,0.5); margin-bottom:4px; }
+.wallet-usd { font-size:13px; color:var(--text-secondary); margin-bottom:18px; }
+.wallet-btns { display:flex; gap:8px; }
+.wallet-btn { flex:1; border-radius:10px; padding:12px; font-family:'Orbitron'; font-size:10px; font-weight:700; border:none; cursor:pointer; text-transform:uppercase; letter-spacing:1px; }
+.wallet-btn.withdraw { background:linear-gradient(135deg,var(--amber),var(--gold)); color:#0a0500; box-shadow:0 4px 16px rgba(245,166,35,0.3); }
+.wallet-btn.convert { background:transparent; border:1px solid var(--amber-dim); color:var(--amber); }
+.wallet-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.wallet-stat { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 8px; text-align:center; }
+.w-stat-val { font-family:'Orbitron'; font-size:13px; color:var(--amber-bright); font-weight:700; }
+.w-stat-lbl { font-size:9px; color:var(--text-dim); margin-top:3px; }
+
+/* ── SYNC BUTTON ── */
+.sync-btn {
+  width:100%; background:linear-gradient(135deg,#1a4a2a,#0d2a16); border:1px solid var(--green); border-radius:10px;
+  padding:12px; font-family:'Orbitron'; font-size:11px; color:var(--green-bright); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px;
+}
+.sync-btn:active { transform:scale(0.98); }
+
+/* ── NAV ── */
+.bottom-nav {
+  position:sticky; bottom:0; z-index:100; background:rgba(10,8,0,0.97);
+  border-top:1px solid var(--border); display:flex;
+  padding: 6px 0 max(6px, var(--safe-bottom));
+  backdrop-filter:blur(20px);
+}
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 4px; cursor:pointer; transition:all 0.2s; position:relative; }
+.nav-item.active .nav-icon { color:var(--amber-bright); }
+.nav-item.active .nav-label { color:var(--amber-bright); }
+.nav-item.active::before { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:linear-gradient(90deg,transparent,var(--amber-bright),transparent); }
+.nav-icon { font-size:20px; transition:transform 0.2s; }
+.nav-item.active .nav-icon { transform:scale(1.1); }
+.nav-label { font-size:9px; color:var(--text-dim); font-weight:600; letter-spacing:0.5px; }
+.notif-dot { position:absolute; top:3px; right:8px; width:7px; height:7px; border-radius:50%; background:var(--red-ant); animation:badge-pulse 1.5s ease-in-out infinite; }
+@keyframes badge-pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+/* ── PAGES ── */
+.page { display:none; flex:1; overflow-y:auto; padding-bottom:12px; }
+.page.active { display:block; }
+
+/* ── TOAST ── */
+.toast { position:fixed; top:70px; left:50%; transform:translateX(-50%) translateY(-16px); background:var(--earth-light); border:1px solid var(--amber); border-radius:18px; padding:8px 18px; font-size:12px; font-weight:600; color:var(--amber-bright); z-index:999; opacity:0; transition:all 0.3s; pointer-events:none; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── MODAL ── */
+.modal-overlay { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-sheet { background:var(--bg-mid); border:1px solid var(--border-bright); border-radius:20px 20px 0 0; padding:24px 20px 36px; width:100%; max-width:480px; transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.modal-overlay.open .modal-sheet { transform:translateY(0); }
+.modal-handle { width:36px; height:3px; border-radius:2px; background:var(--border-bright); margin:0 auto 18px; }
+.upgrade-header { text-align:center; margin-bottom:18px; }
+.upgrade-emoji { font-size:44px; display:block; margin-bottom:6px; }
+.upgrade-title { font-family:'Cinzel Decorative'; font-size:16px; color:var(--amber-bright); }
+.upgrade-desc { font-size:12px; color:var(--text-secondary); margin-top:4px; }
+.upgrade-levels { display:flex; flex-direction:column; gap:8px; }
+.upgrade-level-btn { background:linear-gradient(135deg,var(--earth),var(--dirt)); border:1px solid var(--border-bright); border-radius:10px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.15s; }
+.upgrade-level-btn:active { transform:scale(0.98); }
+.ul-left { display:flex; align-items:center; gap:8px; }
+.ul-rank { font-family:'Orbitron'; font-size:11px; color:var(--text-dim); }
+.ul-name { font-size:13px; font-weight:600; color:var(--text-primary); }
+.ul-power { font-size:10px; color:var(--green-bright); }
+.ul-cost { font-family:'Orbitron'; font-size:12px; color:var(--amber); }
+
+/* ── LOADING ── */
+#loadingScreen { position:fixed; inset:0; z-index:9999; background:var(--bg-deep); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+.loading-logo { font-size:70px; animation:loading-bounce 1s ease-in-out infinite; }
+@keyframes loading-bounce { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-8px) scale(1.05);} }
+.loading-title { font-family:'Cinzel Decorative'; font-size:22px; color:var(--amber-bright); text-shadow:0 0 16px rgba(255,204,68,0.7); }
+.loading-bar-wrap { width:180px; height:5px; background:var(--dirt); border-radius:3px; overflow:hidden; }
+.loading-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--amber),var(--gold-bright)); border-radius:3px; animation:load-fill 2s ease-in-out forwards; }
+@keyframes load-fill { to{width:100%;} }
+.loading-user { font-size:12px; color:var(--text-secondary); }
+
+/* ── DAILY CLAIM BANNER ── */
+.daily-banner { margin:0 12px 12px; background:linear-gradient(135deg,rgba(39,174,96,0.15),rgba(26,138,64,0.08)); border:1px solid rgba(46,204,113,0.4); border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+.daily-banner:active { opacity:0.8; }
+.daily-icon { font-size:28px; }
+.daily-info { flex:1; }
+.daily-title { font-size:13px; font-weight:700; color:var(--green-bright); }
+.daily-sub { font-size:11px; color:var(--text-secondary); margin-top:1px; }
+.daily-btn { background:var(--green); border:none; border-radius:8px; padding:8px 14px; font-family:'Orbitron'; font-size:10px; color:#fff; cursor:pointer; white-space:nowrap; }
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:var(--earth);border-radius:2px;}
+
+/* ── ONBOARDING SCREEN ── */
+#onboardScreen {
+  position:fixed; inset:0; z-index:9998;
+  background: var(--bg-deep);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:20px 18px 40px;
+  text-align:center;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.onboard-bg-ants {
+  position:absolute; inset:0; overflow:hidden; pointer-events:none;
+}
+.onboard-bg-ants span {
+  position:absolute; font-size:24px; opacity:0.06;
+  animation: float-ant linear infinite;
+}
+@keyframes float-ant {
+  from { transform: translateY(110vh) rotate(0deg); }
+  to   { transform: translateY(-10vh) rotate(360deg); }
+}
+
+.onboard-logo {
+  font-size:56px;
+  animation: loading-bounce 1.5s ease-in-out infinite;
+  margin-bottom:4px; position:relative; z-index:1;
+}
+
+.onboard-title {
+  font-family:'Cinzel Decorative'; font-size:26px; font-weight:900;
+  color: var(--amber-bright);
+  text-shadow: 0 0 24px rgba(255,204,68,0.6);
+  margin-bottom:4px; position:relative; z-index:1;
+}
+
+.onboard-tagline {
+  font-size:12px; color:var(--text-secondary); letter-spacing:1px;
+  margin-bottom:16px; position:relative; z-index:1;
+}
+
+/* The Telegram identity card shown during onboarding */
+.onboard-identity {
+  width:100%; max-width:320px;
+  background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(212,160,23,0.04));
+  border: 1px solid rgba(245,166,35,0.35);
+  border-radius:20px; padding:20px;
+  margin-bottom:14px;
+  position:relative; z-index:1;
+  box-shadow: 0 0 30px rgba(245,166,35,0.08);
+}
+
+.onboard-identity-label {
+  font-size:10px; letter-spacing:3px; color:var(--text-dim);
+  text-transform:uppercase; margin-bottom:14px;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.onboard-identity-label::before,
+.onboard-identity-label::after { content:''; flex:1; height:1px; background:var(--border-bright); }
+
+.onboard-avatar {
+  width:54px; height:54px; border-radius:50%;
+  background: radial-gradient(circle, #3d2b08, #1a1200);
+  border: 2px solid var(--amber);
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px; margin:0 auto 8px;
+  box-shadow: 0 0 16px rgba(245,166,35,0.3);
+}
+
+.onboard-name {
+  font-family:'Cinzel Decorative'; font-size:16px; color:var(--amber-bright);
+  margin-bottom:3px;
+}
+
+.onboard-username {
+  font-size:12px; color:var(--text-secondary); margin-bottom:10px;
+}
+
+.onboard-tg-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background: rgba(39,174,96,0.15); border: 1px solid rgba(46,204,113,0.4);
+  border-radius:20px; padding:4px 12px;
+  font-size:11px; color:var(--green-bright); font-weight:600;
+}
+
+/* Features list */
+.onboard-features {
+  width:100%; max-width:320px;
+  display:flex; flex-direction:column; gap:6px;
+  margin-bottom:16px; position:relative; z-index:1;
+}
+
+.onboard-feature {
+  display:flex; align-items:center; gap:10px;
+  background: rgba(26,18,2,0.6);
+  border: 1px solid var(--border);
+  border-radius:10px; padding:8px 12px;
+  text-align:left;
+}
+
+.onboard-feature-icon { font-size:20px; flex-shrink:0; }
+.onboard-feature-text { font-size:12px; color:var(--text-secondary); line-height:1.4; }
+.onboard-feature-text strong { color:var(--text-primary); display:block; font-size:13px; }
+
+/* Start button */
+.onboard-start-btn {
+  width:100%; max-width:320px;
+  background: linear-gradient(135deg, #f5a623 0%, #d4800a 100%);
+  border:none; border-radius:16px;
+  padding:18px; font-family:'Orbitron'; font-size:14px; font-weight:900;
+  color:#0a0500; cursor:pointer;
+  box-shadow: 0 6px 30px rgba(245,166,35,0.45);
+  transition: all 0.15s; position:relative; z-index:1;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.onboard-start-btn:active { transform:scale(0.97); box-shadow:0 3px 15px rgba(245,166,35,0.3); }
+
+.onboard-start-btn .btn-sub {
+  display:block; font-family:'Rajdhani'; font-size:11px;
+  font-weight:600; opacity:0.7; margin-top:3px; letter-spacing:2px;
+}
+
+.onboard-terms {
+  font-size:10px; color:var(--text-dim); margin-top:14px;
+  position:relative; z-index:1; line-height:1.6;
+}
+
+/* Loading anim reuse */
+@keyframes loading-bounce { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-8px) scale(1.05);} }
+
+.boost-badge { background:linear-gradient(135deg,#27ae60,#1a7a40); color:#fff; font-size:9px; font-weight:700; padding:3px 7px; border-radius:5px; }
+.countdown { font-family:'Orbitron'; font-size:11px; color:var(--amber); background:rgba(245,166,35,0.1); border:1px solid rgba(245,166,35,0.3); border-radius:6px; padding:3px 8px; }
+
+.tier-card { background:linear-gradient(135deg,rgba(245,166,35,0.06),transparent); border:1px solid rgba(245,166,35,0.25); border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+.tier-icon { font-size:28px; }
+.tier-name { font-family:'Cinzel Decorative'; font-size:12px; color:var(--amber-bright); }
+.tier-desc { font-size:10px; color:var(--text-secondary); margin-top:2px; }
+.tier-progress-wrap { height:3px; background:var(--dirt); border-radius:2px; margin-top:6px; }
+.tier-bar { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--amber),var(--gold-bright)); }
+.tier-next { font-size:9px; color:var(--text-dim); margin-top:3px; }
+
+.event-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px; }
+.event-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.event-title { font-size:13px; font-weight:600; }
+.event-badge { background:linear-gradient(135deg,#c0392b,#8b0000); color:#fff; font-size:9px; font-weight:700; padding:3px 8px; border-radius:8px; animation:badge-pulse 2s ease-in-out infinite; }
+.event-desc { font-size:11px; color:var(--text-dim); line-height:1.5; }
+
+/* ══════════════════════════════════════════════
+   QUEEN ANT SYSTEM
+══════════════════════════════════════════════ */
+
+/* Rarity colors */
+:root {
+  --common:    #a0a0a0;
+  --uncommon:  #27ae60;
+  --rare:      #2980b9;
+  --epic:      #8e44ad;
+  --legend:    #f39c12;
+  --mythical:  #e74c3c;
+  --zenith:    #00e5ff;
+}
+
+/* Queen page hero */
+.queen-page-header {
+  margin:12px; border-radius:18px; overflow:hidden;
+  background:linear-gradient(145deg,#0a0012,#120020,#0a0010);
+  border:1px solid rgba(180,0,255,0.3);
+  box-shadow:0 0 30px rgba(150,0,255,0.1);
+}
+.queen-canvas-wrap { width:100%; height:180px; position:relative; }
+#queenCanvas { width:100%; height:100%; display:block; }
+.queen-header-title {
+  padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  border-top:1px solid rgba(180,0,255,0.2);
+}
+.queen-title-text { font-family:'Cinzel Decorative'; font-size:13px; color:#e060ff; text-shadow:0 0 10px rgba(200,0,255,0.5); }
+.queen-count-badge { background:rgba(150,0,255,0.2); border:1px solid rgba(180,0,255,0.4); border-radius:12px; padding:4px 12px; font-family:'Orbitron'; font-size:11px; color:#e060ff; }
+
+/* Queen cards in shop */
+.queen-shop-grid { display:flex; flex-direction:column; gap:10px; }
+.queen-card {
+  border-radius:14px; padding:14px; position:relative; overflow:hidden;
+  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg,rgba(20,0,30,0.9),rgba(10,0,20,0.8));
+}
+.queen-card::before { content:''; position:absolute; inset:0; border-radius:14px; border:1px solid; opacity:0.5; pointer-events:none; }
+.queen-card.common::before    { border-color:var(--common); box-shadow:inset 0 0 20px rgba(160,160,160,0.05); }
+.queen-card.uncommon::before  { border-color:var(--uncommon); box-shadow:inset 0 0 20px rgba(39,174,96,0.08); }
+.queen-card.rare::before      { border-color:var(--rare); box-shadow:inset 0 0 20px rgba(41,128,185,0.1); }
+.queen-card.epic::before      { border-color:var(--epic); box-shadow:inset 0 0 20px rgba(142,68,173,0.12); }
+.queen-card.legend::before    { border-color:var(--legend); box-shadow:inset 0 0 20px rgba(243,156,18,0.12); animation:legend-pulse 2s ease-in-out infinite; }
+.queen-card.mythical::before  { border-color:var(--mythical); box-shadow:inset 0 0 20px rgba(231,76,60,0.15); animation:legend-pulse 1.5s ease-in-out infinite; }
+.queen-card.zenith::before    { border-color:var(--zenith); box-shadow:inset 0 0 30px rgba(0,229,255,0.2); animation:zenith-pulse 1s ease-in-out infinite; }
+@keyframes legend-pulse { 0%,100%{opacity:0.5;} 50%{opacity:0.9;} }
+@keyframes zenith-pulse { 0%,100%{opacity:0.6;box-shadow:inset 0 0 30px rgba(0,229,255,0.2);} 50%{opacity:1;box-shadow:inset 0 0 50px rgba(0,229,255,0.4);} }
+
+/* Queen avatar canvas in card */
+.queen-avatar-wrap { width:64px; height:64px; flex-shrink:0; position:relative; }
+.queen-avatar-wrap canvas { width:100%; height:100%; }
+
+/* Queen info */
+.queen-info { flex:1; min-width:0; }
+.queen-rarity { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+.queen-card.common    .queen-rarity { color:var(--common); }
+.queen-card.uncommon  .queen-rarity { color:var(--uncommon); }
+.queen-card.rare      .queen-rarity { color:var(--rare); }
+.queen-card.epic      .queen-rarity { color:var(--epic); }
+.queen-card.legend    .queen-rarity { color:var(--legend); }
+.queen-card.mythical  .queen-rarity { color:var(--mythical); }
+.queen-card.zenith    .queen-rarity { color:var(--zenith); }
+.queen-name { font-family:'Cinzel Decorative'; font-size:13px; color:var(--text-primary); margin-bottom:4px; }
+.queen-stat { font-size:11px; color:var(--text-secondary); margin-bottom:2px; }
+.queen-stat span { font-family:'Orbitron'; font-size:10px; }
+.queen-price { font-family:'Orbitron'; font-size:11px; color:var(--amber); margin-top:4px; }
+
+/* Buy / Owned buttons */
+.queen-buy-btn {
+  border:none; border-radius:10px; padding:10px 14px;
+  font-family:'Orbitron'; font-size:10px; font-weight:700;
+  cursor:pointer; white-space:nowrap; flex-shrink:0;
+  transition:all 0.15s; text-transform:uppercase; letter-spacing:0.5px;
+}
+.queen-buy-btn:active { transform:scale(0.95); }
+.queen-buy-btn.can-buy { background:linear-gradient(135deg,#f5a623,#d4800a); color:#0a0500; box-shadow:0 3px 12px rgba(245,166,35,0.3); }
+.queen-buy-btn.owned { background:rgba(39,174,96,0.2); border:1px solid var(--green); color:var(--green-bright); cursor:default; }
+.queen-buy-btn.cant-afford { background:rgba(60,60,60,0.3); border:1px solid rgba(100,100,100,0.3); color:#666; cursor:not-allowed; }
+
+/* Egg chamber */
+.egg-chamber-card {
+  background:linear-gradient(145deg,#0a0010,#120018);
+  border:1px solid rgba(180,0,255,0.25); border-radius:14px; overflow:hidden;
+}
+.egg-chamber-header { padding:12px 14px; border-bottom:1px solid rgba(180,0,255,0.15); display:flex; align-items:center; justify-content:space-between; }
+.egg-chamber-title { font-family:'Cinzel Decorative'; font-size:12px; color:#e060ff; }
+.egg-count-badge { background:rgba(150,0,255,0.15); border:1px solid rgba(180,0,255,0.3); border-radius:10px; padding:3px 10px; font-family:'Orbitron'; font-size:10px; color:#e060ff; }
+
+/* Egg grid */
+.egg-grid { display:flex; flex-wrap:wrap; gap:8px; padding:12px; min-height:60px; }
+.egg-item {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:rgba(20,0,30,0.6); border-radius:10px; padding:8px 10px;
+  border:1px solid rgba(150,0,255,0.2); position:relative; min-width:70px;
+}
+.egg-emoji { font-size:26px; animation:egg-wobble 2s ease-in-out infinite; }
+@keyframes egg-wobble { 0%,100%{transform:rotate(-3deg);} 50%{transform:rotate(3deg);} }
+.egg-timer { font-family:'Orbitron'; font-size:9px; color:#cc88ff; }
+.egg-rarity-dot { width:6px; height:6px; border-radius:50%; position:absolute; top:5px; right:5px; }
+.egg-hatch-ready { animation:egg-hatch-glow 0.8s ease-in-out infinite; cursor:pointer; border-color:var(--amber)!important; }
+@keyframes egg-hatch-glow { 0%,100%{box-shadow:0 0 8px rgba(245,166,35,0.4);} 50%{box-shadow:0 0 20px rgba(245,166,35,0.9);} }
+.egg-empty { color:var(--text-dim); font-size:11px; padding:16px; text-align:center; width:100%; }
+
+/* Hatch result popup */
+.hatch-popup {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5);
+  z-index:600; background:linear-gradient(145deg,#0a0012,#1a0028);
+  border-radius:20px; padding:28px 32px; text-align:center;
+  border:2px solid var(--amber); box-shadow:0 0 60px rgba(245,166,35,0.3);
+  opacity:0; transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none;
+  min-width:220px;
+}
+.hatch-popup.show { opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:all; }
+.hatch-popup-emoji { font-size:56px; margin-bottom:8px; display:block; animation:loading-bounce 1s ease-in-out infinite; }
+.hatch-popup-title { font-family:'Cinzel Decorative'; font-size:16px; color:var(--amber-bright); margin-bottom:4px; }
+.hatch-popup-desc { font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
+.hatch-popup-close { background:linear-gradient(135deg,var(--amber),var(--gold)); border:none; border-radius:10px; padding:10px 24px; font-family:'Orbitron'; font-size:11px; font-weight:700; color:#0a0500; cursor:pointer; }
+
+/* Queen tab nav active */
+.nav-item.queen-nav.active .nav-icon { filter: drop-shadow(0 0 6px #cc00ff); }
+
+</style>
+</head>
+<body>
+
+<!-- LOADING (brief spinner while SDK loads) -->
+<div id="loadingScreen" style="position:fixed;inset:0;z-index:9999;background:#050400;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+  <div style="font-size:64px;animation:loading-bounce 1s ease-in-out infinite">🐜</div>
+  <div style="font-family:'Cinzel Decorative';font-size:20px;color:#ffcc44;text-shadow:0 0 16px rgba(255,204,68,0.7)">Ant Colony</div>
+  <div style="width:160px;height:4px;background:#2a1c05;border-radius:2px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,#f5a623,#ffe066);animation:load-fill 1.2s ease-in-out forwards;border-radius:2px"></div></div>
+  <div style="font-size:11px;color:#7a6030;letter-spacing:2px" id="loadingUser">Connecting...</div>
+</div>
+
+<!-- ONBOARDING (first-time players only) -->
+<div id="onboardScreen" style="display:none">
+  <div class="onboard-bg-ants" id="bgAnts"></div>
+  <div class="onboard-logo">🐜</div>
+  <div class="onboard-title">Ant Colony</div>
+  <div class="onboard-tagline">Build your empire. Mine $ANT.</div>
+  <div class="onboard-identity">
+    <div class="onboard-identity-label">Your Telegram Account</div>
+    <div class="onboard-avatar" id="onboardAvatar">👤</div>
+    <div class="onboard-name" id="onboardName">Player</div>
+    <div class="onboard-username" id="onboardUsername">@username</div>
+    <div class="onboard-tg-badge"><span>✅</span> Verified via Telegram — no password needed</div>
+  </div>
+
+  <button class="onboard-start-btn" onclick="createAccount()">
+    🐜 Start My Colony
+    <span class="btn-sub">Connect with Telegram Account</span>
+  </button>
+  <div class="onboard-terms">By starting, you agree to the Terms of Service.<br>Your Telegram identity is used to create your account.</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="upgradeModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="upgrade-header">
+      <span class="upgrade-emoji" id="upgradeEmoji">🐜</span>
+      <div class="upgrade-title" id="upgradeTitle">Worker Ants</div>
+      <div class="upgrade-desc" id="upgradeDesc">Upgrade your workers to mine faster</div>
+    </div>
+    <div class="upgrade-levels" id="upgradeLevels"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🐜</div>
+      <div>
+        <div class="logo-text">Ant Colony</div>
+        <div class="logo-sub">$ANT Network</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="ant-balance">🪙 <span id="headerBalance">0.000</span> $ANT</div>
+      <div class="tg-avatar" id="tgAvatar">👤</div>
+    </div>
+  </header>
+
+  <!-- PAGE: HOME -->
+  <div class="page active" id="page-home">
+
+    <!-- Telegram User Card -->
+    <div class="tg-user-card" id="tgUserCard" style="display:none">
+      <div class="tg-avatar" style="width:40px;height:40px;font-size:20px;" id="tgCardAvatar">👤</div>
+      <div>
+        <div class="tg-user-name" id="tgUserName">Player</div>
+        <div class="tg-user-sub" id="tgUserSub">@username</div>
+        <div class="tg-verified">✅ Verified via Telegram</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-family:'Orbitron';font-size:11px;color:var(--amber-bright)" id="tgUserRank">#—</div>
+        <div style="font-size:9px;color:var(--text-dim)">GLOBAL RANK</div>
+      </div>
+    </div>
+
+    <!-- Daily Claim Banner -->
+    <div class="daily-banner" id="dailyBanner" onclick="claimDaily()">
+      <div class="daily-icon">🎁</div>
+      <div class="daily-info">
+        <div class="daily-title">Daily Reward Ready!</div>
+        <div class="daily-sub">Claim your free $ANT now</div>
+      </div>
+      <button class="daily-btn">CLAIM</button>
+    </div>
+
+    <!-- Colony Hero -->
+    <div class="colony-hero">
+      <div class="colony-canvas-wrap"><canvas id="colonyCanvas"></canvas></div>
+      <div class="colony-overlay">
+        <div>
+          <div class="colony-name" id="colonyName">Your Colony</div>
+          <div class="colony-rank" id="colonyRank">🥚 Egg Chamber</div>
+        </div>
+        <div style="text-align:right">
+          <div class="pop-count" id="colonyPop">0</div>
+          <div class="pop-label">ANT WORKERS</div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-item"><div class="stat-val" id="statMined">0.00</div><div class="stat-lbl">$ANT Mined</div></div>
+        <div class="stat-item"><div class="stat-val" id="statReferrals">0</div><div class="stat-lbl">Recruits</div></div>
+        <div class="stat-item"><div class="stat-val" id="statRank">#—</div><div class="stat-lbl">Global Rank</div></div>
+      </div>
+    </div>
+
+    <!-- Mining -->
+    <div class="section">
+      <div class="section-title">⛏️ Mining Engine</div>
+      <div class="mining-card">
+        <div class="mining-rate">
+          <div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">CURRENT RATE</div>
+            <div style="display:flex;align-items:baseline;gap:5px;">
+              <span class="rate-num" id="miningRate">0.001</span>
+              <span class="rate-unit">$ANT/sec</span>
+            </div>
+          </div>
+          <button class="mine-btn" id="mineBtn" onclick="boostMining()">⚡ BOOST</button>
+        </div>
+        <div class="mine-progress-wrap"><div class="mine-progress-bar" id="mineBar" style="width:0%"></div></div>
+        <div class="mine-info">
+          <span>Next harvest: <span id="harvestTime">--:--</span></span>
+          <span id="harvestAmount">+0.050 $ANT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier -->
+    <div class="section">
+      <div class="section-title">🏆 Colony Tier</div>
+      <div class="tier-card">
+        <div class="tier-icon" id="tierIcon">🥚</div>
+        <div style="flex:1">
+          <div class="tier-name" id="tierName">Egg Chamber</div>
+          <div class="tier-desc" id="tierDesc">Your colony awakens...</div>
+          <div class="tier-progress-wrap"><div class="tier-bar" id="tierBar" style="width:5%"></div></div>
+          <div class="tier-next" id="tierNext">Next: Scout Colony (100 workers)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event -->
+    <div class="section">
+      <div class="section-title">🔥 Active Event</div>
+      <div class="event-card">
+        <div class="event-header">
+          <div class="event-title">🌧️ Rain Season Raid</div>
+          <div class="event-badge">LIVE</div>
+        </div>
+        <div class="event-desc">Defend tunnels! Mine 2× $ANT during this event.</div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <span class="boost-badge">2× MINING</span>
+          <span class="countdown" id="eventTimer">23:14:07</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Missions -->
+    <div class="section">
+      <div class="section-title">📋 Daily Missions</div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="missionList"></div>
+    </div>
+
+  </div><!-- /page-home -->
+
+  <!-- PAGE: COLONY -->
+  <div class="page" id="page-colony">
+    <div style="height:12px"></div>
+    <div class="section">
+      <div class="section-title">🐜 Worker Classes</div>
+      <div class="workers-card">
+        <div class="workers-header">
+          <div style="font-size:13px;font-weight:600">Your Workforce</div>
+          <div style="font-family:'Orbitron';font-size:11px;color:var(--amber)" id="totalWorkers">0 Total</div>
+        </div>
+        <div class="workers-types" id="workerGrid"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">🏰 Colony Tiers</div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="tierList"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: INVITE -->
+  <div class="page" id="page-invite">
+    <div style="height:12px"></div>
+    <div class="section">
+      <div class="invite-card">
+        <div class="invite-title">🐜 Recruit Ants</div>
+        <div class="invite-subtitle">Every player you recruit joins as <strong style="color:var(--amber-bright)">5 Worker Ants</strong> — growing your empire and mining power!</div>
+        <div class="invite-reward">
+          <div class="reward-icon">🐜</div>
+          <div class="reward-text">
+            <strong>+5 Workers</strong>
+            <span>Per successful recruit via Telegram</span>
+          </div>
+        </div>
+        <div class="invite-link-box">
+          <div class="invite-link" id="inviteLink">t.me/AntColonyBot?start=ref_...</div>
+          <button class="copy-btn" id="copyBtn" onclick="copyInviteLink()">Copy</button>
+        </div>
+        <div class="share-btns">
+          <button class="share-btn" onclick="shareTelegram()">✈️ Share via TG</button>
+          <button class="share-btn" onclick="shareNative()">📤 Share Link</button>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">📊 Recruit Stats</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div class="wallet-stat"><div class="w-stat-val" id="invTotal">0</div><div class="w-stat-lbl">Recruits</div></div>
+        <div class="wallet-stat"><div class="w-stat-val" id="invWorkers">0</div><div class="w-stat-lbl">Workers Added</div></div>
+        <div class="wallet-stat"><div class="w-stat-val" id="invEarned">0</div><div class="w-stat-lbl">$ANT Earned</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: LEADERBOARD -->
+  <div class="page" id="page-leaderboard">
+    <div style="height:12px"></div>
+    <div class="section">
+      <div class="section-title">🏆 Global Leaderboard</div>
+      <div style="display:flex;flex-direction:column;gap:6px;" id="lbList"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: WALLET -->
+  <div class="page" id="page-wallet">
+    <div style="height:12px"></div>
+    <div class="section">
+      <div class="wallet-card">
+        <div class="wallet-balance-label">Your Balance</div>
+        <div class="wallet-balance" id="walletBalance">0.000</div>
+        <div class="wallet-usd">≈ $<span id="walletUSD">0.00</span> USD</div>
+        <div class="wallet-btns">
+          <button class="wallet-btn withdraw" onclick="requestWithdraw()">⬆ Withdraw</button>
+          <button class="wallet-btn convert" onclick="showToast('🔄 Connect TON wallet to convert')">🔄 Convert</button>
+        </div>
+      </div>
+      <div class="section-title">📈 Mining Stats</div>
+      <div class="wallet-stats">
+        <div class="wallet-stat"><div class="w-stat-val" id="wTodayMined">0.00</div><div class="w-stat-lbl">Today</div></div>
+        <div class="wallet-stat"><div class="w-stat-val" id="wTotalMined">0.00</div><div class="w-stat-lbl">All Time</div></div>
+        <div class="wallet-stat"><div class="w-stat-val" id="wBestDay">0.00</div><div class="w-stat-lbl">Best Day</div></div>
+      </div>
+      <!-- Sync to bot -->
+      <button class="sync-btn" onclick="syncToBot()">🔄 Sync Progress to Bot</button>
+    </div>
+  </div>
+
+
+  <!-- PAGE: QUEENS -->
+  <div class="page" id="page-queens">
+    <div style="height:12px"></div>
+
+    <!-- Queen Chamber Hero Canvas -->
+    <div class="queen-page-header">
+      <div class="queen-canvas-wrap"><canvas id="queenCanvas"></canvas></div>
+      <div class="queen-header-title">
+        <div class="queen-title-text">👑 Queen Chamber</div>
+        <div class="queen-count-badge" id="queensOwnedBadge">0 Queens</div>
+      </div>
+    </div>
+
+    <!-- Egg Chamber -->
+    <div class="section">
+      <div class="section-title">🥚 Egg Chamber</div>
+      <div class="egg-chamber-card">
+        <div class="egg-chamber-header">
+          <div class="egg-chamber-title">Incubating Eggs</div>
+          <div class="egg-count-badge" id="eggCountBadge">0 eggs</div>
+        </div>
+        <div class="egg-grid" id="eggGrid">
+          <div class="egg-empty">No eggs yet — purchase a Queen to start laying!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queen Shop -->
+    <div class="section">
+      <div class="section-title">👑 Queen Shop</div>
+      <div class="queen-shop-grid" id="queenShopGrid"></div>
+    </div>
+
+    <!-- Worker Hatch Rates -->
+    <div class="section">
+      <div class="section-title">🧬 Hatch Rates</div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">🔍 Scout Ant</span><span style="font-family:'Orbitron';font-size:11px;color:#f5a623">50%</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">⚔️ Soldier</span><span style="font-family:'Orbitron';font-size:11px;color:#e74c3c">40%</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">📦 Carrier</span><span style="font-family:'Orbitron';font-size:11px;color:#3498db">9%</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">👑 Queen Guard</span><span style="font-family:'Orbitron';font-size:11px;color:#9b59b6">1%</span></div>
+        <div style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim)">⏱ Hatch time: <span style="color:var(--amber-bright);font-family:'Orbitron'">8 hours</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HATCH RESULT POPUP -->
+  <div class="hatch-popup" id="hatchPopup">
+    <span class="hatch-popup-emoji" id="hatchEmoji">🐜</span>
+    <div class="hatch-popup-title" id="hatchTitle">Hatched!</div>
+    <div class="hatch-popup-desc" id="hatchDesc">A new worker joins your colony!</div>
+    <button class="hatch-popup-close" onclick="closeHatchPopup()">AWESOME! 🎉</button>
+  </div>
+
+  <!-- NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="navTo('home')" id="nav-home"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-item" onclick="navTo('colony')" id="nav-colony"><div class="nav-icon">🐜</div><div class="nav-label">Colony</div></div>
+    <div class="nav-item queen-nav" onclick="navTo('queens')" id="nav-queens"><div class="nav-icon">👑</div><div class="nav-label">Queens</div></div>
+    <div class="nav-item" onclick="navTo('invite')" id="nav-invite"><div class="nav-icon">👥</div><div class="nav-label">Recruit</div><div class="notif-dot"></div></div>
+    <div class="nav-item" onclick="navTo('leaderboard')" id="nav-leaderboard"><div class="nav-icon">🏆</div><div class="nav-label">Ranks</div></div>
+    <div class="nav-item" onclick="navTo('wallet')" id="nav-wallet"><div class="nav-icon">💰</div><div class="nav-label">Wallet</div></div>
+  </nav>
+</div>
+
+<canvas id="bgCanvas"></canvas>
+
+<script>
+// ============================================================
+//  TELEGRAM MINI APP INIT + ACCOUNT SYSTEM
+// ============================================================
+const tgApp = window.Telegram?.WebApp;
+let TG_USER = null;
+let BOT_USERNAME = 'AntColony_miningBot'; // ← Update to your bot username
+const STORAGE_KEY = 'antcolony_account';
+
+// 1. Init Telegram SDK
+if (tgApp) {
+  tgApp.ready();
+  tgApp.expand();
+  tgApp.setHeaderColor('#0a0800');
+  tgApp.setBackgroundColor('#050400');
+  if (tgApp.initDataUnsafe?.user) {
+    TG_USER = tgApp.initDataUnsafe.user;
+  }
+} else {
+  // Dev / demo mode — simulates a Telegram user
+  TG_USER = { id: 99999999, first_name: 'Demo', last_name: 'Player', username: 'demoplayer', photo_url: null };
+}
+
+// URL params
+const urlParams = new URLSearchParams(window.location.search);
+const urlRef = urlParams.get('ref');
+
+// ── ACCOUNT HELPERS ──────────────────────────────────────────
+
+// Save game state tied to this Telegram user
+function saveAccount() {
+  if (!TG_USER) return;
+  const data = {
+    tgId: TG_USER.id,
+    tgName: TG_USER.first_name,
+    tgUsername: TG_USER.username || null,
+    createdAt: STATE.createdAt || Date.now(),
+    balance: STATE.balance,
+    totalMined: STATE.totalMined,
+    todayMined: STATE.todayMined,
+    bestDay: STATE.bestDay,
+    referrals: STATE.referrals,
+    workers: STATE.workers,
+    colonySize: STATE.colonySize,
+    rank: STATE.rank,
+    dailyClaimed: STATE.dailyClaimed,
+    dailyClaimedDate: STATE.dailyClaimedDate,
+    lastHarvest: STATE.lastHarvest,
+    referredBy: STATE.referredBy || null,
+  };
+  try { localStorage.setItem(STORAGE_KEY + '_' + TG_USER.id, JSON.stringify(data)); } catch(e){}
+}
+
+// Load saved account for this Telegram user
+function loadAccount() {
+  if (!TG_USER) return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + '_' + TG_USER.id);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+// Check if this player has an account already
+function hasAccount() {
+  return !!loadAccount();
+}
+
+// Create brand new account from Telegram identity — called when player taps "Start Colony"
+function createAccount() {
+  if (!TG_USER) return;
+
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred('heavy');
+
+  const btn = document.querySelector('.onboard-start-btn');
+  btn.textContent = '🐜 Creating your colony...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    STATE.createdAt = Date.now();
+    STATE.userId = TG_USER.id;
+
+    // ── REFERRAL BONUS ──────────────────────────────
+    // Get ref ID from Telegram startParam (bot deeplink) or URL param
+    const startParam = tgApp?.initDataUnsafe?.start_param || urlRef;
+    if (startParam && startParam.startsWith('ref_')) {
+      const referrerId = startParam.replace('ref_', '');
+      if (referrerId && referrerId != TG_USER.id) {
+        STATE.referredBy = referrerId;
+        // Bonus for new player joining via invite
+        STATE.workers.scout += 3;
+        STATE.colonySize += 3;
+        STATE.balance += 0.05;
+
+        // Store referral event so referrer gets credit when they next open
+        try {
+          const refKey = 'antcolony_pending_ref_' + referrerId;
+          const pending = JSON.parse(localStorage.getItem(refKey) || '[]');
+          pending.push({ fromId: TG_USER.id, fromName: TG_USER.first_name, time: Date.now() });
+          localStorage.setItem(refKey, JSON.stringify(pending));
+        } catch(e) {}
+      }
+    }
+
+    saveAccount();
+    hideOnboarding();
+
+    if (STATE.referredBy) {
+      showToast(`🎁 Joined via invite! +3 Workers & +0.05 $ANT bonus!`);
+    } else {
+      showToast(`🎉 Welcome, ${TG_USER.first_name}! Colony created!`);
+    }
+    if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  }, 800);
+}
+
+// Restore existing account into STATE
+function restoreAccount(saved) {
+  STATE.createdAt    = saved.createdAt || Date.now();
+  STATE.userId       = saved.tgId;
+  STATE.balance      = saved.balance || 0;
+  STATE.totalMined   = saved.totalMined || 0;
+  STATE.todayMined   = saved.todayMined || 0;
+  STATE.bestDay      = saved.bestDay || 0;
+  STATE.referrals    = saved.referrals || 0;
+  STATE.workers      = saved.workers || { scout:5, soldier:0, carrier:2, queen:0 };
+  STATE.colonySize   = saved.colonySize || 5;
+  STATE.rank         = saved.rank || Math.floor(Math.random()*500)+100;
+  STATE.dailyClaimed = saved.dailyClaimed || false;
+  STATE.dailyClaimedDate = saved.dailyClaimedDate || null;
+  STATE.lastHarvest  = saved.lastHarvest || Date.now();
+  STATE.referredBy   = saved.referredBy || null;
+  STATE.queens       = saved.queens || {};
+  STATE.eggs         = saved.eggs || [];
+  STATE.lastQueenEgg = saved.lastQueenEgg || {};
+
+  // Reset daily claim if it's a new day
+  const today = new Date().toDateString();
+  if (STATE.dailyClaimedDate !== today) {
+    STATE.dailyClaimed = false;
+    STATE.dailyClaimedDate = null;
+    STATE.todayMined = 0;
+  }
+}
+
+// Show onboarding screen with player's Telegram identity pre-filled
+function showOnboarding() {
+  document.getElementById('onboardScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+
+  // Fill in Telegram identity
+  const name = TG_USER.first_name + (TG_USER.last_name ? ' '+TG_USER.last_name : '');
+  document.getElementById('onboardName').textContent = name;
+  document.getElementById('onboardUsername').textContent = TG_USER.username ? '@'+TG_USER.username : 'ID: '+TG_USER.id;
+
+  // Avatar emoji based on user ID
+  const avatarEmojis = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥'];
+  document.getElementById('onboardAvatar').textContent = avatarEmojis[TG_USER.id % avatarEmojis.length];
+
+  // Spawn floating bg ants
+  const bgAnts = document.getElementById('bgAnts');
+  bgAnts.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const span = document.createElement('span');
+    span.textContent = '🐜';
+    span.style.left = Math.random()*100+'%';
+    span.style.animationDuration = (8+Math.random()*12)+'s';
+    span.style.animationDelay = (Math.random()*8)+'s';
+    span.style.fontSize = (16+Math.random()*20)+'px';
+    bgAnts.appendChild(span);
+  }
+}
+
+function hideOnboarding() {
+  const ob = document.getElementById('onboardScreen');
+  ob.style.opacity = '0';
+  ob.style.transition = 'opacity 0.4s';
+  setTimeout(() => { ob.style.display = 'none'; }, 400);
+  document.getElementById('app').style.display = 'flex';
+  initUI();
+}
+
+// ============================================================
+//  GAME STATE
+// ============================================================
+const STATE = {
+  balance: 0, totalMined: 0, todayMined: 0, bestDay: 0,
+  referrals: 0, workers: { scout:5, soldier:0, carrier:2, queen:0 },
+  colonySize: 5, boostActive: false, boostEnd: 0,
+  mineProgress: 0, lastHarvest: Date.now(), harvestInterval: 60,
+  rank: Math.floor(Math.random()*500)+100, userId: null,
+  dailyClaimed: false, dailyClaimedDate: null, createdAt: null, referredBy: null,
+};
+
+const WORKER_TYPES = [
+  { key:'scout',   emoji:'🔍', name:'Scout Ants',  rate:0.0001 },
+  { key:'soldier', emoji:'⚔️', name:'Soldiers',    rate:0.0002 },
+  { key:'carrier', emoji:'📦', name:'Carriers',    rate:0.0003 },
+  { key:'queen',   emoji:'👑', name:'Queen Guards', rate:0.001  },
+];
+
+// ── QUEEN DEFINITIONS ─────────────────────────────────────────
+const QUEEN_TYPES = [
+  { key:'common',   name:'Common Queen',   eggsPerWeek:1,    price:1000,      color:'#a0a0a0', glow:'rgba(160,160,160,0.4)', crown:'⚪' },
+  { key:'uncommon', name:'Uncommon Queen', eggsPerWeek:3,    price:3000,      color:'#27ae60', glow:'rgba(39,174,96,0.4)',   crown:'🟢' },
+  { key:'rare',     name:'Rare Queen',     eggsPerWeek:10,   price:10000,     color:'#2980b9', glow:'rgba(41,128,185,0.4)',  crown:'🔵' },
+  { key:'epic',     name:'Epic Queen',     eggsPerWeek:50,   price:50000,     color:'#8e44ad', glow:'rgba(142,68,173,0.4)',  crown:'🟣' },
+  { key:'legend',   name:'Legend Queen',   eggsPerWeek:500,  price:500000,    color:'#f39c12', glow:'rgba(243,156,18,0.5)',  crown:'🟡' },
+  { key:'mythical', name:'Mythical Queen', eggsPerWeek:1000, price:1000000,   color:'#e74c3c', glow:'rgba(231,76,60,0.5)',   crown:'🔴' },
+  { key:'zenith',   name:'Zenith Queen',   eggsPerWeek:5000, price:5000000,   color:'#00e5ff', glow:'rgba(0,229,255,0.6)',   crown:'🩵' },
+];
+
+// Egg hatch time = 8 hours in ms
+const EGG_HATCH_MS = 8 * 60 * 60 * 1000;
+
+// Worker hatch probabilities
+const HATCH_PROBS = [
+  { key:'scout',   label:'Scout Ant',   emoji:'🔍', chance:0.50 },
+  { key:'soldier', label:'Soldier',     emoji:'⚔️', chance:0.40 },
+  { key:'carrier', label:'Carrier',     emoji:'📦', chance:0.09 },
+  { key:'queen',   label:'Queen Guard', emoji:'👑', chance:0.01 },
+];
+
+// Queens owned: { common: true/false, ... }
+// Eggs array: [{ queenKey, laid, hatchAt, hatched }, ...]
+if (!STATE.queens)    STATE.queens = {};
+if (!STATE.eggs)      STATE.eggs = [];
+if (!STATE.lastQueenEgg) STATE.lastQueenEgg = {};
+
+
+const TIERS = [
+  {min:0,    icon:'🥚', name:'Egg Chamber',     desc:'Your colony awakens...'},
+  {min:10,   icon:'🐛', name:'Larva Den',        desc:'First workers emerge'},
+  {min:50,   icon:'🏕️', name:'Scout Colony',    desc:'Scouts map the tunnels'},
+  {min:150,  icon:'🏘️', name:'Worker Village',  desc:'Workers unite!'},
+  {min:400,  icon:'⚔️', name:'Soldier Garrison', desc:'Military force forms'},
+  {min:1000, icon:'🏰', name:'Grand Fortress',   desc:'Underground fortress!'},
+  {min:5000, icon:'🌍', name:'Mega Empire',       desc:'The earth shakes!'},
+  {min:20000,icon:'👑', name:'Legendary Hive',    desc:'Most powerful on Earth!'},
+];
+
+const MISSIONS = [
+  { icon:'⛏️', name:'Mine 1 $ANT today',   target:1,  current:0, reward:'+0.5 $ANT', done:false },
+  { icon:'👥', name:'Recruit 1 new ant',    target:1,  current:0, reward:'+5 Workers', done:false },
+  { icon:'🐜', name:'Grow to 10 workers',   target:10, current:5, reward:'+0.2 $ANT',  done:false },
+  { icon:'⚡', name:'Boost mining 3 times', target:3,  current:0, reward:'+0.3 $ANT',  done:false },
+];
+
+const LEADERBOARD = [
+  {emoji:'👑',name:'ShadowColony',  size:24800, ant:842.5},
+  {emoji:'🔥',name:'DiggerKingz',   size:18200, ant:631.0},
+  {emoji:'⚔️',name:'AntEmpire99',  size:12450, ant:471.8},
+  {emoji:'💎',name:'ColonyBoss',    size:9800,  ant:355.2},
+  {emoji:'🐜',name:'MoundMaster',   size:7600,  ant:280.0},
+  {emoji:'🌍',name:'EarthRulers',   size:5200,  ant:193.5},
+  {emoji:'⛏️',name:'TunnelLord',   size:3100,  ant:115.2},
+  {emoji:'🏕️',name:'ScoutLeader',  size:1850,  ant:68.4},
+];
+
+const UPGRADE_LEVELS = {
+  scout:   [{name:'Worker',rank:'I',workers:1,cost:0},{name:'Ranger',rank:'II',workers:5,cost:2},{name:'Elite',rank:'III',workers:15,cost:8},{name:'Legend',rank:'IV',workers:50,cost:25}],
+  soldier: [{name:'Recruit',rank:'I',workers:1,cost:1},{name:'Guard',rank:'II',workers:5,cost:4},{name:'Knight',rank:'III',workers:20,cost:15},{name:'General',rank:'IV',workers:80,cost:50}],
+  carrier: [{name:'Porter',rank:'I',workers:1,cost:1},{name:'Hauler',rank:'II',workers:5,cost:5},{name:'Loader',rank:'III',workers:20,cost:18},{name:'Titan',rank:'IV',workers:70,cost:45}],
+  queen:   [{name:'Maiden',rank:'I',workers:1,cost:5},{name:'Consort',rank:'II',workers:3,cost:15},{name:'Royal',rank:'III',workers:10,cost:40},{name:'Empress',rank:'IV',workers:30,cost:100}],
+};
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function fmt(n,d=2){return Number(n).toFixed(d);}
+function fmtK(n){return n>=1000?(n/1000).toFixed(1)+'K':String(n);}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2500);}
+function navTo(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');document.getElementById('nav-'+p).classList.add('active');if(p==='leaderboard')renderLeaderboard();if(p==='colony')renderColonyPage();if(p==='invite')renderInvitePage();if(p==='wallet')updateWallet();if(p==='queens')renderQueenPage();}
+
+// ============================================================
+//  UI INIT (called after account is confirmed)
+// ============================================================
+function initUI() {
+  if (!TG_USER) return;
+
+  STATE.userId = TG_USER.id;
+  const name = TG_USER.first_name + (TG_USER.last_name ? ' '+TG_USER.last_name : '');
+  const username = TG_USER.username ? '@'+TG_USER.username : 'ID: '+TG_USER.id;
+  const avatarEmojis = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥'];
+  const emoji = avatarEmojis[TG_USER.id % avatarEmojis.length];
+
+  // Header avatar
+  document.getElementById('tgAvatar').textContent = emoji;
+
+  // User card on home page
+  const card = document.getElementById('tgUserCard');
+  card.style.display = 'flex';
+  document.getElementById('tgUserName').textContent = name;
+  document.getElementById('tgUserSub').textContent = username;
+  document.getElementById('tgUserRank').textContent = '#'+STATE.rank;
+  document.getElementById('tgCardAvatar').textContent = emoji;
+
+  // Invite link
+  document.getElementById('inviteLink').textContent = `t.me/${BOT_USERNAME}?start=ref_${TG_USER.id}`;
+
+  // Colony name = player's first name
+  document.getElementById('colonyName').textContent = TG_USER.first_name + "'s Colony";
+
+  // Daily claim banner — reset check
+  const today = new Date().toDateString();
+  if (STATE.dailyClaimed && STATE.dailyClaimedDate === today) {
+    document.getElementById('dailyBanner').style.opacity = '0.4';
+    document.getElementById('dailyBanner').style.pointerEvents = 'none';
+    document.querySelector('.daily-title').textContent = 'Daily Reward Claimed';
+    document.querySelector('.daily-sub').textContent = 'Come back tomorrow!';
+  }
+
+  // Process any eggs that should have been laid while offline
+  processQueenEggs();
+
+  // ── CHECK PENDING REFERRALS ──────────────────────────
+  // When a referred player joined, credit the referrer next time they open
+  if (TG_USER) {
+    try {
+      const refKey = 'antcolony_pending_ref_' + TG_USER.id;
+      const pending = JSON.parse(localStorage.getItem(refKey) || '[]');
+      if (pending.length > 0) {
+        pending.forEach(ref => {
+          STATE.referrals += 1;
+          STATE.workers.scout += 5;
+          STATE.colonySize += 5;
+          STATE.balance += 0.1;
+          showToast(`🐜 ${ref.fromName} joined your colony! +5 Workers +0.1 $ANT!`);
+        });
+        localStorage.removeItem(refKey);
+        saveAccount();
+      }
+    } catch(e) {}
+  }
+
+  // Auto-save every 30s
+  setInterval(saveAccount, 30000);
+}
+
+// ── DAILY CLAIM ──
+function claimDaily() {
+  const today = new Date().toDateString();
+  if (STATE.dailyClaimed && STATE.dailyClaimedDate === today) {
+    showToast('⏳ Come back tomorrow for next reward!');
+    return;
+  }
+  const base = 0.5;
+  const bonus = STATE.referrals * 0.05;
+  const total = base + bonus;
+  STATE.balance += total;
+  STATE.totalMined += total;
+  STATE.dailyClaimed = true;
+  STATE.dailyClaimedDate = today;
+  document.getElementById('dailyBanner').style.opacity = '0.4';
+  document.getElementById('dailyBanner').style.pointerEvents = 'none';
+  document.querySelector('.daily-title').textContent = 'Daily Reward Claimed';
+  document.querySelector('.daily-sub').textContent = 'Come back tomorrow!';
+  showToast(`🎉 +${fmt(total,2)} $ANT Daily Reward!`);
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  saveAccount();
+}
+
+// ── SHARE VIA TELEGRAM ──
+function shareTelegram() {
+  const link = `https://t.me/${BOT_USERNAME}?start=ref_${STATE.userId || TG_USER?.id || 'DEMO'}`;
+  const text = '🐜 Join my Ant Colony! Build your empire & mine $ANT tokens!';
+  // Use Telegram's native share
+  if (tgApp?.openTelegramLink) {
+    tgApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+  } else {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
+  }
+}
+
+function shareNative() {
+  const link = `https://t.me/${BOT_USERNAME}?start=ref_${STATE.userId || 'DEMO'}`;
+  if (navigator.share) {
+    navigator.share({ title: '🐜 Ant Colony', text: 'Mine $ANT tokens!', url: link });
+  } else {
+    copyToClipboard(link);
+    showToast('📋 Link copied!');
+  }
+}
+
+function copyInviteLink() {
+  const link = `https://t.me/${BOT_USERNAME}?start=ref_${STATE.userId || TG_USER?.id || 'DEMO'}`;
+  copyToClipboard(link);
+  const btn = document.getElementById('copyBtn');
+  btn.textContent='Copied!'; btn.classList.add('copied');
+  showToast('📋 Invite link copied!');
+  setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+  if(tgApp?.HapticFeedback) tgApp.HapticFeedback.selectionChanged();
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+}
+
+// ── SYNC PROGRESS TO BOT ──
+function syncToBot() {
+  if (!tgApp?.sendData) {
+    showToast('⚠️ Open inside Telegram to sync!');
+    return;
+  }
+  const data = JSON.stringify({
+    action: 'sync',
+    balance: STATE.balance,
+    totalMined: STATE.totalMined,
+    colonySize: STATE.colonySize,
+    workers: STATE.workers,
+  });
+  tgApp.sendData(data);
+  showToast('✅ Progress synced to bot!');
+}
+
+// ── WITHDRAW ──
+function requestWithdraw() {
+  if (STATE.balance < 100) {
+    showToast(`❌ Need 100 $ANT — You have ${fmt(STATE.balance,2)}`);
+    if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('error');
+    return;
+  }
+  if (tgApp?.sendData) {
+    tgApp.sendData(JSON.stringify({ action:'withdraw', amount: Math.floor(STATE.balance) }));
+    showToast('💰 Withdrawal request sent to bot!');
+  } else {
+    showToast('💰 Minimum 100 $ANT to withdraw');
+  }
+}
+
+// ============================================================
+//  COLONY CANVAS
+// ============================================================
+let ants=[], colonyCtx, colonyCanvas;
+function initColonyCanvas(){
+  colonyCanvas=document.getElementById('colonyCanvas');
+  colonyCtx=colonyCanvas.getContext('2d');
+  // Use fixed fallback dimensions if element not yet visible
+  const wrap=colonyCanvas.parentElement;
+  const w = wrap.offsetWidth || window.innerWidth || 360;
+  const h = wrap.offsetHeight || 200;
+  colonyCanvas.width=w; colonyCanvas.height=h;
+  for(let i=0;i<15;i++) spawnAnt();
+  drawColony();
+  // Re-check size after a short delay (Telegram WebView timing fix)
+  setTimeout(()=>{
+    const w2=wrap.offsetWidth||360, h2=wrap.offsetHeight||200;
+    if(w2!==colonyCanvas.width||h2!==colonyCanvas.height){
+      colonyCanvas.width=w2; colonyCanvas.height=h2;
+      ants=[];
+      for(let i=0;i<15;i++) spawnAnt();
+    }
+  }, 500);
+}
+
+function spawnAnt(){
+  ants.push({x:Math.random()*(colonyCanvas.width||360),y:Math.random()*(colonyCanvas.height||200),vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,size:5+Math.random()*4,angle:Math.random()*Math.PI*2,targetX:Math.random()*360,targetY:Math.random()*200,timer:Math.random()*200,type:Math.floor(Math.random()*4)});
+}
+
+const ANT_COLORS=['#f5a623','#d4800a','#8b5e10','#3d2b08'];
+function drawAnt(c,x,y,sz,angle,color){
+  c.save(); c.translate(x,y); c.rotate(angle); c.fillStyle=color;
+  c.beginPath(); c.ellipse(0,sz*.4,sz*.35,sz*.5,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(0,-sz*.1,sz*.25,sz*.3,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(0,-sz*.55,sz*.2,sz*.22,0,0,Math.PI*2); c.fill();
+  c.strokeStyle=color; c.lineWidth=0.8;
+  [-1,1].forEach(s=>{c.beginPath();c.moveTo(s*sz*.2,-sz*.1);c.lineTo(s*sz*.7,sz*.1);c.stroke();c.beginPath();c.moveTo(s*sz*.2,0);c.lineTo(s*sz*.7,sz*.25);c.stroke();c.beginPath();c.moveTo(s*sz*.2,sz*.2);c.lineTo(s*sz*.6,sz*.45);c.stroke();});
+  c.beginPath();c.moveTo(-sz*.1,-sz*.65);c.lineTo(-sz*.3,-sz);c.stroke();
+  c.beginPath();c.moveTo(sz*.1,-sz*.65);c.lineTo(sz*.3,-sz);c.stroke();
+  c.restore();
+}
+
+// ── TIER-BASED COLONY BACKGROUNDS ──────────────────────────
+
+function getTierIndex(){
+  const s=STATE.colonySize;
+  if(s>=20000)return 7;
+  if(s>=5000)return 6;
+  if(s>=1000)return 5;
+  if(s>=400)return 4;
+  if(s>=150)return 3;
+  if(s>=50)return 2;
+  if(s>=10)return 1;
+  return 0;
+}
+
+// Draw background sky/ground based on tier
+function drawBackground(c,W,H,tier,t){
+  // Sky gradient — gets more dramatic with tier
+  const skies=[
+    ['#0d0900','#1a1000','#0a0700'],   // 0 Egg — dark dirt
+    ['#0a0800','#160e00','#080600'],   // 1 Larva — very dark
+    ['#0d0a00','#1c1200','#0a0800'],   // 2 Scout — brown tones
+    ['#080a12','#101820','#060a10'],   // 3 Village — night blue hint
+    ['#0a0608','#180a10','#080408'],   // 4 Garrison — dark red hint
+    ['#060810','#0e1020','#040608'],   // 5 Fortress — deep blue/purple
+    ['#080614','#10081c','#060412'],   // 6 Empire — dark purple
+    ['#0a0800','#201400','#0a0600'],   // 7 Legendary — golden dark
+  ];
+  const sky=skies[Math.min(tier,7)];
+  const g=c.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,sky[0]); g.addColorStop(0.5,sky[1]); g.addColorStop(1,sky[2]);
+  c.fillStyle=g; c.fillRect(0,0,W,H);
+}
+
+// Draw tunnels — more complex per tier
+function drawTunnels(c,W,H,tier,t){
+  const colors=['rgba(61,43,8,0.25)','rgba(61,43,8,0.3)','rgba(61,43,8,0.35)','rgba(50,50,80,0.3)','rgba(80,30,30,0.3)','rgba(40,40,100,0.35)','rgba(60,20,80,0.35)','rgba(120,80,0,0.4)'];
+  c.strokeStyle=colors[Math.min(tier,7)]; c.lineWidth=6+tier;
+  const numTunnels=3+tier;
+  for(let i=0;i<numTunnels;i++){
+    c.beginPath();
+    c.moveTo(W*(0.05+i*(0.9/numTunnels)),H);
+    c.bezierCurveTo(W*(0.02+i*(0.95/numTunnels)),H*.6,W*(0.1+i*(0.85/numTunnels)),H*.35,W*(0.12+i*(0.82/numTunnels)),H*.05);
+    c.stroke();
+  }
+  // Higher tiers get cross-tunnels
+  if(tier>=3){
+    c.lineWidth=4; c.strokeStyle=colors[tier].replace('0.','0.15');
+    for(let i=0;i<tier-1;i++){
+      const y=H*(0.3+i*0.15);
+      c.beginPath(); c.moveTo(W*0.1,y); c.bezierCurveTo(W*0.3,y-20,W*0.7,y+20,W*0.9,y); c.stroke();
+    }
+  }
+}
+
+// Draw the main colony structure per tier
+function drawColonyStructure(c,W,H,tier,t,cx,cy){
+
+  if(tier===0){
+    // 🥚 EGG CHAMBER — small dirt mound, single hole
+    const hg=c.createRadialGradient(cx,cy-10,3,cx,cy,50);
+    hg.addColorStop(0,'rgba(70,48,12,0.9)'); hg.addColorStop(1,'rgba(20,14,2,0)');
+    c.fillStyle=hg; c.beginPath(); c.ellipse(cx,cy,55,30,0,0,Math.PI*2); c.fill();
+    // Single small entrance
+    c.fillStyle='#030200'; c.beginPath(); c.ellipse(cx,cy,12,7,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='rgba(245,166,35,0.2)'; c.lineWidth=1; c.stroke();
+    // Single egg inside
+    const pulse=(Math.sin(t*2)+1)/2;
+    c.fillStyle=`rgba(255,220,100,${0.15+pulse*0.1})`;
+    c.beginPath(); c.ellipse(cx,cy-8,8,11,0,0,Math.PI*2); c.fill();
+  }
+
+  else if(tier===1){
+    // 🐛 LARVA DEN — slightly bigger mound, larvae visible
+    const hg=c.createRadialGradient(cx,cy-12,5,cx,cy,65);
+    hg.addColorStop(0,'rgba(80,55,15,0.9)'); hg.addColorStop(1,'rgba(20,14,2,0)');
+    c.fillStyle=hg; c.beginPath(); c.ellipse(cx,cy,65,35,0,0,Math.PI*2); c.fill();
+    c.fillStyle='#040300'; c.beginPath(); c.ellipse(cx,cy,14,8,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='rgba(245,166,35,0.25)'; c.lineWidth=1; c.stroke();
+    // Larvae wriggling
+    for(let i=0;i<3;i++){
+      const lx=cx-20+i*20, ly=cy-15+Math.sin(t*2+i)*4;
+      c.fillStyle='rgba(200,180,100,0.5)';
+      c.beginPath(); c.ellipse(lx,ly,5,8,Math.sin(t+i),0,Math.PI*2); c.fill();
+    }
+  }
+
+  else if(tier===2){
+    // 🏕️ SCOUT COLONY — proper mound with scouting tunnels
+    const hg=c.createRadialGradient(cx,cy-18,8,cx,cy+5,90);
+    hg.addColorStop(0,'rgba(90,63,15,0.95)'); hg.addColorStop(0.6,'rgba(55,38,8,0.6)'); hg.addColorStop(1,'rgba(20,14,2,0)');
+    c.fillStyle=hg; c.beginPath(); c.ellipse(cx,cy,90,48,0,0,Math.PI*2); c.fill();
+    // Mound shape on top
+    c.fillStyle='rgba(70,48,12,0.7)';
+    c.beginPath(); c.arc(cx,cy+10,45,Math.PI,0); c.closePath(); c.fill();
+    // Main entrance
+    c.fillStyle='#050300'; c.beginPath(); c.ellipse(cx,cy+10,18,10,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='rgba(245,166,35,0.3)'; c.lineWidth=1.5; c.stroke();
+    // Side tunnels
+    [-35,35].forEach(ox=>{
+      c.fillStyle='rgba(5,3,0,0.8)'; c.beginPath(); c.ellipse(cx+ox,cy+15,8,5,0.3,0,Math.PI*2); c.fill();
+    });
+  }
+
+  else if(tier===3){
+    // 🏘️ WORKER VILLAGE — multiple mounds, village feel
+    // Side mounds
+    [-65,65].forEach((ox,i)=>{
+      const mg=c.createRadialGradient(cx+ox,cy,3,cx+ox,cy+5,35);
+      mg.addColorStop(0,'rgba(60,42,10,0.8)'); mg.addColorStop(1,'rgba(20,14,2,0)');
+      c.fillStyle=mg; c.beginPath(); c.ellipse(cx+ox,cy+5,38,20,0,0,Math.PI*2); c.fill();
+      c.fillStyle='#050300'; c.beginPath(); c.ellipse(cx+ox,cy+8,9,6,0,0,Math.PI*2); c.fill();
+    });
+    // Main mound
+    const hg=c.createRadialGradient(cx,cy-15,8,cx,cy+5,95);
+    hg.addColorStop(0,'rgba(100,70,18,0.95)'); hg.addColorStop(0.5,'rgba(65,45,10,0.7)'); hg.addColorStop(1,'rgba(20,14,2,0)');
+    c.fillStyle=hg; c.beginPath(); c.ellipse(cx,cy,95,52,0,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(80,55,14,0.8)';
+    c.beginPath(); c.arc(cx,cy+8,50,Math.PI,0); c.closePath(); c.fill();
+    c.fillStyle='#050300'; c.beginPath(); c.ellipse(cx,cy+8,20,12,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='rgba(245,166,35,0.35)'; c.lineWidth=1.5; c.stroke();
+    // Connecting paths
+    c.strokeStyle='rgba(90,63,15,0.5)'; c.lineWidth=3;
+    [-65,65].forEach(ox=>{c.beginPath();c.moveTo(cx,cy+8);c.lineTo(cx+ox,cy+8);c.stroke();});
+  }
+
+  else if(tier===4){
+    // ⚔️ SOLDIER GARRISON — fortified walls, guard towers
+    // Outer wall
+    c.strokeStyle='rgba(120,30,30,0.6)'; c.lineWidth=6;
+    c.strokeRect(cx-80,cy-25,160,55);
+    c.fillStyle='rgba(80,15,15,0.2)'; c.fillRect(cx-80,cy-25,160,55);
+    // Battlements
+    for(let i=0;i<8;i++){
+      c.fillStyle='rgba(100,25,25,0.7)';
+      c.fillRect(cx-76+i*22,cy-33,12,10);
+    }
+    // Guard towers
+    [-80,80].forEach(ox=>{
+      c.fillStyle='rgba(90,20,20,0.8)';
+      c.fillRect(cx+ox-10,cy-40,20,55);
+      c.fillStyle='rgba(120,30,30,0.6)';
+      c.beginPath(); c.moveTo(cx+ox-12,cy-40); c.lineTo(cx+ox,cy-55); c.lineTo(cx+ox+12,cy-40); c.closePath(); c.fill();
+    });
+    // Gate
+    c.fillStyle='#080202'; c.beginPath(); c.arc(cx,cy+20,22,Math.PI,0); c.rect(cx-22,cy,44,10); c.fill();
+    c.strokeStyle='rgba(200,60,60,0.4)'; c.lineWidth=1.5; c.stroke();
+    // Glow on towers
+    const glow=(Math.sin(t*1.5)+1)/2;
+    [-80,80].forEach(ox=>{
+      const tg=c.createRadialGradient(cx+ox,cy-48,2,cx+ox,cy-48,15);
+      tg.addColorStop(0,`rgba(255,50,50,${0.4+glow*0.3})`); tg.addColorStop(1,'rgba(255,50,50,0)');
+      c.fillStyle=tg; c.beginPath(); c.arc(cx+ox,cy-48,15,0,Math.PI*2); c.fill();
+    });
+  }
+
+  else if(tier===5){
+    // 🏰 GRAND FORTRESS — large stone castle
+    // Castle base
+    c.fillStyle='rgba(30,35,60,0.85)';
+    c.fillRect(cx-95,cy-20,190,55);
+    // Main tower
+    c.fillStyle='rgba(40,45,75,0.9)';
+    c.fillRect(cx-30,cy-65,60,80);
+    // Battlements on main tower
+    for(let i=0;i<4;i++){c.fillStyle='rgba(50,55,90,0.9)'; c.fillRect(cx-28+i*16,cy-78,10,14);}
+    // Side towers
+    [-95,95].forEach(ox=>{
+      c.fillStyle='rgba(35,40,68,0.9)'; c.fillRect(cx+ox-18,cy-50,36,65);
+      for(let i=0;i<3;i++){c.fillStyle='rgba(45,50,80,0.9)'; c.fillRect(cx+ox-16+i*12,cy-60,9,12);}
+      // Conical roof
+      c.fillStyle='rgba(20,25,50,0.95)';
+      c.beginPath(); c.moveTo(cx+ox-20,cy-50); c.lineTo(cx+ox,cy-80); c.lineTo(cx+ox+20,cy-50); c.closePath(); c.fill();
+    });
+    // Gate archway
+    c.fillStyle='#030308'; c.beginPath(); c.arc(cx,cy+20,25,Math.PI,0); c.rect(cx-25,cy,50,15); c.fill();
+    c.strokeStyle='rgba(100,120,255,0.3)'; c.lineWidth=2; c.stroke();
+    // Windows glowing
+    const gw=(Math.sin(t)+1)/2;
+    [[cx-20,cy-45],[cx+20,cy-45],[cx,cy-30],[cx-80,cy-30],[cx+80,cy-30]].forEach(([wx,wy])=>{
+      const wg=c.createRadialGradient(wx,wy,1,wx,wy,8);
+      wg.addColorStop(0,`rgba(150,180,255,${0.4+gw*0.3})`); wg.addColorStop(1,'rgba(100,130,255,0)');
+      c.fillStyle=wg; c.beginPath(); c.arc(wx,wy,8,0,Math.PI*2); c.fill();
+    });
+    // Flag on top
+    c.strokeStyle='rgba(100,120,255,0.6)'; c.lineWidth=1.5;
+    c.beginPath(); c.moveTo(cx,cy-78); c.lineTo(cx,cy-65); c.stroke();
+    c.fillStyle='rgba(100,150,255,0.7)';
+    c.beginPath(); c.moveTo(cx,cy-78); c.lineTo(cx+14,cy-73); c.lineTo(cx,cy-68); c.closePath(); c.fill();
+  }
+
+  else if(tier===6){
+    // 🌍 MEGA EMPIRE — sprawling underground city with spires
+    // Ground platform
+    const pg=c.createLinearGradient(0,cy-10,0,cy+50);
+    pg.addColorStop(0,'rgba(50,20,70,0.9)'); pg.addColorStop(1,'rgba(20,8,30,0.6)');
+    c.fillStyle=pg; c.fillRect(cx-110,cy-10,220,55);
+    // City spires (many)
+    const spires=[[-90,cy-10,12,55],[-68,cy-10,10,45],[-48,cy-10,14,65],[-25,cy-10,10,40],[0,cy-10,20,80],[25,cy-10,10,40],[48,cy-10,14,65],[68,cy-10,10,45],[90,cy-10,12,55]];
+    spires.forEach(([sx,sy,sw,sh])=>{
+      const sg=c.createLinearGradient(cx+sx,sy-sh,cx+sx,sy);
+      sg.addColorStop(0,'rgba(80,30,110,0.95)'); sg.addColorStop(1,'rgba(40,15,60,0.8)');
+      c.fillStyle=sg; c.fillRect(cx+sx-sw/2,sy-sh,sw,sh);
+      // Spire tip
+      c.fillStyle='rgba(120,50,160,0.9)';
+      c.beginPath(); c.moveTo(cx+sx-sw/2,sy-sh); c.lineTo(cx+sx,sy-sh-sw); c.lineTo(cx+sx+sw/2,sy-sh); c.closePath(); c.fill();
+    });
+    // Central gate
+    c.fillStyle='#050008'; c.beginPath(); c.arc(cx,cy+25,28,Math.PI,0); c.rect(cx-28,cy,56,20); c.fill();
+    c.strokeStyle='rgba(160,80,220,0.5)'; c.lineWidth=2; c.stroke();
+    // Purple energy glow
+    const pe=(Math.sin(t*1.2)+1)/2;
+    const eg=c.createRadialGradient(cx,cy-10,10,cx,cy-10,60);
+    eg.addColorStop(0,`rgba(150,50,220,${0.15+pe*0.12})`); eg.addColorStop(1,'rgba(100,20,180,0)');
+    c.fillStyle=eg; c.beginPath(); c.arc(cx,cy-10,60,0,Math.PI*2); c.fill();
+    // Floating energy particles
+    for(let i=0;i<6;i++){
+      const px2=cx+Math.cos(t*1.5+i*1.05)*70, py2=cy-20+Math.sin(t*1.2+i)*25;
+      const pa=(Math.sin(t*2+i*1.5)+1)/2*0.7;
+      c.fillStyle=`rgba(180,80,255,${pa})`;
+      c.beginPath(); c.arc(px2,py2,2.5,0,Math.PI*2); c.fill();
+    }
+  }
+
+  else if(tier===7){
+    // 👑 LEGENDARY HIVE — massive golden hive, divine glow
+    // Base golden glow
+    const bg2=c.createRadialGradient(cx,cy,10,cx,cy,120);
+    bg2.addColorStop(0,'rgba(255,180,0,0.2)'); bg2.addColorStop(0.5,'rgba(200,130,0,0.1)'); bg2.addColorStop(1,'rgba(150,80,0,0)');
+    c.fillStyle=bg2; c.beginPath(); c.arc(cx,cy,120,0,Math.PI*2); c.fill();
+    // Hexagonal hive cells
+    function drawHex(hx,hy,hr,col){
+      c.beginPath();
+      for(let i=0;i<6;i++){c.lineTo(hx+hr*Math.cos(i*Math.PI/3-Math.PI/6),hy+hr*Math.sin(i*Math.PI/3-Math.PI/6));}
+      c.closePath(); c.fillStyle=col; c.fill();
+      c.strokeStyle='rgba(255,200,0,0.4)'; c.lineWidth=1; c.stroke();
+    }
+    const hexes=[[cx,cy-35,22],[cx-38,cy-18,20],[cx+38,cy-18,20],[cx-20,cy+15,20],[cx+20,cy+15,20],[cx,cy+32,18],[cx-56,cy-5,16],[cx+56,cy-5,16]];
+    const pulse=(Math.sin(t*1.5)+1)/2;
+    hexes.forEach(([hx,hy,hr],i)=>{
+      const bright=0.5+Math.sin(t*2+i*0.8)*0.2;
+      drawHex(hx,hy,hr,`rgba(${180+i*8},${120+i*5},0,${bright})`);
+    });
+    // Crown on top
+    c.fillStyle='rgba(255,210,0,0.9)';
+    c.beginPath(); c.moveTo(cx-30,cy-60); c.lineTo(cx-20,cy-80); c.lineTo(cx-10,cy-65); c.lineTo(cx,cy-85); c.lineTo(cx+10,cy-65); c.lineTo(cx+20,cy-80); c.lineTo(cx+30,cy-60); c.closePath(); c.fill();
+    c.strokeStyle='rgba(255,230,50,0.8)'; c.lineWidth=1.5; c.stroke();
+    // Jewels on crown
+    ['#ff4444','#4444ff','#44ff44'].forEach((col,i)=>{
+      c.fillStyle=col; c.beginPath(); c.arc(cx-18+i*18,cy-70,4,0,Math.PI*2); c.fill();
+    });
+    // Divine rays
+    for(let i=0;i<12;i++){
+      const angle=i*Math.PI/6+t*0.3;
+      const r1=65, r2=95+Math.sin(t*2+i)*10;
+      const alpha=(Math.sin(t*1.5+i*0.5)+1)/2*0.25;
+      c.strokeStyle=`rgba(255,200,0,${alpha})`; c.lineWidth=2;
+      c.beginPath(); c.moveTo(cx+Math.cos(angle)*r1,cy+Math.sin(angle)*r1); c.lineTo(cx+Math.cos(angle)*r2,cy+Math.sin(angle)*r2); c.stroke();
+    }
+    // Golden gate
+    c.fillStyle='#080600'; c.beginPath(); c.arc(cx,cy+32,22,Math.PI,0); c.rect(cx-22,cy+10,44,22); c.fill();
+    c.strokeStyle=`rgba(255,210,0,${0.5+pulse*0.3})`; c.lineWidth=2; c.stroke();
+  }
+}
+
+function drawColony(){
+  const c=colonyCtx, W=colonyCanvas.width, H=colonyCanvas.height;
+  c.clearRect(0,0,W,H);
+  const t=Date.now()/1000;
+  const tier=getTierIndex();
+  const cx=W/2, cy=H*.72;
+
+  drawBackground(c,W,H,tier,t);
+  drawTunnels(c,W,H,tier,t);
+  drawColonyStructure(c,W,H,tier,t,cx,cy);
+
+  // Ants — color changes with tier
+  const antPalettes=[
+    ['#f5a623','#d4800a','#8b5e10','#3d2b08'], // 0-2 normal
+    ['#f5a623','#d4800a','#8b5e10','#3d2b08'],
+    ['#f5a623','#d4800a','#c8a060','#3d2b08'],
+    ['#c8a060','#a08040','#f5a623','#d4800a'], // 3-4 village/garrison
+    ['#cc3030','#f5a623','#d4800a','#8b5e10'],
+    ['#8888ff','#f5a623','#aabbff','#d4800a'], // 5-6 fortress/empire
+    ['#cc88ff','#f5a623','#aa66ee','#ffcc44'],
+    ['#ffcc44','#f5a623','#ffe088','#d4800a'], // 7 legendary
+  ];
+  const palette=antPalettes[Math.min(tier,7)];
+  const numAnts=Math.min(4+Math.floor(STATE.colonySize/4),60);
+  while(ants.length<numAnts)spawnAnt();
+  while(ants.length>numAnts)ants.pop();
+  ants.forEach(a=>{
+    a.timer++;
+    if(a.timer>80+Math.random()*120){a.timer=0;a.targetX=20+Math.random()*(W-40);a.targetY=15+Math.random()*(H-30);}
+    const dx=a.targetX-a.x,dy=a.targetY-a.y,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>2){const spd=0.6+Math.random()*.6;a.x+=(dx/dist)*spd;a.y+=(dy/dist)*spd;a.angle=Math.atan2(dx,-dy);}
+    a.x=Math.max(6,Math.min(W-6,a.x)); a.y=Math.max(6,Math.min(H-6,a.y));
+    drawAnt(c,a.x,a.y,a.size,a.angle,palette[a.type%4]);
+  });
+
+  // Mining sparkles around structure
+  for(let i=0;i<5;i++){
+    const px=cx+Math.cos(t*2+i*1.26)*55, py=cy-10+Math.sin(t*1.5+i*1.26)*22;
+    const alpha=(Math.sin(t*3+i*2)+1)/2*0.6;
+    const sparkColor=tier>=7?`rgba(255,210,0,${alpha})`:tier>=5?`rgba(150,150,255,${alpha})`:tier>=4?`rgba(255,80,80,${alpha})`:`rgba(245,166,35,${alpha})`;
+    c.fillStyle=sparkColor; c.beginPath(); c.arc(px,py,1.5,0,Math.PI*2); c.fill();
+  }
+
+  requestAnimationFrame(drawColony);
+}
+
+// BG Particles
+function initBgCanvas(){
+  const canvas=document.getElementById('bgCanvas'), ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const particles=[];
+  for(let i=0;i<30;i++) particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*1.5+.5,vy:-(Math.random()*.4+.1),alpha:Math.random()*.4+.2,life:Math.random()*100});
+  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{p.y+=p.vy;p.life++;if(p.y<0||p.life>200){p.x=Math.random()*canvas.width;p.y=canvas.height;p.life=0;}ctx.fillStyle=`rgba(245,166,35,${p.alpha*Math.sin(p.life/200*Math.PI)})`;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
+  draw();
+}
+
+// ============================================================
+//  MINING
+// ============================================================
+function getMiningRate(){let r=0;WORKER_TYPES.forEach(w=>{r+=STATE.workers[w.key]*w.rate;});if(STATE.boostActive&&Date.now()<STATE.boostEnd)r*=2;return Math.max(0.0001,r);}
+function getHarvestAmount(){return getMiningRate()*STATE.harvestInterval;}
+
+let boostCount=0;
+function boostMining(){
+  if(STATE.boostActive&&Date.now()<STATE.boostEnd){showToast('⚡ Boost already active!');return;}
+  STATE.boostActive=true; STATE.boostEnd=Date.now()+30000;
+  const btn=document.getElementById('mineBtn'); btn.classList.add('boosted'); btn.textContent='🔥 BOOSTED!';
+  showToast('⚡ 2× Mining Boost for 30s!');
+  boostCount++; MISSIONS[3].current=Math.min(boostCount,3); renderMissions();
+  if(tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred('medium');
+  setTimeout(()=>{STATE.boostActive=false;btn.classList.remove('boosted');btn.textContent='⚡ BOOST';},30000);
+}
+
+function updateMining(){
+  const rate=getMiningRate(), now=Date.now(), elapsed=(now-STATE.lastHarvest)/1000;
+  STATE.mineProgress=Math.min(elapsed/STATE.harvestInterval,1);
+  const earned=rate*0.5; STATE.balance+=earned; STATE.totalMined+=earned; STATE.todayMined+=earned;
+  if(STATE.todayMined>STATE.bestDay)STATE.bestDay=STATE.todayMined;
+  if(elapsed>=STATE.harvestInterval){
+    const harvest=getHarvestAmount(); STATE.balance+=harvest; STATE.totalMined+=harvest; STATE.todayMined+=harvest; STATE.lastHarvest=now;
+    showToast(`🎉 Harvested +${fmt(harvest,3)} $ANT!`);
+    if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  }
+  MISSIONS[0].current=Math.min(STATE.todayMined,1); MISSIONS[2].current=Math.min(STATE.colonySize,10);
+  document.getElementById('headerBalance').textContent=fmt(STATE.balance,3);
+  document.getElementById('miningRate').textContent=fmt(rate,4);
+  document.getElementById('mineBar').style.width=(STATE.mineProgress*100)+'%';
+  const rem=Math.max(0,STATE.harvestInterval-elapsed);
+  const mm=Math.floor(rem/60).toString().padStart(2,'0'), ss=Math.floor(rem%60).toString().padStart(2,'0');
+  document.getElementById('harvestTime').textContent=mm+':'+ss;
+  document.getElementById('harvestAmount').textContent='+'+fmt(getHarvestAmount(),3)+' $ANT';
+  document.getElementById('statMined').textContent=fmt(STATE.totalMined,2);
+  document.getElementById('statReferrals').textContent=STATE.referrals;
+  document.getElementById('statRank').textContent='#'+STATE.rank;
+  document.getElementById('colonyPop').textContent=STATE.colonySize;
+  updateTier(); updateWallet();
+}
+
+function updateTier(){
+  let tier=TIERS[0],nextTier=TIERS[1];
+  for(let i=TIERS.length-1;i>=0;i--){if(STATE.colonySize>=TIERS[i].min){tier=TIERS[i];nextTier=TIERS[i+1]||null;break;}}
+  document.getElementById('tierIcon').textContent=tier.icon; document.getElementById('tierName').textContent=tier.name;
+  document.getElementById('tierDesc').textContent=tier.desc; document.getElementById('colonyRank').textContent=tier.icon+' '+tier.name;
+  const pct=nextTier?((STATE.colonySize-tier.min)/(nextTier.min-tier.min)*100):100;
+  document.getElementById('tierBar').style.width=Math.min(pct,100)+'%';
+  document.getElementById('tierNext').textContent=nextTier?`Next: ${nextTier.name} (${nextTier.min} workers)`:'👑 Maximum Tier!';
+}
+
+function updateWallet(){
+  document.getElementById('walletBalance').textContent=fmt(STATE.balance,3);
+  document.getElementById('walletUSD').textContent=fmt(STATE.balance*0.012,4);
+  document.getElementById('wTodayMined').textContent=fmt(STATE.todayMined,3);
+  document.getElementById('wTotalMined').textContent=fmt(STATE.totalMined,3);
+  document.getElementById('wBestDay').textContent=fmt(STATE.bestDay,3);
+}
+
+// ============================================================
+//  MISSIONS
+// ============================================================
+function renderMissions(){
+  const list=document.getElementById('missionList');
+  list.innerHTML=MISSIONS.map((m,i)=>{
+    const pct=Math.min(m.current/m.target*100,100), done=pct>=100||m.done;
+    return `<div class="mission-item ${done?'done':''}"><div class="mission-icon">${m.icon}</div><div class="mission-info"><div class="mission-name">${m.name}</div><div style="font-size:10px;color:var(--text-dim);margin-top:1px">${Math.min(m.current,m.target)}/${m.target}</div><div class="mission-progress-wrap"><div class="mission-bar" style="width:${pct}%"></div></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><div class="mission-reward">${m.reward}</div>${done&&!m.done?`<button class="claim-btn" onclick="claimMission(${i})">CLAIM</button>`:(done?'<span style="font-size:10px;color:var(--text-dim)">✅</span>':'')}</div></div>`;
+  }).join('');
+}
+
+function claimMission(i){MISSIONS[i].done=true;STATE.balance+=0.2;showToast('🎉 Mission complete!');renderMissions();if(tgApp?.HapticFeedback)tgApp.HapticFeedback.notificationOccurred('success');}
+
+// ============================================================
+//  COLONY PAGE
+// ============================================================
+function renderColonyPage(){
+  const grid=document.getElementById('workerGrid');
+  let total=0;
+  grid.innerHTML=WORKER_TYPES.map(w=>{const count=STATE.workers[w.key]||0;total+=count;return `<div class="worker-type" onclick="openUpgrade('${w.key}')"><div class="worker-emoji">${w.emoji}</div><div style="flex:1"><div class="worker-name">${w.name}</div><div class="worker-count">${count}</div><div class="worker-rate">+${(w.rate*1000).toFixed(1)}/1ks</div></div><button class="worker-upgrade-btn" onclick="event.stopPropagation();openUpgrade('${w.key}')">UP</button></div>`;}).join('');
+  document.getElementById('totalWorkers').textContent=total+' Total';
+  const tl=document.getElementById('tierList');
+  tl.innerHTML=TIERS.map(t=>`<div class="tier-card" style="${STATE.colonySize>=t.min?'':'opacity:0.4'}"><div class="tier-icon">${t.icon}</div><div style="flex:1"><div class="tier-name">${t.name}</div><div class="tier-desc">${t.desc}</div><div class="tier-next">${STATE.colonySize>=t.min?'✅ Unlocked':'Requires '+t.min+' workers'}</div></div></div>`).join('');
+}
+
+// UPGRADE MODAL
+function openUpgrade(key){
+  const w=WORKER_TYPES.find(x=>x.key===key);
+  document.getElementById('upgradeEmoji').textContent=w.emoji;
+  document.getElementById('upgradeTitle').textContent=w.name;
+  document.getElementById('upgradeDesc').textContent='Upgrade to mine faster';
+  const lv=UPGRADE_LEVELS[key];
+  document.getElementById('upgradeLevels').innerHTML=lv.map((l,i)=>`<div class="upgrade-level-btn" onclick="buyWorkers('${key}',${l.workers},${l.cost})"><div class="ul-left"><div class="ul-rank">LV${l.rank}</div><div><div class="ul-name">+${l.workers} ${l.name}</div><div class="ul-power">+${(w.rate*l.workers*1000).toFixed(2)} $ANT/1000s</div></div></div><div class="ul-cost">${l.cost===0?'FREE':l.cost+' $ANT'}</div></div>`).join('');
+  document.getElementById('upgradeModal').classList.add('open');
+  if(tgApp?.HapticFeedback)tgApp.HapticFeedback.selectionChanged();
+}
+
+function buyWorkers(key,workers,cost){
+  if(cost>0&&STATE.balance<cost){showToast(`❌ Need ${cost} $ANT!`);if(tgApp?.HapticFeedback)tgApp.HapticFeedback.notificationOccurred('error');return;}
+  if(cost>0)STATE.balance-=cost;
+  STATE.workers[key]=(STATE.workers[key]||0)+workers; STATE.colonySize+=workers;
+  document.getElementById('upgradeModal').classList.remove('open');
+  showToast(`✅ +${workers} ${WORKER_TYPES.find(w=>w.key===key).name}!`);
+  updateTier(); if(tgApp?.HapticFeedback)tgApp.HapticFeedback.notificationOccurred('success'); saveAccount();
+}
+
+document.getElementById('upgradeModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+
+// ============================================================
+//  INVITE PAGE
+// ============================================================
+function renderInvitePage(){
+  const uid=STATE.userId||TG_USER?.id||'DEMO';
+  document.getElementById('inviteLink').textContent=`t.me/${BOT_USERNAME}?start=ref_${uid}`;
+  document.getElementById('invTotal').textContent=STATE.referrals;
+  document.getElementById('invWorkers').textContent=STATE.referrals*5;
+  document.getElementById('invEarned').textContent=fmt(STATE.referrals*.1,1);
+}
+
+// ============================================================
+//  LEADERBOARD
+// ============================================================
+function renderLeaderboard(){
+  const data=[...LEADERBOARD];
+  if(TG_USER) data.push({emoji:'🐜',name:TG_USER.username||TG_USER.first_name,size:STATE.colonySize,ant:STATE.totalMined,isUser:true});
+  data.sort((a,b)=>b.size-a.size);
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lbList').innerHTML=data.map((item,i)=>`<div class="lb-item ${i<3?'top'+(i+1):''}"><div class="lb-rank">${i<3?medals[i]:'#'+(i+1)}</div><div style="font-size:22px">${item.emoji}</div><div class="lb-info"><div class="lb-name" style="${item.isUser?'color:var(--amber-bright)':''}">${item.name}${item.isUser?' ⭐':''}</div><div class="lb-sub">${fmtK(item.size)} workers</div></div><div class="lb-amount">${fmtK(item.size)}<span>Workers</span></div></div>`).join('');
+}
+
+// ============================================================
+//  EVENT TIMER
+// ============================================================
+function updateEventTimer(){
+  const now=new Date(), end=new Date(); end.setHours(23,59,59,999);
+  const diff=end-now, h=Math.floor(diff/3600000).toString().padStart(2,'0'), m=Math.floor((diff%3600000)/60000).toString().padStart(2,'0'), s=Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+  const el=document.getElementById('eventTimer'); if(el)el.textContent=`${h}:${m}:${s}`;
+}
+
+
+// ============================================================
+//  QUEEN ANT SYSTEM
+// ============================================================
+
+// ── SAVE / RESTORE (extend existing) ──
+const _origSave = saveAccount;
+// Patch saveAccount to include queen data
+function saveAccount() {
+  if (!TG_USER) return;
+  const saved = loadAccount() || {};
+  const data = {
+    tgId: TG_USER.id,
+    tgName: TG_USER.first_name,
+    tgUsername: TG_USER.username || null,
+    createdAt: STATE.createdAt || Date.now(),
+    balance: STATE.balance,
+    totalMined: STATE.totalMined,
+    todayMined: STATE.todayMined,
+    bestDay: STATE.bestDay,
+    referrals: STATE.referrals,
+    workers: STATE.workers,
+    colonySize: STATE.colonySize,
+    rank: STATE.rank,
+    dailyClaimed: STATE.dailyClaimed,
+    dailyClaimedDate: STATE.dailyClaimedDate,
+    lastHarvest: STATE.lastHarvest,
+    referredBy: STATE.referredBy || null,
+    queens: STATE.queens || {},
+    eggs: STATE.eggs || [],
+    lastQueenEgg: STATE.lastQueenEgg || {},
+  };
+  try { localStorage.setItem('antcolony_account_' + TG_USER.id, JSON.stringify(data)); } catch(e){}
+}
+
+// ── EGG LAYING ENGINE ──────────────────────────────────────
+// Called every 30 seconds — checks each owned queen and lays eggs
+function processQueenEggs() {
+  if (!STATE.queens) return;
+  const now = Date.now();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  let newEggsLaid = 0;
+
+  QUEEN_TYPES.forEach(qt => {
+    if (!STATE.queens[qt.key]) return;
+    const lastLay = STATE.lastQueenEgg[qt.key] || now;
+    const elapsed = now - lastLay;
+    const eggInterval = weekMs / qt.eggsPerWeek; // ms between each egg
+    const eggsToLay = Math.floor(elapsed / eggInterval);
+
+    if (eggsToLay > 0) {
+      for (let i = 0; i < eggsToLay; i++) {
+        STATE.eggs.push({
+          id: now + Math.random(),
+          queenKey: qt.key,
+          laid: now,
+          hatchAt: now + EGG_HATCH_MS,
+          hatched: false,
+        });
+        newEggsLaid++;
+      }
+      STATE.lastQueenEgg[qt.key] = lastLay + eggsToLay * eggInterval;
+    }
+  });
+
+  if (newEggsLaid > 0) {
+    renderEggChamber();
+    saveAccount();
+    if (newEggsLaid === 1) showToast(`🥚 Your Queen laid an egg!`);
+    else showToast(`🥚 ${newEggsLaid} new eggs laid!`);
+  }
+
+  // Check for ready-to-hatch eggs
+  checkHatchableEggs();
+}
+
+// ── HATCH LOGIC ────────────────────────────────────────────
+function checkHatchableEggs() {
+  const now = Date.now();
+  const ready = STATE.eggs.filter(e => !e.hatched && now >= e.hatchAt);
+  if (ready.length > 0) renderEggChamber(); // refresh UI to show glow
+}
+
+function hatchEgg(eggId) {
+  const egg = STATE.eggs.find(e => e.id === eggId);
+  if (!egg || egg.hatched) return;
+  const now = Date.now();
+  if (now < egg.hatchAt) {
+    const rem = egg.hatchAt - now;
+    const h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000);
+    showToast(`⏳ Hatches in ${h}h ${m}m`);
+    return;
+  }
+
+  // Determine worker type by probability
+  const roll = Math.random();
+  let cumulative = 0, hatched = HATCH_PROBS[0];
+  for (const p of HATCH_PROBS) {
+    cumulative += p.chance;
+    if (roll < cumulative) { hatched = p; break; }
+  }
+
+  egg.hatched = true;
+  STATE.workers[hatched.key] = (STATE.workers[hatched.key] || 0) + 1;
+  STATE.colonySize++;
+
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  saveAccount();
+  renderEggChamber();
+  showHatchPopup(hatched, egg.queenKey);
+}
+
+function showHatchPopup(hatched, queenKey) {
+  const qt = QUEEN_TYPES.find(q => q.key === queenKey);
+  document.getElementById('hatchEmoji').textContent = hatched.emoji;
+  document.getElementById('hatchTitle').textContent = `${hatched.label} Hatched!`;
+  document.getElementById('hatchDesc').textContent =
+    `A new ${hatched.label} joins your colony!
+Laid by your ${qt?.name || 'Queen'}.`;
+  document.getElementById('hatchPopup').classList.add('show');
+}
+
+function closeHatchPopup() {
+  document.getElementById('hatchPopup').classList.remove('show');
+}
+
+// ── BUY QUEEN ───────────────────────────────────────────────
+function buyQueen(key) {
+  const qt = QUEEN_TYPES.find(q => q.key === key);
+  if (!qt) return;
+  if (STATE.queens[key]) { showToast(`👑 You already own a ${qt.name}!`); return; }
+  if (STATE.balance < qt.price) {
+    showToast(`❌ Need ${fmtBig(qt.price)} $ANT!`);
+    if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('error');
+    return;
+  }
+  STATE.balance -= qt.price;
+  STATE.queens[key] = true;
+  STATE.lastQueenEgg[key] = Date.now();
+  saveAccount();
+  renderQueenShop();
+  renderEggChamber();
+  updateQueenHeader();
+  showToast(`👑 ${qt.name} joins your colony!`);
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  renderQueenCanvas();
+}
+
+function fmtBig(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
+  if (n >= 1000) return (n/1000).toFixed(0)+'K';
+  return String(n);
+}
+
+// ── RENDER QUEEN SHOP ────────────────────────────────────────
+function renderQueenShop() {
+  const grid = document.getElementById('queenShopGrid');
+  if (!grid) return;
+
+  grid.innerHTML = QUEEN_TYPES.map(qt => {
+    const owned = STATE.queens[qt.key];
+    const canAfford = STATE.balance >= qt.price;
+    const btnClass = owned ? 'owned' : canAfford ? 'can-buy' : 'cant-afford';
+    const btnText  = owned ? '✅ OWNED' : canAfford ? 'BUY' : '🔒 ' + fmtBig(qt.price);
+    const eggRate  = qt.eggsPerWeek >= 1000 ? (qt.eggsPerWeek/1000).toFixed(0)+'K/wk' : qt.eggsPerWeek+'/wk';
+
+    return `<div class="queen-card ${qt.key}">
+      <div class="queen-avatar-wrap">
+        <canvas id="qav_${qt.key}" width="64" height="64"></canvas>
+      </div>
+      <div class="queen-info">
+        <div class="queen-rarity">${qt.key.toUpperCase()}</div>
+        <div class="queen-name">${qt.name}</div>
+        <div class="queen-stat">🥚 Lays <span>${eggRate}</span></div>
+        <div class="queen-stat">⏱ Hatch time: <span>8 hours</span></div>
+        <div class="queen-price">${fmtBig(qt.price)} $ANT</div>
+      </div>
+      <button class="queen-buy-btn ${btnClass}" onclick="${owned?'':canAfford?`buyQueen('${qt.key}')`:''}">${btnText}</button>
+    </div>`;
+  }).join('');
+
+  // Draw mini queen avatars in cards
+  setTimeout(() => {
+    QUEEN_TYPES.forEach(qt => drawQueenAvatar(qt.key));
+  }, 50);
+}
+
+// ── RENDER EGG CHAMBER ───────────────────────────────────────
+function renderEggChamber() {
+  const grid = document.getElementById('eggGrid');
+  const badge = document.getElementById('eggCountBadge');
+  if (!grid) return;
+
+  // Remove hatched eggs older than 1 minute
+  STATE.eggs = STATE.eggs.filter(e => !e.hatched || (Date.now() - e.hatchAt < 60000));
+
+  const activeEggs = STATE.eggs.filter(e => !e.hatched);
+  if (badge) badge.textContent = activeEggs.length + ' eggs';
+
+  if (activeEggs.length === 0) {
+    grid.innerHTML = '<div class="egg-empty">🥚 No eggs incubating — Queens will lay soon!</div>';
+    return;
+  }
+
+  const now = Date.now();
+  grid.innerHTML = activeEggs.map(egg => {
+    const qt = QUEEN_TYPES.find(q => q.key === egg.queenKey);
+    const ready = now >= egg.hatchAt;
+    const rem = Math.max(0, egg.hatchAt - now);
+    const h = Math.floor(rem/3600000).toString().padStart(2,'0');
+    const m = Math.floor((rem%3600000)/60000).toString().padStart(2,'0');
+    const s = Math.floor((rem%60000)/1000).toString().padStart(2,'0');
+    const timerText = ready ? 'TAP TO HATCH!' : `${h}:${m}:${s}`;
+    return `<div class="egg-item ${ready?'egg-hatch-ready':''}" onclick="hatchEgg(${egg.id})">
+      <div class="egg-rarity-dot" style="background:${qt?.color||'#888'}"></div>
+      <div class="egg-emoji">${ready?'✨':'🥚'}</div>
+      <div class="egg-timer" style="color:${ready?'var(--amber-bright)':'#cc88ff'}">${timerText}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── UPDATE QUEEN HEADER ──────────────────────────────────────
+function updateQueenHeader() {
+  const count = Object.values(STATE.queens||{}).filter(Boolean).length;
+  const badge = document.getElementById('queensOwnedBadge');
+  if (badge) badge.textContent = count + (count===1?' Queen':' Queens');
+}
+
+// ── QUEEN CANVAS (hero animation) ────────────────────────────
+let queenCtx, queenCanvasEl;
+const queenAnims = []; // {x,y,qt,wingAngle,bobOffset,speed}
+
+function initQueenCanvas() {
+  queenCanvasEl = document.getElementById('queenCanvas');
+  if (!queenCanvasEl) return;
+  queenCtx = queenCanvasEl.getContext('2d');
+  const wrap = queenCanvasEl.parentElement;
+  queenCanvasEl.width  = wrap.offsetWidth || 360;
+  queenCanvasEl.height = wrap.offsetHeight || 180;
+  rebuildQueenAnims();
+  drawQueenCanvas();
+}
+
+function rebuildQueenAnims() {
+  queenAnims.length = 0;
+  const W = queenCanvasEl?.width || 360;
+  const H = queenCanvasEl?.height || 180;
+  const ownedQueens = QUEEN_TYPES.filter(qt => STATE.queens[qt.key]);
+  ownedQueens.forEach((qt, i) => {
+    queenAnims.push({
+      x: W * (0.15 + i * (0.7 / Math.max(ownedQueens.length,1))),
+      y: H * 0.5,
+      qt,
+      wingAngle: 0,
+      bobOffset: Math.random() * Math.PI * 2,
+      speed: 0.3 + Math.random() * 0.3,
+      targetX: W * Math.random(),
+      targetY: H * 0.3 + Math.random() * H * 0.4,
+      timer: 0,
+    });
+  });
+}
+
+function drawQueenCanvas() {
+  if (!queenCtx || !queenCanvasEl) return;
+  const c = queenCtx, W = queenCanvasEl.width, H = queenCanvasEl.height;
+  const t = Date.now() / 1000;
+  c.clearRect(0, 0, W, H);
+
+  // Dark purple background
+  const bg = c.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#08000f'); bg.addColorStop(0.5,'#10001a'); bg.addColorStop(1,'#060008');
+  c.fillStyle = bg; c.fillRect(0,0,W,H);
+
+  // Mystical ground
+  const ground = c.createLinearGradient(0,H*0.7,0,H);
+  ground.addColorStop(0,'rgba(100,0,150,0.3)'); ground.addColorStop(1,'rgba(40,0,60,0.6)');
+  c.fillStyle = ground; c.fillRect(0,H*0.7,W,H*0.3);
+
+  // Floating particles
+  for(let i=0;i<20;i++){
+    const px=((t*20+i*37)%W), py=H*0.1+((t*8+i*19)%(H*0.85));
+    const alpha=(Math.sin(t*2+i)+1)/2*0.5;
+    c.fillStyle=`rgba(200,100,255,${alpha*0.4})`;
+    c.beginPath(); c.arc(px,py,1,0,Math.PI*2); c.fill();
+  }
+
+  if (queenAnims.length === 0) {
+    // No queens — show placeholder
+    c.fillStyle='rgba(180,0,255,0.1)'; c.beginPath(); c.arc(W/2,H/2,40,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(180,0,255,0.3)'; c.font='36px serif'; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('👑', W/2, H/2);
+    c.fillStyle='rgba(150,100,200,0.6)'; c.font='12px Rajdhani'; c.fillText('Purchase a Queen to begin', W/2, H/2+40);
+  } else {
+    queenAnims.forEach(qa => {
+      qa.timer++;
+      if(qa.timer > 80+Math.random()*80){
+        qa.timer=0;
+        qa.targetX=30+Math.random()*(W-60);
+        qa.targetY=H*0.15+Math.random()*(H*0.65);
+      }
+      const dx=qa.targetX-qa.x, dy=qa.targetY-qa.y, dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist>2){qa.x+=dx/dist*qa.speed; qa.y+=dy/dist*qa.speed;}
+      qa.bobOffset+=0.05;
+      const bob=Math.sin(qa.bobOffset)*3;
+      drawQueenAnt(c, qa.x, qa.y+bob, 18, qa.qt, t);
+    });
+  }
+
+  requestAnimationFrame(drawQueenCanvas);
+}
+
+// Draw a single winged queen ant
+function drawQueenAnt(c, x, y, sz, qt, t) {
+  const col = qt.color;
+  c.save(); c.translate(x, y);
+
+  // Glow aura
+  const aura = c.createRadialGradient(0,0,sz*0.5,0,0,sz*2.5);
+  aura.addColorStop(0, qt.glow.replace('0.4','0.25'));
+  aura.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle=aura; c.beginPath(); c.arc(0,0,sz*2.5,0,Math.PI*2); c.fill();
+
+  // Wings (4 wings — 2 pairs)
+  const wFlap = Math.sin(t * 8) * 0.4; // fast flap
+  const wFlap2 = Math.sin(t * 8 + 0.5) * 0.35;
+  [[- sz*1.4, -sz*0.3, wFlap, false],[sz*1.4,-sz*0.3,-wFlap,false],
+   [-sz*1.1,-sz*0.1,wFlap2+0.2,true],[sz*1.1,-sz*0.1,-wFlap2-0.2,true]].forEach(([wx,wy,wa,small])=>{
+    c.save();
+    c.translate(wx*0.5, wy);
+    c.rotate(wa);
+    const ww = small?sz*1.0:sz*1.3, wh = small?sz*0.45:sz*0.55;
+    const wg = c.createRadialGradient(0,0,1,0,0,ww);
+    wg.addColorStop(0, col.replace('#','rgba(').replace(/(..)(..)(..)/, (_,r,g,b)=>`rgba(${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+',0.7)');
+    wg.addColorStop(0, `${col}bb`);
+    wg.addColorStop(1, `${col}11`);
+    c.fillStyle=wg;
+    c.beginPath(); c.ellipse(0,0,ww,wh,small?0.2:0,0,Math.PI*2); c.fill();
+    c.strokeStyle=col+'55'; c.lineWidth=0.5; c.stroke();
+    c.restore();
+  });
+
+  // Body — abdomen
+  c.fillStyle=col; c.beginPath(); c.ellipse(0,sz*0.5,sz*0.42,sz*0.6,0,0,Math.PI*2); c.fill();
+  // Body — thorax
+  c.beginPath(); c.ellipse(0,-sz*0.05,sz*0.3,sz*0.35,0,0,Math.PI*2); c.fill();
+  // Head
+  c.beginPath(); c.ellipse(0,-sz*0.58,sz*0.25,sz*0.26,0,0,Math.PI*2); c.fill();
+  // Crown on head
+  c.fillStyle='#ffd700';
+  c.beginPath();
+  c.moveTo(-sz*0.22,-sz*0.82);
+  c.lineTo(-sz*0.14,-sz*1.02); c.lineTo(-sz*0.06,-sz*0.88);
+  c.lineTo(0,-sz*1.08); c.lineTo(sz*0.06,-sz*0.88);
+  c.lineTo(sz*0.14,-sz*1.02); c.lineTo(sz*0.22,-sz*0.82);
+  c.closePath(); c.fill();
+  // Crown jewel
+  c.fillStyle='#ff4488'; c.beginPath(); c.arc(0,-sz*1.0,sz*0.1,0,Math.PI*2); c.fill();
+  // Eyes
+  c.fillStyle='#fff'; c.beginPath(); c.arc(-sz*0.1,-sz*0.62,sz*0.07,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(sz*0.1,-sz*0.62,sz*0.07,0,Math.PI*2); c.fill();
+  c.fillStyle='#000'; c.beginPath(); c.arc(-sz*0.1,-sz*0.62,sz*0.04,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(sz*0.1,-sz*0.62,sz*0.04,0,Math.PI*2); c.fill();
+  // Antennae
+  c.strokeStyle=col; c.lineWidth=1.2;
+  c.beginPath(); c.moveTo(-sz*0.1,-sz*0.78); c.quadraticCurveTo(-sz*0.4,-sz*1.1,-sz*0.5,-sz*1.3); c.stroke();
+  c.beginPath(); c.moveTo(sz*0.1,-sz*0.78); c.quadraticCurveTo(sz*0.4,-sz*1.1,sz*0.5,-sz*1.3); c.stroke();
+  // Antenna tips
+  c.fillStyle=col; c.beginPath(); c.arc(-sz*0.5,-sz*1.3,sz*0.07,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(sz*0.5,-sz*1.3,sz*0.07,0,Math.PI*2); c.fill();
+  // Legs (6)
+  c.strokeStyle=col; c.lineWidth=1;
+  [[-1,-0.05,-0.6,0.1],[-1,-0.05,-0.65,0.25],[-1,0.2,-0.6,0.35],
+   [1,-0.05,0.6,0.1],[1,-0.05,0.65,0.25],[1,0.2,0.6,0.35]].forEach(([sx,sy,ex,ey])=>{
+    c.beginPath(); c.moveTo(sx*sz*0.3,sy*sz); c.lineTo(ex*sz,ey*sz); c.stroke();
+  });
+
+  c.restore();
+}
+
+// ── MINI QUEEN AVATAR in shop cards ─────────────────────────
+function drawQueenAvatar(key) {
+  const canvas = document.getElementById('qav_'+key);
+  if (!canvas) return;
+  const c = canvas.getContext('2d');
+  const qt = QUEEN_TYPES.find(q => q.key === key);
+  if (!qt) return;
+  c.clearRect(0,0,64,64);
+  // Dark bg
+  const bg = c.createRadialGradient(32,32,5,32,32,32);
+  bg.addColorStop(0, qt.glow); bg.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=bg; c.fillRect(0,0,64,64);
+  // Draw static queen
+  drawQueenAnt(c, 32, 38, 11, qt, 0);
+}
+
+// ── QUEEN PAGE RENDER ────────────────────────────────────────
+function renderQueenPage() {
+  renderQueenShop();
+  renderEggChamber();
+  updateQueenHeader();
+  if (!queenCtx) {
+    setTimeout(initQueenCanvas, 100);
+  } else {
+    rebuildQueenAnims();
+  }
+}
+
+// ── EGG TIMER UPDATE (called every second) ───────────────────
+function updateEggTimers() {
+  // Only update if queen page is active
+  if (document.getElementById('page-queens')?.classList.contains('active')) {
+    renderEggChamber();
+  }
+}
+
+// Run egg laying check every 30 seconds
+setInterval(processQueenEggs, 30000);
+// Update egg timers every second
+setInterval(updateEggTimers, 1000);
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('load', () => {
+  // Always init canvas & bg immediately
+  // Delay canvas init to ensure DOM is fully rendered
+  setTimeout(()=>{ initColonyCanvas(); initBgCanvas(); }, 100);
+  renderMissions();
+  setInterval(updateMining, 500);
+  setInterval(updateEventTimer, 1000);
+  setInterval(saveAccount, 30000);
+
+  // Back button (Telegram)
+  if (tgApp?.BackButton) {
+    tgApp.BackButton.onClick(() => { navTo('home'); tgApp.BackButton.hide(); });
+  }
+
+  // Short delay to let Telegram SDK fully init
+  setTimeout(() => {
+    // Hide loading spinner
+    const ls = document.getElementById('loadingScreen');
+    ls.style.opacity = '0';
+    ls.style.transition = 'opacity 0.3s';
+    setTimeout(() => { ls.style.display = 'none'; }, 300);
+
+    const saved = loadAccount();
+
+    if (saved && saved.tgId === TG_USER?.id) {
+      // ✅ Returning player — restore account and go straight to game
+      restoreAccount(saved);
+      document.getElementById('app').style.display = 'flex';
+      initUI();
+      showToast(`👋 Welcome back, ${TG_USER.first_name}!`);
+    } else {
+      // 🆕 New player — show onboarding screen
+      document.getElementById('app').style.display = 'none';
+      showOnboarding();
+    }
+  }, 1200);
+});
+</script>
+</body>
+</html>
