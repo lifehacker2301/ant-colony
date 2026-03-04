@@ -1234,7 +1234,7 @@ function saveAccount() {
     dailyClaimedDate: STATE.dailyClaimedDate,
     lastHarvest: STATE.lastHarvest,
     purchasedUpgrades: STATE.purchasedUpgrades || {},
-    // lastSeen is only updated on pagehide — not here
+    lastSeen: Date.now(),
     referredBy: STATE.referredBy || null,
     missionsDone: STATE.missionsDone || {},
     missionStats: STATE.missionStats || {},
@@ -1392,6 +1392,7 @@ const STATE = {
   referrals: 0, workers: { scout:5, soldier:0, carrier:2, queen:0 },
   colonySize: 5, boostActive: false, boostEnd: 0,
   mineProgress: 0, lastHarvest: Date.now(), harvestInterval: 60,
+  sessionStart: Date.now(),
   purchasedUpgrades: {}, // tracks which upgrade levels have been bought: {scout:[0,1], soldier:[2]}
   rank: Math.floor(Math.random()*500)+100, userId: null,
   dailyClaimed: false, dailyClaimedDate: null, createdAt: null, referredBy: null,
@@ -1565,6 +1566,7 @@ function initUI() {
   const displayName = STATE.colonyCustomName || TG_USER.first_name + "'s Colony";
   document.getElementById('colonyName').textContent = displayName;
   // Check offline earnings
+  STATE.sessionStart = Date.now(); // mark when THIS session started
   setTimeout(checkOfflineEarnings, 1500);
 
   // Daily claim banner — reset check
@@ -2070,6 +2072,10 @@ function initBgCanvas(){
 // ============================================================
 //  MINING
 // ============================================================
+function updateBalanceDisplay() {
+  const el = document.getElementById('headerBalance');
+  if (el) el.textContent = STATE.balance.toFixed(3);
+}
 function getMiningRate(){let r=0;WORKER_TYPES.forEach(w=>{r+=STATE.workers[w.key]*w.rate;});if(STATE.boostActive&&Date.now()<STATE.boostEnd)r*=2;return Math.max(0.0001,r);}
 function getHarvestAmount(){return getMiningRate()*STATE.harvestInterval;}
 
@@ -2228,47 +2234,64 @@ function updateEventTimer(){
 //  OFFLINE EARNINGS
 // ============================================================
 function checkOfflineEarnings() {
+  // sessionStart = when THIS session opened
+  // lastSeen     = when the PREVIOUS session saved (every 30s during play)
+  // offline time = sessionStart - lastSeen
+  // This way we never count the current session as "offline time"
+
   const saved = loadAccount();
   if (!saved) return;
-  const now = Date.now();
-  // Use lastSeen first, fallback to lastHarvest
-  const lastActive = saved.lastSeen || saved.lastHarvest || now;
-  const away = now - lastActive;
-  const awayHours = away / 3600000;
-  if (awayHours < 0.083) return; // less than 5 min — skip
 
-  // Calculate what was mined while away (cap at 24 hours)
-  const cappedHours = Math.min(awayHours, 24);
+  const sessionStart = STATE.sessionStart || Date.now();
+  const lastSeen     = saved.lastSeen || saved.lastHarvest;
+  if (!lastSeen) return; // first ever session — no offline time
+
+  // Only count time from a PREVIOUS session
+  // If lastSeen is within 10s of sessionStart, we just refreshed — skip
+  const awayMs = sessionStart - lastSeen;
+  if (awayMs < 10000) return; // less than 10 seconds — skip
+
+  // Cap at 24 hours
+  const cappedMs    = Math.min(awayMs, 24 * 3600000);
+  const cappedHours = cappedMs / 3600000;
+
+  // Calculate earnings using STATE.workers (already restored)
   let rate = 0;
-  WORKER_TYPES.forEach(w => { rate += (STATE.workers[w.key]||0) * w.rate; });
-  const earned = rate * cappedHours * 3600;
-  if (earned < 0.001) return;
+  WORKER_TYPES.forEach(w => { rate += (STATE.workers[w.key] || 0) * w.rate; });
+  if (rate <= 0) return;
 
-  // Show popup with claim button
+  const earned = rate * cappedHours * 3600;
+  if (earned < 0.0001) return;
+
+  // Show popup
   window._offlineEarned = earned;
-  const h = Math.floor(cappedHours), m = Math.floor((cappedHours % 1) * 60);
-  document.getElementById('offlineAmount').textContent = '+' + earned.toFixed(3) + ' $ANT';
-  document.getElementById('offlineTime').textContent = 'Away ' + (h>0?h+'h ':'') + m + 'm — tap to collect!';
+  const h = Math.floor(cappedHours);
+  const m = Math.floor((cappedHours % 1) * 60);
+  const s = Math.floor(((cappedHours * 3600) % 60));
+  const timeStr = h > 0 ? h + 'h ' + m + 'm' : m > 0 ? m + 'm ' + s + 's' : s + 's';
+  document.getElementById('offlineAmount').textContent = '+' + earned.toFixed(4) + ' $ANT';
+  document.getElementById('offlineTime').textContent   = 'Away for ' + timeStr;
   document.getElementById('offlinePopup').style.display = 'flex';
 }
 
 function collectOffline() {
   const earned = window._offlineEarned || 0;
-  STATE.balance += earned;
-  STATE.totalMined += earned;
-  STATE.todayMined += earned;
+  if (earned > 0) {
+    STATE.balance    += earned;
+    STATE.totalMined += earned;
+    STATE.todayMined += earned;
+    updateBalanceDisplay();
+    showToast('🌙 +' + earned.toFixed(4) + ' $ANT offline earnings!');
+    if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  }
+  window._offlineEarned = 0;
   document.getElementById('offlinePopup').style.display = 'none';
-  showToast(`🌙 Collected ${earned.toFixed(3)} $ANT offline earnings!`);
-  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
-  saveLastSeen();
-  saveAccount();
+  saveAccount(); // saves lastSeen = now, so next offline starts from here
 }
 
 function saveLastSeen() {
-  try {
-    const saved = loadAccount();
-    if (saved) { saved.lastSeen = Date.now(); localStorage.setItem('antcolony_account_'+TG_USER.id, JSON.stringify(saved)); }
-  } catch(e) {}
+  // saveAccount() already includes lastSeen: Date.now() — just call it
+  try { saveAccount(); } catch(e) {}
 }
 
 // ============================================================
