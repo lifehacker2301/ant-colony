@@ -970,11 +970,19 @@ async function tgSendFileDirect(chatId, file, fileType, caption, extra={}) {
   const form  = new FormData();
   form.append('chat_id', String(chatId));
   form.append(field, file, file.name);
-  if (caption) { form.append('caption', caption); form.append('parse_mode', 'Markdown'); }
-  if (extra.reply_markup) form.append('reply_markup', JSON.stringify(extra.reply_markup));
+  if (caption) {
+    form.append('caption', caption);
+    form.append('parse_mode', 'Markdown');
+  }
+  // reply_markup MUST be JSON-encoded string in multipart form
+  if (extra && extra.reply_markup) {
+    form.append('reply_markup', JSON.stringify(extra.reply_markup));
+  }
   try {
     const res = await fetch('https://api.telegram.org/bot'+token+'/'+ep, { method:'POST', body:form });
-    return await res.json();
+    const d = await res.json();
+    if (!d.ok) console.warn('TG sendFile error:', d.description, '| ep:', ep, '| hasMarkup:', !!(extra&&extra.reply_markup));
+    return d;
   } catch(e) { return { ok:false, description: e.message }; }
 }
 
@@ -1031,7 +1039,9 @@ async function sendAnnouncement() {
     try {
       let d;
       if (selectedFile) {
-        d = await tgSendFileDirect(chatIds[i], selectedFile, selectedFileType, text||null, extra);
+        // When buttons exist but no caption, pass a space so reply_markup attaches to the photo
+        const fileCaption = text || (extra.reply_markup ? ' ' : null);
+        d = await tgSendFileDirect(chatIds[i], selectedFile, selectedFileType, fileCaption, extra);
       } else {
         d = await tgSendRaw(chatIds[i], text, extra);
       }
