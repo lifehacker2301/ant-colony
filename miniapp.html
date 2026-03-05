@@ -1565,7 +1565,9 @@ function initUI() {
   // Colony name — use custom if set
   const displayName = STATE.colonyCustomName || TG_USER.first_name + "'s Colony";
   document.getElementById('colonyName').textContent = displayName;
-  // Check offline earnings
+  // Snapshot lastSeen NOW before any saveAccount() call can overwrite it
+  const _preSave = loadAccount();
+  STATE._priorLastSeen = _preSave ? (_preSave.lastSeen || _preSave.lastHarvest) : null;
   STATE.sessionStart = Date.now(); // mark when THIS session started
   setTimeout(checkOfflineEarnings, 1500);
 
@@ -2234,17 +2236,14 @@ function updateEventTimer(){
 //  OFFLINE EARNINGS
 // ============================================================
 function checkOfflineEarnings() {
-  // sessionStart = when THIS session opened
-  // lastSeen     = when the PREVIOUS session saved (every 30s during play)
-  // offline time = sessionStart - lastSeen
-  // This way we never count the current session as "offline time"
+  // sessionStart    = when THIS session opened
+  // _priorLastSeen  = lastSeen from previous session, captured before any saveAccount() call
+  // offline time    = sessionStart - _priorLastSeen
 
-  const saved = loadAccount();
-  if (!saved) return;
+  const lastSeen     = STATE._priorLastSeen;
+  if (!lastSeen) return; // first ever session — no offline time
 
   const sessionStart = STATE.sessionStart || Date.now();
-  const lastSeen     = saved.lastSeen || saved.lastHarvest;
-  if (!lastSeen) return; // first ever session — no offline time
 
   // Only count time from a PREVIOUS session
   // If lastSeen is within 10s of sessionStart, we just refreshed — skip
