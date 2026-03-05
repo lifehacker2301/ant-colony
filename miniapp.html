@@ -256,11 +256,11 @@ body::before {
   padding: 6px 0 max(6px, var(--safe-bottom));
   backdrop-filter:blur(20px);
 }
-.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 4px; cursor:pointer; transition:all 0.2s; position:relative; }
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 2px; cursor:pointer; transition:all 0.2s; position:relative; }
 .nav-item.active .nav-icon { color:var(--amber-bright); }
 .nav-item.active .nav-label { color:var(--amber-bright); }
 .nav-item.active::before { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:linear-gradient(90deg,transparent,var(--amber-bright),transparent); }
-.nav-icon { font-size:20px; transition:transform 0.2s; }
+.nav-icon { font-size:18px; transition:transform 0.2s; }
 .nav-item.active .nav-icon { transform:scale(1.1); }
 .nav-label { font-size:9px; color:var(--text-dim); font-weight:600; letter-spacing:0.5px; }
 .notif-dot { position:absolute; top:3px; right:8px; width:7px; height:7px; border-radius:50%; background:var(--red-ant); animation:badge-pulse 1.5s ease-in-out infinite; }
@@ -1093,6 +1093,7 @@ body::before {
     <div class="nav-item active" onclick="navTo('home')" id="nav-home"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
     <div class="nav-item" onclick="navTo('colony')" id="nav-colony"><div class="nav-icon">🐜</div><div class="nav-label">Colony</div></div>
     <div class="nav-item queen-nav" onclick="navTo('queens')" id="nav-queens"><div class="nav-icon">👑</div><div class="nav-label">Queens</div></div>
+    <div class="nav-item" onclick="navTo('invite')" id="nav-invite"><div class="nav-icon">👥</div><div class="nav-label">Recruit</div></div>
     <div class="nav-item" onclick="navTo('leaderboard')" id="nav-leaderboard"><div class="nav-icon">🏆</div><div class="nav-label">Ranks</div></div>
     <div class="nav-item" onclick="navTo('profile')" id="nav-profile"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
   </nav>
