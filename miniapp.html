@@ -1184,6 +1184,15 @@ function syncToFirebase() {
 // Check for admin gifts/announcements from Firebase
 function checkAdminMessages() {
   if (!fbDb || !TG_USER) return;
+  // Check if admin wiped this account — clear local data and restart
+  fbDb.ref('players/' + TG_USER.id + '/forceReset').once('value').then(snap => {
+    if (snap.val()) {
+      fbDb.ref('players/' + TG_USER.id).remove().catch(()=>{});
+      try { localStorage.removeItem(STORAGE_KEY + '_' + TG_USER.id); } catch(e){}
+      showToast('🔄 Account reset by admin...');
+      setTimeout(() => window.location.reload(), 1500);
+    }
+  }).catch(()=>{});
   // Check pending gift message from admin
   fbDb.ref('players/' + TG_USER.id + '/pendingGiftMsg').once('value').then(snap => {
     const msg = snap.val();

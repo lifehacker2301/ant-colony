@@ -813,11 +813,31 @@ function sendGifts() {
 }
 
 // -- WIPEOUT ---------------------------------------------------
+
+// Find the actual Firebase key for a player (key may differ from tgId field)
+function findPlayerFbKey(q) {
+  if (!q) return null;
+  // Direct key lookup first (most reliable)
+  if (allPlayers[q]) return q;
+  // Search by fields
+  const keys = Object.keys(allPlayers);
+  for (const k of keys) {
+    const x = allPlayers[k];
+    if (!x) continue;
+    if (String(x.tgUsername) === q || String(x.tgId) === q || String(x.tgName) === q) return k;
+  }
+  return null;
+}
+
 function confirmWipePlayer(id, name) {
+  // id could be tgId field value — find the real Firebase key
+  const fbKey = Object.keys(allPlayers).find(k => String(allPlayers[k]?.tgId) === String(id)) || id;
   confirmAction('[!]','Wipe Player?',`Delete ALL data for "${name}"? Cannot be undone.`, () => {
     if (!db) { toast('[!] Firebase not connected'); return; }
-    db.ref('players/'+id).remove()
-      .then(() => { toast('[del] Player wiped'); refreshData(); })
+    // Remove data, then set forceReset so miniapp clears localStorage on next open
+    db.ref('players/'+fbKey).remove()
+      .then(() => db.ref('players/'+fbKey).set({ forceReset: true }))
+      .then(() => { toast('[del] Player wiped! They will be reset on next app open.'); refreshData(); })
       .catch(e => toast('[X] '+e.message));
   });
 }
@@ -825,18 +845,28 @@ function confirmWipePlayer(id, name) {
 function wipePlayer() {
   if (!db) { toast('[!] Firebase not connected'); return; }
   const q = document.getElementById('wipeUsername').value.trim().replace('@','');
-  const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q || x.tgName===q);
-  if (!p) { toast('[X] Player not found'); return; }
-  confirmWipePlayer(p.tgId, p.tgName);
+  if (!q) { toast('[X] Enter a username or Telegram ID'); return; }
+  const fbKey = findPlayerFbKey(q);
+  if (!fbKey) { toast('[X] Player not found — check username or Telegram ID'); return; }
+  const p = allPlayers[fbKey];
+  confirmAction('[!]','Wipe Player?',`Delete ALL data for "${p.tgName||fbKey}"? Cannot be undone.`, () => {
+    if (!db) { toast('[!] Firebase not connected'); return; }
+    db.ref('players/'+fbKey).remove()
+      .then(() => db.ref('players/'+fbKey).set({ forceReset: true }))
+      .then(() => { toast('[del] Player wiped! They will be reset on next app open.'); refreshData(); })
+      .catch(e => toast('[X] '+e.message));
+  });
 }
 
 function resetPlayerBalance() {
   if (!db) { toast('[!] Firebase not connected'); return; }
   const q = document.getElementById('resetUsername').value.trim().replace('@','');
-  const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q || x.tgName===q);
-  if (!p) { toast('[X] Player not found'); return; }
-  confirmAction('[!]','Reset Balance?',`Reset "${p.tgName}" balance to 0?`, () => {
-    db.ref('players/'+p.tgId).update({ balance:0, adminBalanceOverride:0 })
+  if (!q) { toast('[X] Enter a username or Telegram ID'); return; }
+  const fbKey = findPlayerFbKey(q);
+  if (!fbKey) { toast('[X] Player not found'); return; }
+  const p = allPlayers[fbKey];
+  confirmAction('[!]','Reset Balance?',`Reset "${p.tgName||fbKey}" balance to 0?`, () => {
+    db.ref('players/'+fbKey).update({ balance:0, adminBalanceOverride:0 })
       .then(() => { toast('[OK] Balance reset'); refreshData(); }).catch(e => toast('[X] '+e.message));
   });
 }
