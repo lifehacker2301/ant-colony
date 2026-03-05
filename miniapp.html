@@ -874,12 +874,12 @@ body::before {
     <div class="section">
       <div class="invite-card">
         <div class="invite-title">🐜 Recruit Ants</div>
-        <div class="invite-subtitle">Every player you recruit joins as <strong style="color:var(--amber-bright)">5 Worker Ants</strong> — growing your empire and mining power!</div>
+        <div class="invite-subtitle">Every player you recruit joins as <strong style="color:var(--amber-bright)"><span id="recruitRateText">5</span> Worker Ants</strong> — growing your empire and mining power!</div>
         <div class="invite-reward">
           <div class="reward-icon">🐜</div>
           <div class="reward-text">
-            <strong>+5 Workers</strong>
-            <span>Per successful recruit via Telegram</span>
+            <strong>+<span id="recruitRewardNum">5</span> Workers</strong>
+            <span>Per recruit + <span id="recruitAntReward">0.1</span> $ANT bonus</span>
           </div>
         </div>
         <div class="invite-link-box">
@@ -1130,6 +1130,32 @@ function initFB() {
   } catch(e) { fbDb = null; }
 }
 
+// ── RECRUIT / REFERRAL CONFIG (loaded from Firebase gameSettings) ──
+let RECRUIT_CONFIG = { refWorkers:5, refAnt:0.1, joinWorkers:3, joinAnt:0.05 };
+
+function loadGameSettings() {
+  if (!fbDb) return;
+  fbDb.ref('gameSettings').once('value').then(snap => {
+    const s = snap.val();
+    if (!s) return;
+    if (s.refWorkers  != null) RECRUIT_CONFIG.refWorkers  = s.refWorkers;
+    if (s.refAnt      != null) RECRUIT_CONFIG.refAnt      = s.refAnt;
+    if (s.joinWorkers != null) RECRUIT_CONFIG.joinWorkers = s.joinWorkers;
+    if (s.joinAnt     != null) RECRUIT_CONFIG.joinAnt     = s.joinAnt;
+    updateRecruitDisplay();
+  }).catch(() => {});
+}
+
+function updateRecruitDisplay() {
+  const r1 = document.getElementById('recruitRateText');
+  const r2 = document.getElementById('recruitRewardNum');
+  const r3 = document.getElementById('recruitAntReward');
+  if (r1) r1.textContent = RECRUIT_CONFIG.refWorkers;
+  if (r2) r2.textContent = RECRUIT_CONFIG.refWorkers;
+  if (r3) r3.textContent = RECRUIT_CONFIG.refAnt;
+  renderInvitePage();
+}
+
 let _lastSyncTime = 0;
 function syncToFirebase() {
   if (!fbDb || !TG_USER) return;
@@ -1283,10 +1309,10 @@ function createAccount() {
       const referrerId = startParam.replace('ref_', '');
       if (referrerId && referrerId != TG_USER.id) {
         STATE.referredBy = referrerId;
-        // Bonus for new player joining via invite
-        STATE.workers.scout += 3;
-        STATE.colonySize += 3;
-        STATE.balance += 0.05;
+        // Bonus for new player joining via invite (rate from Firebase)
+        STATE.workers.scout += RECRUIT_CONFIG.joinWorkers;
+        STATE.colonySize += RECRUIT_CONFIG.joinWorkers;
+        STATE.balance += RECRUIT_CONFIG.joinAnt;
 
         // Store referral event so referrer gets credit when they next open
         try {
@@ -1302,7 +1328,7 @@ function createAccount() {
     hideOnboarding();
 
     if (STATE.referredBy) {
-      showToast(`🎁 Joined via invite! +3 Workers & +0.05 $ANT bonus!`);
+      showToast(`🎁 Joined via invite! +${RECRUIT_CONFIG.joinWorkers} Workers & +${RECRUIT_CONFIG.joinAnt} $ANT bonus!`);
     } else {
       showToast(`🎉 Welcome, ${TG_USER.first_name}! Colony created!`);
     }
@@ -1592,10 +1618,10 @@ function initUI() {
       if (pending.length > 0) {
         pending.forEach(ref => {
           STATE.referrals += 1;
-          STATE.workers.scout += 5;
-          STATE.colonySize += 5;
-          STATE.balance += 0.1;
-          showToast(`🐜 ${ref.fromName} joined your colony! +5 Workers +0.1 $ANT!`);
+          STATE.workers.scout += RECRUIT_CONFIG.refWorkers;
+          STATE.colonySize += RECRUIT_CONFIG.refWorkers;
+          STATE.balance += RECRUIT_CONFIG.refAnt;
+          showToast(`🐜 ${ref.fromName} joined your colony! +${RECRUIT_CONFIG.refWorkers} Workers +${RECRUIT_CONFIG.refAnt} $ANT!`);
         });
         localStorage.removeItem(refKey);
         saveAccount();
@@ -1605,6 +1631,7 @@ function initUI() {
 
   // Firebase init and sync
   initFB();
+  setTimeout(loadGameSettings, 500);
   setTimeout(checkAdminMessages, 2000);
   setTimeout(() => { syncToFirebase(); checkAdminMessages(); }, 3000); // initial sync
   setInterval(() => { syncToFirebase(); checkAdminMessages(); }, 120000); // every 2 min
@@ -2206,8 +2233,8 @@ function renderInvitePage(){
   const uid=STATE.userId||TG_USER?.id||'DEMO';
   document.getElementById('inviteLink').textContent=`t.me/${BOT_USERNAME}?start=ref_${uid}`;
   document.getElementById('invTotal').textContent=STATE.referrals;
-  document.getElementById('invWorkers').textContent=STATE.referrals*5;
-  document.getElementById('invEarned').textContent=fmt(STATE.referrals*.1,1);
+  document.getElementById('invWorkers').textContent=STATE.referrals*RECRUIT_CONFIG.refWorkers;
+  document.getElementById('invEarned').textContent=fmt(STATE.referrals*RECRUIT_CONFIG.refAnt,1);
 }
 
 // ============================================================
