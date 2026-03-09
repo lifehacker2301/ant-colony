@@ -1199,7 +1199,22 @@ function syncToFirebase() {
 // Check for admin gifts/announcements from Firebase
 function checkAdminMessages() {
   if (!fbDb || !TG_USER) return;
-  // Check if admin wiped this account — clear local data and restart
+
+  // ── Check global force-reset (wipeoutAll from admin) ──
+  fbDb.ref('system/forceResetAll').once('value').then(snap => {
+    const resetTs = snap.val();
+    if (!resetTs) return;
+    const lastReset = parseInt(localStorage.getItem('antcolony_lastForceReset') || '0');
+    if (resetTs > lastReset) {
+      localStorage.setItem('antcolony_lastForceReset', String(resetTs));
+      fbDb.ref('players/' + TG_USER.id).remove().catch(()=>{});
+      try { localStorage.removeItem(STORAGE_KEY + '_' + TG_USER.id); } catch(e){}
+      showToast('🔄 Account reset by admin...');
+      setTimeout(() => window.location.reload(), 1500);
+    }
+  }).catch(()=>{});
+
+  // Check if admin wiped this specific account — clear local data and restart
   fbDb.ref('players/' + TG_USER.id + '/forceReset').once('value').then(snap => {
     if (snap.val()) {
       fbDb.ref('players/' + TG_USER.id).remove().catch(()=>{});
@@ -3136,14 +3151,14 @@ setInterval(updateEggTimers, 1000);
 //  INIT
 // ============================================================
 window.addEventListener('load', () => {
-  // Always init canvas & bg immediately
-  // Delay canvas init to ensure DOM is fully rendered
+  // Init Firebase immediately so we can check for admin reset before loading account
+  initFB();
+
   setTimeout(()=>{ initColonyCanvas(); initBgCanvas(); }, 100);
   renderMissions();
   setInterval(updateMining, 500);
   setInterval(updateEventTimer, 1000);
 
-  // Back button (Telegram)
   if (tgApp?.BackButton) {
     tgApp.BackButton.onClick(() => {
       const activePage = document.querySelector('.page.active');
@@ -3153,7 +3168,6 @@ window.addEventListener('load', () => {
       }
     });
   }
-  // Show Telegram back button when not on home
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
       const activePage = document.querySelector('.page.active');
@@ -3166,24 +3180,44 @@ window.addEventListener('load', () => {
 
   // Short delay to let Telegram SDK fully init
   setTimeout(() => {
-    // Hide loading spinner
     const ls = document.getElementById('loadingScreen');
     ls.style.opacity = '0';
     ls.style.transition = 'opacity 0.3s';
     setTimeout(() => { ls.style.display = 'none'; }, 300);
 
-    const saved = loadAccount();
+    // ── CHECK GLOBAL FORCE RESET before loading any account data ──
+    // Admin's wipeoutAll() writes system/forceResetAll timestamp.
+    // We compare it to what we last processed; if newer, wipe localStorage first.
+    function bootAfterResetCheck() {
+      const saved = loadAccount();
+      if (saved && saved.tgId === TG_USER?.id) {
+        restoreAccount(saved);
+        document.getElementById('app').style.display = 'flex';
+        initUI();
+        showToast(`👋 Welcome back, ${TG_USER.first_name}!`);
+      } else {
+        document.getElementById('app').style.display = 'none';
+        showOnboarding();
+      }
+    }
 
-    if (saved && saved.tgId === TG_USER?.id) {
-      // ✅ Returning player — restore account and go straight to game
-      restoreAccount(saved);
-      document.getElementById('app').style.display = 'flex';
-      initUI();
-      showToast(`👋 Welcome back, ${TG_USER.first_name}!`);
+    if (fbDb && TG_USER) {
+      fbDb.ref('system/forceResetAll').once('value').then(snap => {
+        const resetTs = snap.val();
+        if (resetTs) {
+          const lastReset = parseInt(localStorage.getItem('antcolony_lastForceReset') || '0');
+          if (resetTs > lastReset) {
+            // Mark handled so we don't loop on next reload
+            localStorage.setItem('antcolony_lastForceReset', String(resetTs));
+            // Wipe this player's local data
+            localStorage.removeItem(STORAGE_KEY + '_' + TG_USER.id);
+            fbDb.ref('players/' + TG_USER.id).remove().catch(()=>{});
+          }
+        }
+        bootAfterResetCheck();
+      }).catch(() => bootAfterResetCheck());
     } else {
-      // 🆕 New player — show onboarding screen
-      document.getElementById('app').style.display = 'none';
-      showOnboarding();
+      bootAfterResetCheck();
     }
   }, 1200);
 });

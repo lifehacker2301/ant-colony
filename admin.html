@@ -986,20 +986,17 @@ function wipeoutAll() {
   }
   _lastWipeout = Date.now();
   confirmAction('[nuke]','FULL WIPEOUT - FINAL WARNING','Delete ALL player data permanently? Every player starts from scratch.',() => {
-    // Capture known player keys BEFORE removing
-    const knownKeys = Object.keys(allPlayers).filter(k => allPlayers[k]?.tgId);
-    db.ref('players').remove().then(() => {
-      // Plant forceReset for every known player so their mini app clears localStorage on next open
-      if (knownKeys.length) {
-        const resets = {};
-        knownKeys.forEach(k => { resets['players/' + k + '/forceReset'] = true; });
-        return db.ref().update(resets);
-      }
-    }).then(() => {
-      allPlayers = {}; updateDashboard(); updateLeaderboard();
-      document.getElementById('wipeConfirmText').value = '';
-      toast('[nuke] Complete wipeout done — players will reset on next app open');
-    }).catch(e => toast('[X] '+e.message));
+    const wipeTs = Date.now();
+    // Step 1: delete all player data
+    // Step 2: write a global reset timestamp — the mini app checks this on every open
+    //         regardless of whether we know the player IDs
+    db.ref('players').remove()
+      .then(() => db.ref('system/forceResetAll').set(wipeTs))
+      .then(() => {
+        allPlayers = {}; updateDashboard(); updateLeaderboard();
+        document.getElementById('wipeConfirmText').value = '';
+        toast('[nuke] Complete wipeout done — all players reset on next app open');
+      }).catch(e => toast('[X] '+e.message));
   }, true);
 }
 
