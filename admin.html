@@ -186,6 +186,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <div class="admin-badge"><div class="online-dot"></div>ADMIN</div>
+      <div id="fbStatus" style="font-size:10px;color:var(--text-dim);font-family:'Orbitron'">⚡ DB</div>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
@@ -214,7 +215,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="panel active" id="panel-dashboard">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
           <div><h1 style="font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br)">Colony Overview</h1><div style="font-size:11px;color:var(--text-dim);margin-top:2px">Real-time game statistics</div></div>
-          <div class="live-tag">🟢 LIVE</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="live-tag">🟢 LIVE</div>
+            <div style="font-size:10px;color:var(--text-dim)" id="lastRefreshed">—</div>
+          </div>
         </div>
         <div class="stat-grid">
           <div class="stat-box"><div class="stat-val" id="dsTotalPlayers">-</div><div class="stat-lbl">PLAYERS</div></div>
@@ -229,7 +233,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
             <button class="btn btn-green" onclick="showPanel('gifts')">🎁 Gift All</button>
             <button class="btn btn-primary" onclick="showPanel('announce')">📢 Announce</button>
-            
+            <button class="btn btn-ghost" onclick="refreshData();toast('🔄 Data refreshed!')">🔄 Refresh</button>
             <button class="btn btn-danger" onclick="showPanel('wipeout')">💣 Wipeout</button>
           </div>
         </div>
@@ -243,12 +247,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="panel" id="panel-leaderboard">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
           <h1 style="font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br)">🏆 Leaderboard</h1>
-          
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input class="form-input" id="lbSearch" placeholder="🔍 Search player..." style="width:180px;padding:7px 12px;font-size:12px" oninput="filterLeaderboard(this.value)"/>
+            <span id="lbPlayerCount" style="font-size:11px;color:var(--text-dim)">— players</span>
+          </div>
         </div>
         <div class="lb-tabs">
           <div class="lb-tab active" onclick="sortLb('colonySize',this)">🐜 Workers</div>
           <div class="lb-tab" onclick="sortLb('totalMined',this)">⛏️ $ANT</div>
           <div class="lb-tab" onclick="sortLb('referrals',this)">👥 Recruits</div>
+          <button class="btn btn-ghost btn-sm" onclick="exportPlayersCSV()" style="margin-left:auto">📥 CSV</button>
         </div>
         <div class="card" style="padding:0;overflow:hidden">
           <table class="admin-table" id="lbTable">
@@ -424,15 +432,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <input type="file" id="fileInput" accept="image/*,video/*,*/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"/>
             <div id="filePreview" style="display:none;margin-top:10px;background:var(--bg-mid);border:1px solid var(--border-br);border-radius:12px;padding:12px">
               <div style="display:flex;align-items:center;gap:10px">
-                <div id="fpThumb" style="font-size:30px;flex-shrink:0">📄</div>
+                <div id="fileThumbDisplay" style="font-size:30px;flex-shrink:0">📄</div>
                 <div style="flex:1;min-width:0">
-                  <div id="fpName" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
-                  <div id="fpSize" style="font-size:11px;color:var(--text-dim);margin-top:2px"></div>
-                  <div id="fpType" style="font-size:10px;color:var(--amber);font-family:\'Orbitron\';margin-top:2px"></div>
+                  <div id="fileNameDisplay" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
+                  <div id="fileSizeDisplay" style="font-size:11px;color:var(--text-dim);margin-top:2px"></div>
+                  <div id="fileTypeDisplay" style="font-size:10px;color:var(--amber);font-family:'Orbitron';margin-top:2px"></div>
                 </div>
                 <button class="remove-btn" type="button" onclick="clearFile()">✕</button>
               </div>
-              <img id="fpImg" style="display:none;width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:10px"/>
+              <img id="fileImgDisplay" style="display:none;width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:10px"/>
             </div>
           </div>
           <div class="form-row" style="display:none">
@@ -493,7 +501,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <div style="font-family:'Orbitron';font-size:20px;color:var(--amber-br);margin-top:4px" id="secAdminId">-</div>
             <div style="font-size:11px;color:var(--green-br);margin-top:4px">✅ Only this ID can log in</div>
           </div>
-          <div class="form-group" style="margin-bottom:10px"><div class="form-label">New Admin Telegram ID</div><input class="form-input" id="newAdminId" placeholder="Telegram User ID"/></div>
+          <div class="form-group" style="margin-bottom:10px">
+            <div class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+              <span>New Admin Telegram ID</span>
+              <button class="btn btn-ghost btn-sm" onclick="copyAdminId()" style="padding:3px 8px;font-size:9px">📋 Copy Current</button>
+            </div>
+            <input class="form-input" id="newAdminId" placeholder="Telegram User ID"/>
+          </div>
           <div class="form-group" style="margin-bottom:12px"><div class="form-label">Confirm with Secret Code</div><input class="form-input" id="confirmSecret" type="password" placeholder="Secret code"/></div>
           <button class="btn btn-primary" onclick="updateAdminId()">🔄 Update Admin ID</button>
         </div>
@@ -504,7 +518,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           <div style="display:flex;flex-direction:column;gap:0">
             <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">Logged in as</span><span class="mono" id="secLoggedInAs">-</span></div>
             <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">Session started</span><span style="font-family:'Orbitron';font-size:11px;color:var(--amber)" id="secLoginTime">-</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0"><span style="color:var(--text-dim)">Secret code</span><span style="font-family:'Orbitron';font-size:9px;color:var(--amber)">28d483d1df4643d513eaa93b4b6bf046</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0"><span style="color:var(--text-dim)">Secret code</span><span style="font-family:'Orbitron';font-size:9px;color:var(--green-br)">●●●●●●●●●●●● SET</span></div>
           </div>
           <button class="btn btn-danger btn-sm" style="margin-top:12px" onclick="logout()">🔒 Logout</button>
         </div>
@@ -576,8 +590,15 @@ function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
+    const fbSt = document.getElementById('fbStatus');
+    if (fbSt) { fbSt.textContent = '🟢 DB'; fbSt.style.color = 'var(--green-br)'; }
     console.log('Firebase connected');
-  } catch(e) { db = null; console.error('Firebase error:', e); }
+  } catch(e) {
+    db = null;
+    const fbSt = document.getElementById('fbStatus');
+    if (fbSt) { fbSt.textContent = '🔴 DB'; fbSt.style.color = 'var(--red)'; }
+    console.error('Firebase error:', e);
+  }
 }
 
 // -- BOT TOKEN (PERMANENT - localStorage survives all refreshes) --
@@ -642,22 +663,33 @@ function checkSession() {
   showApp();
 }
 
+let _refreshInterval = null;
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminApp').style.display = 'block';
   initFirebase();
+  // Load saved admin ID into currentAdminId
+  try {
+    const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
+    if (stored.adminId) currentAdminId = stored.adminId;
+  } catch(e) {}
   refreshData();
   loadSettingsIntoForms();
   updateTokenStatus();
   updateSecurityPanel();
-  setInterval(refreshData, 30000);
+  if (_refreshInterval) clearInterval(_refreshInterval);
+  _refreshInterval = setInterval(refreshData, 30000);
 }
 
 function logout() {
+  if (_refreshInterval) { clearInterval(_refreshInterval); _refreshInterval = null; }
   sessionStorage.removeItem('ac_sess');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminApp').style.display = 'none';
   document.getElementById('secretInput').value = '';
+  currentAdminId = null;
+  allPlayers = {};
+  toast('🔒 Logged out.');
 }
 
 // -- FIREBASE DATA ---------------------------------------------
@@ -691,8 +723,10 @@ function updateDashboard() {
   document.getElementById('dsTotalAnt').textContent     = totAnt.toFixed(2);
   document.getElementById('dsTotalWorkers').textContent = fmtK(totWork);
   document.getElementById('dsAvgBalance').textContent   = pl.length ? (totAnt/pl.length).toFixed(2) : '0';
-  document.getElementById('dsTopPlayer').textContent    = top ? top.tgName : '-';
+  document.getElementById('dsTopPlayer').textContent    = top ? (top.tgName || top.tgId || '-') : '-';
   document.getElementById('dsMineRate').textContent     = (getSettings().miningMultiplier||1) + 'x';
+  const lr = document.getElementById('lastRefreshed');
+  if (lr) lr.textContent = 'Updated ' + new Date().toLocaleTimeString();
 
   const recent = [...pl].reverse().slice(0, 5);
   document.getElementById('recentPlayersList').innerHTML = recent.length
@@ -715,17 +749,63 @@ function updateLeaderboard() {
   document.getElementById('lbBody').innerHTML = pl.map((p,i) =>
     `<tr>
       <td><span class="rank-badge ${bc(i)}">${i<3?medals[i]:'#'+(i+1)}</span></td>
-      <td><div class="player-name">${esc(p.tgName)}</div><div class="player-id">@${esc(p.tgUsername||p.tgId||'-')}</div></td>
+      <td><div class="player-name">${esc(p.tgName)}</div><div class="player-id">@${esc(p.tgUsername||'-')}</div><div class="player-id" style="color:var(--amber);font-size:9px">${esc(p.tgId||'-')}</div></td>
       <td class="mono">${fmtK(p.colonySize||0)}</td>
       <td class="mono">${(p.totalMined||0).toFixed(2)}</td>
       <td class="mono">${p.referrals||0}</td>
       <td><div style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="quickBalance('${p.tgId||i}')">$</button>
-        <button class="btn btn-danger btn-sm" onclick="confirmWipePlayer('${p.tgId||i}','${esc(p.tgName)}')">[del]</button>
+        <button class="btn btn-ghost btn-sm" data-action="bal" data-id="${esc(String(p.tgId||i))}">$</button>
+        <button class="btn btn-danger btn-sm" data-action="wipe" data-id="${esc(String(p.tgId||i))}" data-name="${esc(p.tgName)}">[del]</button>
       </div></td>
     </tr>`
   ).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim)">No players</td></tr>';
+  const cnt = document.getElementById('lbPlayerCount');
+  if (cnt) cnt.textContent = getPlayers().length + ' players';
 }
+
+function filterLeaderboard(query) {
+  const q = query.trim().toLowerCase();
+  const rows = document.querySelectorAll('#lbBody tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const show = !q || text.includes(q);
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const cnt = document.getElementById('lbPlayerCount');
+  if (cnt) cnt.textContent = visible + ' player' + (visible !== 1 ? 's' : '');
+}
+
+function exportPlayersCSV() {
+  const pl = getPlayers();
+  if (!pl.length) { toast('❌ No players to export'); return; }
+  const header = 'Name,Username,TelegramID,Balance,Workers,TotalMined,Referrals';
+  const rows = pl.map(p =>
+    [p.tgName||'', p.tgUsername||'', p.tgId||'', (p.balance||0).toFixed(4),
+     p.colonySize||0, (p.totalMined||0).toFixed(4), p.referrals||0].join(',')
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ant_colony_players_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 Exported ' + pl.length + ' players to CSV!');
+}
+
+// Event delegation for leaderboard action buttons (avoids onclick XSS)
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+  if (action === 'bal') quickBalance(id);
+  if (action === 'wipe') confirmWipePlayer(id, name);
+});
 
 // -- BALANCE ---------------------------------------------------
 let foundPlayerId = null;
@@ -753,7 +833,11 @@ function applyBalance() {
   if (!db) { toast('[!] Firebase not connected'); return; }
   const op  = document.getElementById('balOp').value;
   const amt = parseFloat(document.getElementById('balAmount').value);
-  if (isNaN(amt) || amt < 0) { toast('[X] Enter a valid amount'); return; }
+  if (isNaN(amt) || amt < 0) { toast('❌ Enter a valid non-negative amount'); return; }
+  if (amt === 0 && document.getElementById('balOp').value !== 'set') {
+    toast('❌ Amount must be greater than 0'); return;
+  }
+  if (amt > 999999999) { toast('❌ Amount too large (max 999,999,999)', 'error'); return; }
 
   db.ref('players/'+foundPlayerId).once('value').then(snap => {
     const p = snap.val() || {};
@@ -788,7 +872,9 @@ function sendGifts() {
   const ant     = parseFloat(document.getElementById('giftAnt').value || 0);
   const workers = parseInt(document.getElementById('giftWorkers').value || 0);
   const msg     = document.getElementById('giftMsg').value.trim();
-  if (!ant && !workers) { toast('[X] Enter $ANT or Workers to gift'); return; }
+  if (!ant && !workers) { toast('❌ Enter $ANT or Workers to gift', 'error'); return; }
+  if (ant > 999999) { toast('❌ $ANT gift too large (max 999,999)', 'error'); return; }
+  if (workers > 100000) { toast('❌ Workers gift too large (max 100,000)', 'error'); return; }
   if (!db) { toast('[!] Firebase not connected'); return; }
 
   let targets = giftTarget==='all'
@@ -796,7 +882,10 @@ function sendGifts() {
     : Array.from(document.querySelectorAll('.gift-check:checked')).map(c => c.value);
   if (!targets.length) { toast('[X] No players selected'); return; }
 
-  confirmAction('[gift]','Send Gifts?',`Send ${ant} $ANT + ${workers} workers to ${targets.length} player(s)?`, () => {
+  const giftSummary = [];
+  if (ant > 0) giftSummary.push(ant + ' $ANT');
+  if (workers > 0) giftSummary.push(workers + ' Workers');
+  confirmAction('🎁','Send Gifts?',`Send ${giftSummary.join(' + ')} to ${targets.length} player(s)?`, () => {
     const updates = {};
     targets.forEach(id => {
       const p = allPlayers[id]; if(!p) return;
@@ -804,7 +893,7 @@ function sendGifts() {
       updates[`players/${id}/totalMined`]    = parseFloat(((p.totalMined||0)+ant).toFixed(4));
       updates[`players/${id}/colonySize`]    = (p.colonySize||0)+workers;
       updates[`players/${id}/adminWorkerGift`] = { ant, workers };
-      if (msg) updates[`players/${id}/pendingGiftMsg`] = msg;
+      if (msg) updates[`players/${id}/pendingGiftMsg`] = String(msg).substring(0, 200);
     });
     db.ref().update(updates)
       .then(() => { toast(`[gift] Gifts sent to ${targets.length} players!`); refreshData(); })
@@ -814,68 +903,88 @@ function sendGifts() {
 
 // -- WIPEOUT ---------------------------------------------------
 
-// Find the actual Firebase key for a player (key may differ from tgId field)
-function findPlayerFbKey(q) {
-  if (!q) return null;
-  // Direct key lookup first (most reliable)
-  if (allPlayers[q]) return q;
-  // Search by fields
-  const keys = Object.keys(allPlayers);
-  for (const k of keys) {
-    const x = allPlayers[k];
-    if (!x) continue;
-    if (String(x.tgUsername) === q || String(x.tgId) === q || String(x.tgName) === q) return k;
-  }
-  return null;
-}
-
-function confirmWipePlayer(id, name) {
-  // id could be tgId field value — find the real Firebase key
-  const fbKey = Object.keys(allPlayers).find(k => String(allPlayers[k]?.tgId) === String(id)) || id;
-  confirmAction('[!]','Wipe Player?',`Delete ALL data for "${name}"? Cannot be undone.`, () => {
-    if (!db) { toast('[!] Firebase not connected'); return; }
-    // Remove data, then set forceReset so miniapp clears localStorage on next open
-    db.ref('players/'+fbKey).remove()
-      .then(() => db.ref('players/'+fbKey).set({ forceReset: true }))
-      .then(() => { toast('[del] Player wiped! They will be reset on next app open.'); refreshData(); })
-      .catch(e => toast('[X] '+e.message));
+// Execute wipe by Firebase key — verifies existence first, then deletes
+function doWipe(fbKey, label) {
+  if (!db) { toast('[!] Firebase not connected'); return; }
+  confirmAction('[!]', 'Wipe Player?', `Delete ALL data for "${label}"? Cannot be undone.`, () => {
+    db.ref('players/' + fbKey).once('value').then(snap => {
+      if (!snap.exists()) {
+        toast('[X] No data found in Firebase for this player');
+        return;
+      }
+      return db.ref('players/' + fbKey).remove()
+        .then(() => db.ref('players/' + fbKey).set({ forceReset: true }))
+        .then(() => {
+          toast('[del] Wiped! Player resets on next app open.');
+          refreshData();
+        });
+    }).catch(e => toast('[X] ' + e.message));
   });
 }
 
+// Called from leaderboard quick-wipe button
+function confirmWipePlayer(id, name) {
+  if (!db) { toast('[!] Firebase not connected'); return; }
+  // id = tgId field value; find actual Firebase key in memory, fallback to id itself
+  const fbKey = Object.keys(allPlayers).find(k => String(allPlayers[k]?.tgId) === String(id)) || String(id);
+  doWipe(fbKey, name || id);
+}
+
+// Called from Wipeout panel search form
 function wipePlayer() {
   if (!db) { toast('[!] Firebase not connected'); return; }
   const q = document.getElementById('wipeUsername').value.trim().replace('@','');
-  if (!q) { toast('[X] Enter a username or Telegram ID'); return; }
-  const fbKey = findPlayerFbKey(q);
-  if (!fbKey) { toast('[X] Player not found — check username or Telegram ID'); return; }
-  const p = allPlayers[fbKey];
-  confirmAction('[!]','Wipe Player?',`Delete ALL data for "${p.tgName||fbKey}"? Cannot be undone.`, () => {
-    if (!db) { toast('[!] Firebase not connected'); return; }
-    db.ref('players/'+fbKey).remove()
-      .then(() => db.ref('players/'+fbKey).set({ forceReset: true }))
-      .then(() => { toast('[del] Player wiped! They will be reset on next app open.'); refreshData(); })
-      .catch(e => toast('[X] '+e.message));
-  });
+  if (!q) { toast('[X] Enter a Telegram ID or username'); return; }
+
+  // Try in-memory cache first for the display name
+  let fbKey = null, label = q;
+  if (allPlayers[q]) {
+    fbKey = q;
+    label = allPlayers[q].tgName || q;
+  } else {
+    for (const k of Object.keys(allPlayers)) {
+      const x = allPlayers[k];
+      if (!x) continue;
+      if (String(x.tgUsername) === q || String(x.tgId) === q || String(x.tgName) === q) {
+        fbKey = k; label = x.tgName || k; break;
+      }
+    }
+  }
+  // If not found in memory, treat input as direct Telegram ID (Firebase key)
+  if (!fbKey) fbKey = q;
+
+  doWipe(fbKey, label);
 }
 
 function resetPlayerBalance() {
   if (!db) { toast('[!] Firebase not connected'); return; }
   const q = document.getElementById('resetUsername').value.trim().replace('@','');
   if (!q) { toast('[X] Enter a username or Telegram ID'); return; }
-  const fbKey = findPlayerFbKey(q);
-  if (!fbKey) { toast('[X] Player not found'); return; }
-  const p = allPlayers[fbKey];
-  confirmAction('[!]','Reset Balance?',`Reset "${p.tgName||fbKey}" balance to 0?`, () => {
+  let fbKey = allPlayers[q] ? q : null;
+  if (!fbKey) {
+    for (const k of Object.keys(allPlayers)) {
+      const x = allPlayers[k];
+      if (x && (String(x.tgUsername)===q || String(x.tgId)===q || String(x.tgName)===q)) { fbKey=k; break; }
+    }
+  }
+  if (!fbKey) fbKey = q;
+  const name = allPlayers[fbKey]?.tgName || fbKey;
+  confirmAction('[!]','Reset Balance?',`Reset "${name}" balance to 0?`, () => {
     db.ref('players/'+fbKey).update({ balance:0, adminBalanceOverride:0 })
       .then(() => { toast('[OK] Balance reset'); refreshData(); }).catch(e => toast('[X] '+e.message));
   });
 }
 
+let _lastWipeout = 0;
 function wipeoutAll() {
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   if (document.getElementById('wipeConfirmText').value.trim() !== 'WIPEOUT ALL') {
-    toast('[X] Type "WIPEOUT ALL" exactly'); return;
+    toast('❌ Type "WIPEOUT ALL" exactly', 'error'); return;
   }
+  if (Date.now() - _lastWipeout < 10000) {
+    toast('⏳ Wait 10 seconds before trying again', 'error'); return;
+  }
+  _lastWipeout = Date.now();
   confirmAction('[nuke]','FULL WIPEOUT - FINAL WARNING','Delete ALL player data permanently? Every player starts from scratch.',() => {
     db.ref('players').remove().then(() => {
       allPlayers = {}; updateDashboard(); updateLeaderboard();
@@ -928,7 +1037,8 @@ function saveMiningRates() {
   s.carrierRate      = gv('inCarrier') || s.carrierRate;
   s.queenRate        = gv('inQueenRate') || s.queenRate;
   s.miningMultiplier = parseFloat(document.getElementById('globalMultiplier')?.value) || 1;
-  s.harvestInterval  = gi('harvestIntervalAdmin') || 60;
+  const hi = gi('harvestIntervalAdmin');
+  s.harvestInterval  = (hi > 0) ? hi : 60;
   saveSettings(s);
   loadSettingsIntoForms();
   toast(db ? '[OK] Mining rates saved & pushed to Firebase!' : '[OK] Mining rates saved locally!');
@@ -1027,7 +1137,11 @@ async function tgSend(chatId, text, extra={}) {
 async function testAnnouncement() {
   const token = getBotToken();
   if (!token) { toast('[X] Add bot token in Security tab first!'); showPanel('security'); return; }
-  if (!currentAdminId) { toast('[X] Not logged in'); return; }
+  if (!currentAdminId) {
+    toast('❌ Set your Admin Telegram ID in Security tab first!');
+    showPanel('security');
+    return;
+  }
 
   toast('[send] Testing...');
   const text = document.getElementById('annText').value.trim() || '[ant] Test message from Admin Panel!';
@@ -1086,7 +1200,7 @@ async function sendAnnouncement() {
   }
 
   if (errors.length) console.warn('Errors:', [...new Set(errors)]);
-  if (db) db.ref('announcements').push({text:text||'[media]',sentAt:Date.now(),sentBy:currentAdminId}).catch(()=>{});
+  if (db) db.ref('announcements/latest').set({text:text||'[media]',sentAt:Date.now(),sentBy:currentAdminId}).catch(()=>{});
   prog.style.display='none';
 
   if (failed>0) {
@@ -1119,8 +1233,20 @@ function updateAdminId() {
   const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
   stored.adminId = newId;
   localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
-  toast('[OK] Admin ID updated! Re-login with new ID.');
+  currentAdminId = newId;
+  toast('✅ Admin ID updated to ' + newId + '!');
   updateSecurityPanel();
+}
+
+function copyAdminId() {
+  const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
+  const id = stored.adminId || currentAdminId;
+  if (!id) { toast('❌ No Admin ID saved yet'); return; }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(id).then(() => toast('📋 Admin ID copied: ' + id)).catch(() => toast('ID: ' + id));
+  } else {
+    toast('Your Admin ID: ' + id);
+  }
 }
 
 // -- MODAL -----------------------------------------------------
@@ -1152,7 +1278,14 @@ function showPanel(id) {
 // -- UTILS -----------------------------------------------------
 function fmtK(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':String(n||0);}
 function esc(s){const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML;}
-function toast(msg){const t=document.getElementById('adminToast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),3500);}
+function toast(msg,type='info'){
+  const t=document.getElementById('adminToast');
+  t.textContent=msg;
+  t.style.borderColor = type==='error'?'rgba(231,76,60,0.6)':type==='success'?'rgba(39,174,96,0.6)':'var(--border-br)';
+  t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>t.classList.remove('show'),3500);
+}
 
 // -- FILE UPLOAD -----------------------------------------------
 let selectedFile = null;
@@ -1163,24 +1296,24 @@ function handleFileSelect(file) {
   selectedFile = file;
   selectedFileType = file.type.startsWith('image/') ? 'photo'
                   : file.type.startsWith('video/') ? 'video' : 'document';
-  const icons = { photo:'[img]', video:'[vid]', document:'[doc]' };
+  const icons = { photo:'📷', video:'🎬', document:'📄' };
   const sizeMB = (file.size / 1024 / 1024).toFixed(2);
   const ua = document.getElementById('uploadArea');
   const fp = document.getElementById('filePreview');
   if (ua) ua.style.display = 'none';
   if (fp) fp.style.display = 'block';
   const s = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
-  s('fpThumb', icons[selectedFileType]);
-  s('fpName', file.name);
-  s('fpSize', sizeMB + ' MB');
-  s('fpType', selectedFileType.toUpperCase());
-  const img = document.getElementById('fpImg');
+  s('fileThumbDisplay', icons[selectedFileType]);
+  s('fileNameDisplay', file.name);
+  s('fileSizeDisplay', sizeMB + ' MB');
+  s('fileTypeDisplay', selectedFileType.toUpperCase());
+  const img = document.getElementById('fileImgDisplay');
   if (img && selectedFileType === 'photo') {
     const r = new FileReader();
     r.onload = e => { img.src=e.target.result; img.style.display='block'; };
     r.readAsDataURL(file);
   } else if (img) { img.style.display='none'; }
-  toast('[file] ' + file.name + ' ready to send!');
+  toast('📎 ' + file.name + ' ready to send!');
 }
 
 function clearFile() {
@@ -1188,7 +1321,7 @@ function clearFile() {
   const fi=document.getElementById('fileInput'); if(fi) fi.value='';
   const ua=document.getElementById('uploadArea'); if(ua) ua.style.display='block';
   const fp=document.getElementById('filePreview'); if(fp) fp.style.display='none';
-  const img=document.getElementById('fpImg'); if(img){img.style.display='none';img.src='';}
+  const img=document.getElementById('fileImgDisplay'); if(img){img.style.display='none';img.src='';}
 }
 
 // Wire up file input via addEventListener (most reliable on mobile)

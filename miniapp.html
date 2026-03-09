@@ -732,7 +732,7 @@ body::before {
       </div>
     </div>
     <div class="header-right">
-      <div class="ant-balance">🪙 <span id="headerBalance">0.000</span> $ANT</div>
+      <div class="ant-balance" onclick="navTo('wallet')" style="cursor:pointer" title="Open Wallet">🪙 <span id="headerBalance">0.000</span> $ANT</div>
       <div class="tg-avatar" id="tgAvatar">👤</div>
     </div>
   </header>
@@ -1089,12 +1089,13 @@ body::before {
     </div>
   </div>
   <!-- NAV -->
-  <nav class="bottom-nav">
+  <nav class="bottom-nav" style="justify-content:space-around;">
     <div class="nav-item active" onclick="navTo('home')" id="nav-home"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
     <div class="nav-item" onclick="navTo('colony')" id="nav-colony"><div class="nav-icon">🐜</div><div class="nav-label">Colony</div></div>
     <div class="nav-item queen-nav" onclick="navTo('queens')" id="nav-queens"><div class="nav-icon">👑</div><div class="nav-label">Queens</div></div>
     <div class="nav-item" onclick="navTo('invite')" id="nav-invite"><div class="nav-icon">👥</div><div class="nav-label">Recruit</div></div>
     <div class="nav-item" onclick="navTo('leaderboard')" id="nav-leaderboard"><div class="nav-icon">🏆</div><div class="nav-label">Ranks</div></div>
+    <div class="nav-item" onclick="navTo('wallet')" id="nav-wallet"><div class="nav-icon">💰</div><div class="nav-label">Wallet</div></div>
     <div class="nav-item" onclick="navTo('profile')" id="nav-profile"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
   </nav>
 </div>
@@ -1139,10 +1140,12 @@ function loadGameSettings() {
   fbDb.ref('gameSettings').once('value').then(snap => {
     const s = snap.val();
     if (!s) return;
-    if (s.refWorkers  != null) RECRUIT_CONFIG.refWorkers  = s.refWorkers;
-    if (s.refAnt      != null) RECRUIT_CONFIG.refAnt      = s.refAnt;
-    if (s.joinWorkers != null) RECRUIT_CONFIG.joinWorkers = s.joinWorkers;
-    if (s.joinAnt     != null) RECRUIT_CONFIG.joinAnt     = s.joinAnt;
+    if (s.refWorkers    != null) RECRUIT_CONFIG.refWorkers  = s.refWorkers;
+    if (s.refAnt        != null) RECRUIT_CONFIG.refAnt      = s.refAnt;
+    if (s.joinWorkers   != null) RECRUIT_CONFIG.joinWorkers = s.joinWorkers;
+    if (s.joinAnt       != null) RECRUIT_CONFIG.joinAnt     = s.joinAnt;
+    if (s.harvestInterval != null) STATE.harvestInterval    = s.harvestInterval;
+    if (s.miningMultiplier != null) STATE._serverMultiplier = parseFloat(s.miningMultiplier) || 1;
     updateRecruitDisplay();
   }).catch(() => {});
 }
@@ -1280,6 +1283,8 @@ function saveAccount() {
     queens: STATE.queens || {},
     eggs: STATE.eggs || [],
     lastQueenEgg: STATE.lastQueenEgg || {},
+    dailyStreak: STATE.dailyStreak || 0,
+    _serverMultiplier: STATE._serverMultiplier || 1,
   };
   try { localStorage.setItem(STORAGE_KEY + '_' + TG_USER.id, JSON.stringify(data)); } catch(e){}
 }
@@ -1324,13 +1329,29 @@ function createAccount() {
         STATE.colonySize += RECRUIT_CONFIG.joinWorkers;
         STATE.balance += RECRUIT_CONFIG.joinAnt;
 
-        // Store referral event so referrer gets credit when they next open
-        try {
-          const refKey = 'antcolony_pending_ref_' + referrerId;
-          const pending = JSON.parse(localStorage.getItem(refKey) || '[]');
-          pending.push({ fromId: TG_USER.id, fromName: TG_USER.first_name, time: Date.now() });
-          localStorage.setItem(refKey, JSON.stringify(pending));
-        } catch(e) {}
+        // Store referral event in Firebase for cross-device credit
+        if (fbDb) {
+          fbDb.ref('referrals/' + referrerId).push({
+            fromId: String(TG_USER.id),
+            fromName: TG_USER.first_name,
+            time: Date.now()
+          }).catch(() => {
+            // Fallback to localStorage if Firebase unavailable
+            try {
+              const refKey = 'antcolony_pending_ref_' + referrerId;
+              const pending = JSON.parse(localStorage.getItem(refKey) || '[]');
+              pending.push({ fromId: TG_USER.id, fromName: TG_USER.first_name, time: Date.now() });
+              localStorage.setItem(refKey, JSON.stringify(pending));
+            } catch(e2) {}
+          });
+        } else {
+          try {
+            const refKey = 'antcolony_pending_ref_' + referrerId;
+            const pending = JSON.parse(localStorage.getItem(refKey) || '[]');
+            pending.push({ fromId: TG_USER.id, fromName: TG_USER.first_name, time: Date.now() });
+            localStorage.setItem(refKey, JSON.stringify(pending));
+          } catch(e) {}
+        }
       }
     }
 
@@ -1369,8 +1390,10 @@ function restoreAccount(saved) {
   STATE.colonyCustomName = saved.colonyCustomName || null;
   STATE.notifPrefs      = saved.notifPrefs || {};
   STATE.queens          = saved.queens || {};
-  STATE.eggs         = saved.eggs || [];
-  STATE.lastQueenEgg = saved.lastQueenEgg || {};
+  STATE.eggs            = saved.eggs || [];
+  STATE.lastQueenEgg    = saved.lastQueenEgg || {};
+  STATE.dailyStreak     = saved.dailyStreak || 0;
+  STATE._serverMultiplier = saved._serverMultiplier || 1;
 
   // Reset daily claim if it's a new day
   const today = new Date().toDateString();
@@ -1429,9 +1452,11 @@ const STATE = {
   colonySize: 5, boostActive: false, boostEnd: 0,
   mineProgress: 0, lastHarvest: Date.now(), harvestInterval: 60,
   sessionStart: Date.now(),
-  purchasedUpgrades: {}, // tracks which upgrade levels have been bought: {scout:[0,1], soldier:[2]}
+  purchasedUpgrades: {},
   rank: Math.floor(Math.random()*500)+100, userId: null,
-  dailyClaimed: false, dailyClaimedDate: null, createdAt: null, referredBy: null,
+  dailyClaimed: false, dailyClaimedDate: null, dailyStreak: 0,
+  createdAt: null, referredBy: null,
+  _serverMultiplier: 1,
 };
 
 const WORKER_TYPES = [
@@ -1570,7 +1595,24 @@ const UPGRADE_LEVELS = {
 function fmt(n,d=2){return Number(n).toFixed(d);}
 function fmtK(n){return n>=1000?(n/1000).toFixed(1)+'K':String(n);}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2500);}
-function navTo(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');document.getElementById('nav-'+p).classList.add('active');if(p==='leaderboard')renderLeaderboard();if(p==='colony')renderColonyPage();if(p==='invite')renderInvitePage();if(p==='wallet')updateWallet();if(p==='queens'){renderQueenPage();STATE.missionStats.queenVisits=(STATE.missionStats?.queenVisits||0)+1;}if(p==='profile')renderProfilePage();}
+function navTo(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  const nv=document.getElementById('nav-'+p);
+  if(pg) pg.classList.add('active');
+  if(nv) nv.classList.add('active');
+  if(p==='leaderboard') renderLeaderboard();
+  if(p==='colony') renderColonyPage();
+  if(p==='invite') renderInvitePage();
+  if(p==='wallet') updateWallet();
+  if(p==='queens'){
+    renderQueenPage();
+    if(!STATE.missionStats) STATE.missionStats={};
+    STATE.missionStats.queenVisits=(STATE.missionStats.queenVisits||0)+1;
+  }
+  if(p==='profile') renderProfilePage();
+}
 
 // ============================================================
 //  UI INIT (called after account is confirmed)
@@ -1619,9 +1661,33 @@ function initUI() {
   // Process any eggs that should have been laid while offline
   processQueenEggs();
 
-  // ── CHECK PENDING REFERRALS ──────────────────────────
-  // When a referred player joined, credit the referrer next time they open
+  // ── CHECK PENDING REFERRALS (Firebase first, localStorage fallback) ──
   if (TG_USER) {
+    // Check Firebase for cross-device referrals
+    if (fbDb) {
+      fbDb.ref('referrals/' + TG_USER.id).once('value').then(snap => {
+        const refs = snap.val();
+        if (refs) {
+          const refList = Object.values(refs);
+          let totalAnt = 0;
+          refList.forEach(ref => {
+            STATE.referrals += 1;
+            STATE.workers.scout += RECRUIT_CONFIG.refWorkers;
+            STATE.colonySize += RECRUIT_CONFIG.refWorkers;
+            STATE.balance += RECRUIT_CONFIG.refAnt;
+            totalAnt += RECRUIT_CONFIG.refAnt;
+          });
+          fbDb.ref('referrals/' + TG_USER.id).remove().catch(() => {});
+          saveAccount();
+          if (refList.length === 1) {
+            showToast(`🐜 ${refList[0].fromName} joined your colony! +${RECRUIT_CONFIG.refWorkers} Workers +${RECRUIT_CONFIG.refAnt} $ANT!`);
+          } else {
+            showToast(`🐜 ${refList.length} new recruits! +${refList.length * RECRUIT_CONFIG.refWorkers} Workers +${totalAnt.toFixed(2)} $ANT!`);
+          }
+        }
+      }).catch(() => {});
+    }
+    // Also check localStorage fallback (old referrals from same device)
     try {
       const refKey = 'antcolony_pending_ref_' + TG_USER.id;
       const pending = JSON.parse(localStorage.getItem(refKey) || '[]');
@@ -1631,7 +1697,6 @@ function initUI() {
           STATE.workers.scout += RECRUIT_CONFIG.refWorkers;
           STATE.colonySize += RECRUIT_CONFIG.refWorkers;
           STATE.balance += RECRUIT_CONFIG.refAnt;
-          showToast(`🐜 ${ref.fromName} joined your colony! +${RECRUIT_CONFIG.refWorkers} Workers +${RECRUIT_CONFIG.refAnt} $ANT!`);
         });
         localStorage.removeItem(refKey);
         saveAccount();
@@ -1659,21 +1724,35 @@ function initUI() {
 function claimDaily() {
   const today = new Date().toDateString();
   if (STATE.dailyClaimed && STATE.dailyClaimedDate === today) {
-    showToast('⏳ Come back tomorrow for next reward!');
+    showToast('⏳ Come back tomorrow for your next reward!');
     return;
   }
+  // Streak: increment if claimed yesterday, reset otherwise
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (!STATE.dailyStreak) STATE.dailyStreak = 0;
+  if (STATE.dailyClaimedDate === yesterday) {
+    STATE.dailyStreak = (STATE.dailyStreak || 0) + 1;
+  } else if (STATE.dailyClaimedDate !== today) {
+    STATE.dailyStreak = 1;
+  }
+  const streakBonus = Math.min((STATE.dailyStreak - 1) * 0.1, 1.0); // up to +1.0 for 10 day streak
   const base = 0.5;
-  const bonus = STATE.referrals * 0.05;
-  const total = base + bonus;
+  const referralBonus = STATE.referrals * 0.05;
+  const total = base + referralBonus + streakBonus;
   STATE.balance += total;
   STATE.totalMined += total;
   STATE.dailyClaimed = true;
   STATE.dailyClaimedDate = today;
-  document.getElementById('dailyBanner').style.opacity = '0.4';
-  document.getElementById('dailyBanner').style.pointerEvents = 'none';
-  document.querySelector('.daily-title').textContent = 'Daily Reward Claimed';
-  document.querySelector('.daily-sub').textContent = 'Come back tomorrow!';
-  showToast(`🎉 +${fmt(total,2)} $ANT Daily Reward!`);
+  const banner = document.getElementById('dailyBanner');
+  if (banner) { banner.style.opacity = '0.4'; banner.style.pointerEvents = 'none'; }
+  const title = document.querySelector('.daily-title');
+  const sub = document.querySelector('.daily-sub');
+  if (title) title.textContent = 'Daily Reward Claimed ✅';
+  if (sub) sub.textContent = `Day ${STATE.dailyStreak} streak 🔥`;
+  const msg = STATE.dailyStreak > 1
+    ? `🔥 Day ${STATE.dailyStreak} streak! +${fmt(total,2)} $ANT!`
+    : `🎉 +${fmt(total,2)} $ANT Daily Reward!`;
+  showToast(msg);
   if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
   saveAccount();
 }
@@ -2115,7 +2194,7 @@ function updateBalanceDisplay() {
   const el = document.getElementById('headerBalance');
   if (el) el.textContent = STATE.balance.toFixed(3);
 }
-function getMiningRate(){let r=0;WORKER_TYPES.forEach(w=>{r+=STATE.workers[w.key]*w.rate;});if(STATE.boostActive&&Date.now()<STATE.boostEnd)r*=2;return Math.max(0.0001,r);}
+function getMiningRate(){let r=0;WORKER_TYPES.forEach(w=>{r+=(STATE.workers[w.key]||0)*w.rate;});const mult=STATE._serverMultiplier||1;r*=mult;if(STATE.boostActive&&Date.now()<STATE.boostEnd)r*=2;return Math.max(0.0001,r);}
 function getHarvestAmount(){return getMiningRate()*STATE.harvestInterval;}
 
 let boostCount=0;
@@ -2144,9 +2223,13 @@ function updateMining(){
     if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
     saveAccount();
   }
-  document.getElementById('headerBalance').textContent=fmt(STATE.balance,3);
-  document.getElementById('miningRate').textContent=fmt(rate,4);
-  document.getElementById('mineBar').style.width=(STATE.mineProgress*100)+'%';
+  const _hb=document.getElementById('headerBalance'); if(_hb)_hb.textContent=fmt(STATE.balance,3);
+  const _mr=document.getElementById('miningRate'); if(_mr)_mr.textContent=fmt(rate,4);
+  const _mb=document.getElementById('mineBar'); if(_mb)_mb.style.width=(STATE.mineProgress*100)+'%';
+  const mineBtn=document.getElementById('mineBtn');
+  if(mineBtn&&!STATE.boostActive&&(STATE._serverMultiplier||1)>1){
+    mineBtn.textContent=`⚡ ${STATE._serverMultiplier}× EVENT`;
+  }
   const rem=Math.max(0,STATE.harvestInterval-elapsed);
   const mm=Math.floor(rem/60).toString().padStart(2,'0'), ss=Math.floor(rem%60).toString().padStart(2,'0');
   document.getElementById('harvestTime').textContent=mm+':'+ss;
@@ -2169,24 +2252,13 @@ function updateTier(){
 }
 
 function updateWallet(){
-  document.getElementById('walletBalance').textContent=fmt(STATE.balance,3);
-  document.getElementById('walletUSD').textContent=fmt(STATE.balance*0.012,4);
-  document.getElementById('wTodayMined').textContent=fmt(STATE.todayMined,3);
-  document.getElementById('wTotalMined').textContent=fmt(STATE.totalMined,3);
-  document.getElementById('wBestDay').textContent=fmt(STATE.bestDay,3);
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('walletBalance',fmt(STATE.balance,3));
+  set('walletUSD',fmt(STATE.balance*0.012,4));
+  set('wTodayMined',fmt(STATE.todayMined,3));
+  set('wTotalMined',fmt(STATE.totalMined,3));
+  set('wBestDay',fmt(STATE.bestDay,3));
 }
-
-// ============================================================
-//  MISSIONS
-// ============================================================
-function renderMissions(){
-  const list=document.getElementById('missionList');
-  list.innerHTML=MISSIONS.map((m,i)=>{
-    const pct=Math.min(m.current/m.target*100,100), done=pct>=100||m.done;
-    return `<div class="mission-item ${done?'done':''}"><div class="mission-icon">${m.icon}</div><div class="mission-info"><div class="mission-name">${m.name}</div><div style="font-size:10px;color:var(--text-dim);margin-top:1px">${Math.min(m.current,m.target)}/${m.target}</div><div class="mission-progress-wrap"><div class="mission-bar" style="width:${pct}%"></div></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><div class="mission-reward">${m.reward}</div>${done&&!m.done?`<button class="claim-btn" onclick="claimMission(${i})">CLAIM</button>`:(done?'<span style="font-size:10px;color:var(--text-dim)">✅</span>':'')}</div></div>`;
-  }).join('');
-}
-
 
 // ============================================================
 //  COLONY PAGE
@@ -2245,6 +2317,9 @@ function renderInvitePage(){
   document.getElementById('invTotal').textContent=STATE.referrals;
   document.getElementById('invWorkers').textContent=STATE.referrals*RECRUIT_CONFIG.refWorkers;
   document.getElementById('invEarned').textContent=fmt(STATE.referrals*RECRUIT_CONFIG.refAnt,1);
+  document.getElementById('recruitRateText').textContent=RECRUIT_CONFIG.refWorkers;
+  document.getElementById('recruitRewardNum').textContent=RECRUIT_CONFIG.refWorkers;
+  document.getElementById('recruitAntReward').textContent=RECRUIT_CONFIG.refAnt;
 }
 
 // ============================================================
@@ -2431,46 +2506,76 @@ function switchLbTab(tab, el) {
 }
 
 function renderLeaderboard() {
-  const data = [...LEADERBOARD];
+  const lbList = document.getElementById('lbList');
+  if (lbList) lbList.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">⏳ Loading leaderboard...</div>';
+
   const colonyName = STATE.colonyCustomName || (TG_USER ? TG_USER.first_name+"'s Colony" : 'Your Colony');
   const avatarEmojis = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥'];
   const myEmoji = TG_USER ? avatarEmojis[TG_USER.id % avatarEmojis.length] : '🐜';
   const myEntry = { emoji: myEmoji, name: colonyName, size: STATE.colonySize, ant: STATE.totalMined, recruits: STATE.referrals, isUser: true };
-  data.push(myEntry);
 
-  // Sort by current tab
-  if (currentLbTab === 'workers') data.sort((a,b) => b.size - a.size);
-  else if (currentLbTab === 'mined') data.sort((a,b) => b.ant - a.ant);
-  else data.sort((a,b) => (b.recruits||0) - (a.recruits||0));
+  function buildAndRenderLb(players) {
+    // Merge real Firebase players with static fallback (deduplicate by name)
+    const realNames = new Set(players.map(p => p.name));
+    const staticFallback = LEADERBOARD.filter(s => !realNames.has(s.name));
+    const data = [...players, ...staticFallback, myEntry];
 
-  const myRank = data.findIndex(d => d.isUser) + 1;
-  STATE.rank = myRank;
+    if (currentLbTab === 'workers') data.sort((a,b) => (b.size||0) - (a.size||0));
+    else if (currentLbTab === 'mined') data.sort((a,b) => (b.ant||0) - (a.ant||0));
+    else data.sort((a,b) => (b.recruits||0) - (a.recruits||0));
 
-  // Update your rank banner
-  const rankEl = document.getElementById('lbYourRankNum');
-  const statsEl = document.getElementById('lbYourStats');
-  if (rankEl) rankEl.textContent = '#' + myRank;
-  if (statsEl) {
-    if (currentLbTab === 'workers') statsEl.textContent = fmtK(STATE.colonySize) + ' workers';
-    else if (currentLbTab === 'mined') statsEl.textContent = STATE.totalMined.toFixed(2) + ' $ANT mined';
-    else statsEl.textContent = STATE.referrals + ' recruits';
+    const myRank = data.findIndex(d => d.isUser) + 1;
+    STATE.rank = myRank;
+
+    const rankEl = document.getElementById('lbYourRankNum');
+    const statsEl = document.getElementById('lbYourStats');
+    if (rankEl) rankEl.textContent = '#' + myRank;
+    if (statsEl) {
+      if (currentLbTab === 'workers') statsEl.textContent = fmtK(STATE.colonySize) + ' workers';
+      else if (currentLbTab === 'mined') statsEl.textContent = STATE.totalMined.toFixed(2) + ' $ANT mined';
+      else statsEl.textContent = STATE.referrals + ' recruits';
+    }
+
+    const medals = ['🥇','🥈','🥉'];
+    const lb = document.getElementById('lbList');
+    if (!lb) return;
+    lb.innerHTML = data.map((item, i) => {
+      const val = currentLbTab === 'workers' ? fmtK(item.size||0)+' workers'
+                : currentLbTab === 'mined'   ? (item.ant||0).toFixed(1)+' $ANT'
+                : (item.recruits||0)+' recruits';
+      return `<div class="lb-item ${i<3?'top'+(i+1):''}">
+        <div class="lb-rank">${i<3?medals[i]:'#'+(i+1)}</div>
+        <div style="font-size:22px">${item.emoji||'🐜'}</div>
+        <div class="lb-info">
+          <div class="lb-name" style="${item.isUser?'color:var(--amber-bright)':''}">${item.name||'—'}${item.isUser?' ⭐':''}</div>
+          <div class="lb-sub">${val}</div>
+        </div>
+        <div class="lb-amount">${currentLbTab==='workers'?fmtK(item.size||0):currentLbTab==='mined'?(item.ant||0).toFixed(1):(item.recruits||0)}<span>${currentLbTab==='workers'?'Workers':currentLbTab==='mined'?'$ANT':'Recruits'}</span></div>
+      </div>`;
+    }).join('');
   }
 
-  const medals = ['🥇','🥈','🥉'];
-  document.getElementById('lbList').innerHTML = data.map((item, i) => {
-    const val = currentLbTab === 'workers' ? fmtK(item.size)+' workers'
-              : currentLbTab === 'mined'   ? item.ant.toFixed(1)+' $ANT'
-              : (item.recruits||0)+' recruits';
-    return `<div class="lb-item ${i<3?'top'+(i+1):''}">
-      <div class="lb-rank">${i<3?medals[i]:'#'+(i+1)}</div>
-      <div style="font-size:22px">${item.emoji}</div>
-      <div class="lb-info">
-        <div class="lb-name" style="${item.isUser?'color:var(--amber-bright)':''}">${item.name}${item.isUser?' ⭐':''}</div>
-        <div class="lb-sub">${val}</div>
-      </div>
-      <div class="lb-amount">${currentLbTab==='workers'?fmtK(item.size):currentLbTab==='mined'?item.ant.toFixed(1):(item.recruits||0)}<span>${currentLbTab==='workers'?'Workers':currentLbTab==='mined'?'$ANT':'Recruits'}</span></div>
-    </div>`;
-  }).join('');
+  // Try Firebase first
+  if (fbDb) {
+    fbDb.ref('players').once('value').then(snap => {
+      const raw = snap.val() || {};
+      const realPlayers = Object.values(raw)
+        .filter(p => p && p.tgName && String(p.tgId) !== '99999999')
+        .map(p => ({
+          emoji: avatarEmojis[(parseInt(p.tgId)||0) % avatarEmojis.length],
+          name: p.colonyCustomName || p.tgName + "'s Colony",
+          size: p.colonySize || 0,
+          ant: p.totalMined || 0,
+          recruits: p.referrals || 0,
+          isUser: TG_USER && String(p.tgId) === String(TG_USER.id) && !myEntry.isUser,
+        }))
+        // exclude current user (already in myEntry)
+        .filter(p => !(TG_USER && p.name === myEntry.name));
+      buildAndRenderLb(realPlayers);
+    }).catch(() => buildAndRenderLb([]));
+  } else {
+    buildAndRenderLb([]);
+  }
 }
 
 // ============================================================
@@ -2586,10 +2691,6 @@ function renderProfilePage() {
   renderColorGrid();
   initNotifToggles();
   renderAchievements();
-
-  // Track queen visits for missions
-  if (!STATE.missionStats) STATE.missionStats = {};
-  STATE.missionStats.queenVisits = (STATE.missionStats.queenVisits||0) + 1;
 }
 
 // ============================================================
@@ -2898,8 +2999,7 @@ function drawQueenAnt(c, x, y, sz, qt, t) {
     c.rotate(wa);
     const ww = small?sz*1.0:sz*1.3, wh = small?sz*0.45:sz*0.55;
     const wg = c.createRadialGradient(0,0,1,0,0,ww);
-    wg.addColorStop(0, col.replace('#','rgba(').replace(/(..)(..)(..)/, (_,r,g,b)=>`rgba(${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+',0.7)');
-    wg.addColorStop(0, `${col}bb`);
+    wg.addColorStop(0, `${col}cc`);
     wg.addColorStop(1, `${col}11`);
     c.fillStyle=wg;
     c.beginPath(); c.ellipse(0,0,ww,wh,small?0.2:0,0,Math.PI*2); c.fill();
@@ -2996,12 +3096,27 @@ window.addEventListener('load', () => {
   renderMissions();
   setInterval(updateMining, 500);
   setInterval(updateEventTimer, 1000);
-  setInterval(saveAccount, 30000);
 
   // Back button (Telegram)
   if (tgApp?.BackButton) {
-    tgApp.BackButton.onClick(() => { navTo('home'); tgApp.BackButton.hide(); });
+    tgApp.BackButton.onClick(() => {
+      const activePage = document.querySelector('.page.active');
+      if (activePage && activePage.id !== 'page-home') {
+        navTo('home');
+        tgApp.BackButton.hide();
+      }
+    });
   }
+  // Show Telegram back button when not on home
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const activePage = document.querySelector('.page.active');
+      if (tgApp?.BackButton) {
+        if (activePage && activePage.id !== 'page-home') tgApp.BackButton.show();
+        else tgApp.BackButton.hide();
+      }
+    });
+  });
 
   // Short delay to let Telegram SDK fully init
   setTimeout(() => {
