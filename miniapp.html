@@ -566,6 +566,15 @@ body::before {
 .egg-hatch-ready { animation:egg-hatch-glow 0.8s ease-in-out infinite; cursor:pointer; border-color:var(--amber)!important; }
 @keyframes egg-hatch-glow { 0%,100%{box-shadow:0 0 8px rgba(245,166,35,0.4);} 50%{box-shadow:0 0 20px rgba(245,166,35,0.9);} }
 .egg-empty { color:var(--text-dim); font-size:11px; padding:16px; text-align:center; width:100%; }
+.hatch-all-btn {
+  background:linear-gradient(135deg,var(--amber),var(--gold));
+  border:none; border-radius:10px; padding:5px 12px;
+  font-family:'Orbitron'; font-size:9px; font-weight:700;
+  color:#0a0500; cursor:pointer; text-transform:uppercase;
+  letter-spacing:0.5px; transition:all 0.15s;
+  animation:egg-hatch-glow 0.8s ease-in-out infinite;
+}
+.hatch-all-btn:active { transform:scale(0.95); }
 
 /* Hatch result popup */
 .hatch-popup {
@@ -964,7 +973,10 @@ body::before {
       <div class="egg-chamber-card">
         <div class="egg-chamber-header">
           <div class="egg-chamber-title">Incubating Eggs</div>
-          <div class="egg-count-badge" id="eggCountBadge">0 eggs</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="hatch-all-btn" id="hatchAllBtn" onclick="hatchAllReady()" style="display:none">🥚 Hatch All</button>
+            <div class="egg-count-badge" id="eggCountBadge">0 eggs</div>
+          </div>
         </div>
         <div class="egg-grid" id="eggGrid">
           <div class="egg-empty">No eggs yet — purchase a Queen to start laying!</div>
@@ -2778,6 +2790,35 @@ function hatchEgg(eggId) {
   showHatchPopup(hatched, egg.queenKey);
 }
 
+function hatchAllReady() {
+  const now = Date.now();
+  const ready = STATE.eggs.filter(e => !e.hatched && now >= e.hatchAt);
+  if (ready.length === 0) { showToast('🥚 No eggs ready to hatch yet!'); return; }
+
+  const tally = {};
+  ready.forEach(egg => {
+    const roll = Math.random();
+    let cumulative = 0, hatched = HATCH_PROBS[0];
+    for (const p of HATCH_PROBS) {
+      cumulative += p.chance;
+      if (roll < cumulative) { hatched = p; break; }
+    }
+    egg.hatched = true;
+    STATE.workers[hatched.key] = (STATE.workers[hatched.key] || 0) + 1;
+    STATE.colonySize++;
+    tally[hatched.label] = (tally[hatched.label] || 0) + 1;
+  });
+
+  if (!STATE.missionStats) STATE.missionStats = {};
+  STATE.missionStats.eggsHatched = (STATE.missionStats.eggsHatched || 0) + ready.length;
+
+  const summary = Object.entries(tally).map(([k, v]) => `${v} ${k}`).join(', ');
+  showToast(`🥚 Hatched ${ready.length} egg${ready.length > 1 ? 's' : ''}: ${summary}!`);
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  renderEggChamber();
+  saveAccount();
+}
+
 function showHatchPopup(hatched, queenKey) {
   const qt = QUEEN_TYPES.find(q => q.key === queenKey);
   document.getElementById('hatchEmoji').textContent = hatched.emoji;
@@ -2864,6 +2905,11 @@ function renderEggChamber() {
 
   const activeEggs = STATE.eggs.filter(e => !e.hatched);
   if (badge) badge.textContent = activeEggs.length + ' eggs';
+
+  const now2 = Date.now();
+  const readyCount = activeEggs.filter(e => now2 >= e.hatchAt).length;
+  const hatchAllBtn = document.getElementById('hatchAllBtn');
+  if (hatchAllBtn) hatchAllBtn.style.display = readyCount > 0 ? 'inline-block' : 'none';
 
   if (activeEggs.length === 0) {
     grid.innerHTML = '<div class="egg-empty">🥚 No eggs incubating — Queens will lay soon!</div>';
