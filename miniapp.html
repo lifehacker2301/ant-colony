@@ -594,6 +594,96 @@ body::before {
 /* Queen tab nav active */
 .nav-item.queen-nav.active .nav-icon { filter: drop-shadow(0 0 6px #cc00ff); }
 
+/* ══════════════════════════════════════════════
+   NFT CARDS
+══════════════════════════════════════════════ */
+.nft-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.nft-network-tag { display:flex; align-items:center; gap:5px; background:rgba(0,100,255,0.1); border:1px solid rgba(0,180,255,0.28); border-radius:20px; padding:4px 11px; font-family:'Orbitron'; font-size:10px; color:#60c0ff; }
+.nft-scroll-wrap { overflow-x:auto; display:flex; gap:12px; padding:4px 2px 14px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.nft-scroll-wrap::-webkit-scrollbar { display:none; }
+
+.nft-card {
+  flex-shrink:0; width:188px; border-radius:18px; position:relative; overflow:hidden;
+  background:linear-gradient(160deg,#080012,#120020,#06000e);
+  box-shadow:0 10px 40px rgba(0,0,0,0.7); cursor:pointer; transition:transform 0.18s;
+}
+.nft-card:active { transform:scale(0.96); }
+.nft-card.common   { border:1px solid rgba(160,160,160,0.45); }
+.nft-card.uncommon { border:1px solid rgba(39,174,96,0.55);   box-shadow:0 6px 28px rgba(39,174,96,0.12); }
+.nft-card.rare     { border:1px solid rgba(41,128,185,0.65);  box-shadow:0 6px 30px rgba(41,128,185,0.18); }
+.nft-card.epic     { border:1px solid rgba(142,68,173,0.7);   box-shadow:0 6px 32px rgba(142,68,173,0.22); animation:nft-epic-glow 2.2s ease-in-out infinite; }
+.nft-card.legend   { border:1px solid rgba(243,156,18,0.75);  box-shadow:0 6px 35px rgba(243,156,18,0.22); animation:nft-legend-glow 1.9s ease-in-out infinite; }
+.nft-card.mythical { border:1px solid rgba(231,76,60,0.78);   box-shadow:0 6px 38px rgba(231,76,60,0.25); animation:nft-legend-glow 1.5s ease-in-out infinite; }
+.nft-card.zenith   { border:1px solid rgba(0,229,255,0.88);   box-shadow:0 6px 45px rgba(0,229,255,0.32); animation:nft-zenith-glow 1.1s ease-in-out infinite; }
+@keyframes nft-epic-glow   { 0%,100%{box-shadow:0 6px 32px rgba(142,68,173,0.22);} 50%{box-shadow:0 0 50px rgba(142,68,173,0.5),0 0 20px rgba(142,68,173,0.3) inset;} }
+@keyframes nft-legend-glow { 0%,100%{box-shadow:0 6px 35px rgba(243,156,18,0.22);} 50%{box-shadow:0 0 55px rgba(243,156,18,0.5),0 0 22px rgba(243,156,18,0.25) inset;} }
+@keyframes nft-zenith-glow { 0%,100%{box-shadow:0 6px 45px rgba(0,229,255,0.32);} 50%{box-shadow:0 0 65px rgba(0,229,255,0.65),0 0 28px rgba(0,229,255,0.3) inset;} }
+
+/* Holographic shimmer sweep */
+.nft-holo { position:absolute; inset:0; pointer-events:none; z-index:3; overflow:hidden; border-radius:18px; }
+.nft-holo::after { content:''; position:absolute; top:-50%; left:-60%; width:55%; height:200%; background:linear-gradient(105deg,transparent,rgba(255,255,255,0.06) 40%,rgba(255,255,255,0.12) 50%,rgba(255,255,255,0.06) 60%,transparent); transform:skewX(-12deg); animation:holo-pass 5s ease-in-out infinite; }
+@keyframes holo-pass { 0%,100%{left:-60%;} 50%{left:120%;} }
+
+/* Card header */
+.nft-card-top { display:flex; align-items:center; justify-content:space-between; padding:9px 11px 0; }
+.nft-collection-lbl { font-family:'Cinzel Decorative'; font-size:7.5px; color:var(--amber-dim); letter-spacing:0.5px; }
+.nft-rarity-pip { font-family:'Orbitron'; font-size:8px; font-weight:700; padding:2px 8px; border-radius:6px; letter-spacing:1px; }
+.nft-card.common   .nft-rarity-pip { background:rgba(160,160,160,0.18); color:#d0d0d0; border:1px solid rgba(160,160,160,0.38); }
+.nft-card.uncommon .nft-rarity-pip { background:rgba(39,174,96,0.18);   color:#5ad488; border:1px solid rgba(39,174,96,0.45); }
+.nft-card.rare     .nft-rarity-pip { background:rgba(41,128,185,0.18);  color:#5abaee; border:1px solid rgba(41,128,185,0.48); }
+.nft-card.epic     .nft-rarity-pip { background:rgba(142,68,173,0.22);  color:#cc88ff; border:1px solid rgba(142,68,173,0.55); }
+.nft-card.legend   .nft-rarity-pip { background:rgba(243,156,18,0.18);  color:#ffd060; border:1px solid rgba(243,156,18,0.55); }
+.nft-card.mythical .nft-rarity-pip { background:rgba(231,76,60,0.18);   color:#ff8870; border:1px solid rgba(231,76,60,0.55); }
+.nft-card.zenith   .nft-rarity-pip { background:rgba(0,229,255,0.14);   color:#00e5ff; border:1px solid rgba(0,229,255,0.65); }
+
+/* Portrait */
+.nft-portrait { width:188px; height:124px; display:block; border-top:1px solid rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.04); margin-top:7px; }
+
+/* Name + edition */
+.nft-name-row { padding:7px 11px 1px; display:flex; align-items:baseline; justify-content:space-between; }
+.nft-queen-name-lbl { font-family:'Cinzel Decorative'; font-size:9px; color:var(--text-primary); }
+.nft-edition-lbl { font-family:'Orbitron'; font-size:8px; color:var(--text-dim); }
+.nft-token-lbl { font-family:'Orbitron'; font-size:8px; color:var(--text-dim); padding:0 11px 5px; }
+
+/* Attribute bars */
+.nft-attrs { padding:5px 11px 3px; display:flex; flex-direction:column; gap:4px; }
+.nft-attr-row { display:flex; align-items:center; gap:6px; }
+.nft-attr-lbl { font-size:8.5px; color:var(--text-dim); width:54px; flex-shrink:0; font-weight:600; letter-spacing:0.3px; }
+.nft-bar-track { flex:1; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+.nft-bar-fill  { height:100%; border-radius:3px; }
+.nft-attr-num  { font-family:'Orbitron'; font-size:8px; color:var(--text-secondary); width:28px; text-align:right; flex-shrink:0; }
+.nft-card.common   .nft-bar-fill { background:linear-gradient(90deg,#707080,#c0c0d0); }
+.nft-card.uncommon .nft-bar-fill { background:linear-gradient(90deg,#1a7a40,#2ecc71); }
+.nft-card.rare     .nft-bar-fill { background:linear-gradient(90deg,#1a5a99,#44aaee); }
+.nft-card.epic     .nft-bar-fill { background:linear-gradient(90deg,#5520aa,#bb55ee); }
+.nft-card.legend   .nft-bar-fill { background:linear-gradient(90deg,#996600,#ffcc22); }
+.nft-card.mythical .nft-bar-fill { background:linear-gradient(90deg,#990011,#ff4444); }
+.nft-card.zenith   .nft-bar-fill { background:linear-gradient(90deg,#006688,#00e5ff); }
+
+/* Chain info footer */
+.nft-footer { display:flex; justify-content:space-between; align-items:center; padding:5px 11px; margin-top:3px; border-top:1px solid rgba(255,255,255,0.05); font-size:9px; color:var(--text-dim); }
+.nft-footer-chain { display:flex; align-items:center; gap:4px; color:#60c0ff; font-family:'Orbitron'; font-size:8px; }
+
+/* Mint button */
+.nft-mint-btn {
+  width:calc(100% - 16px); margin:6px 8px 10px; display:flex; align-items:center; justify-content:center; gap:7px;
+  background:linear-gradient(135deg,rgba(30,30,50,0.95),rgba(15,15,30,0.98));
+  border:1px solid rgba(255,255,255,0.1); border-radius:11px; padding:10px 8px;
+  font-family:'Orbitron'; font-size:9px; font-weight:700; letter-spacing:1.5px;
+  color:rgba(200,200,220,0.55); cursor:pointer; position:relative; overflow:hidden;
+}
+.nft-mint-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent); animation:holo-pass 4s ease-in-out infinite; }
+.nft-mint-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,200,50,0.55); animation:blink 1.6s ease-in-out infinite; flex-shrink:0; }
+
+/* Mint Soon overlay modal */
+.mint-modal-bg { position:fixed; inset:0; z-index:800; background:rgba(0,0,0,0.72); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; }
+.mint-modal-card { background:linear-gradient(145deg,#08001a,#14002e); border:1px solid rgba(200,80,255,0.38); border-radius:24px; padding:34px 26px 28px; text-align:center; max-width:290px; width:88%; box-shadow:0 0 80px rgba(150,0,255,0.2); animation:fadeUp 0.3s ease; }
+.mint-modal-icon { font-size:54px; display:block; margin-bottom:10px; }
+.mint-modal-title { font-family:'Cinzel Decorative'; font-size:15px; color:var(--amber-bright); margin-bottom:8px; }
+.mint-modal-desc { font-size:12px; color:var(--text-secondary); line-height:1.65; margin-bottom:16px; }
+.mint-modal-chain { display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(0,100,255,0.1); border:1px solid rgba(0,180,255,0.25); border-radius:10px; padding:9px 14px; margin-bottom:18px; font-size:11px; color:#60c0ff; font-family:'Orbitron'; }
+.mint-modal-close { background:linear-gradient(135deg,#f5a623,#d4800a); border:none; border-radius:12px; padding:12px 30px; font-family:'Orbitron'; font-size:11px; font-weight:700; color:#0a0500; cursor:pointer; letter-spacing:1px; }
+
 
 /* ── ACHIEVEMENTS ── */
 .achieve-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
@@ -1000,6 +1090,35 @@ body::before {
         <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">👑 Queen Guard</span><span style="font-family:'Orbitron';font-size:11px;color:#9b59b6">1%</span></div>
         <div style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim)">⏱ Hatch time: <span style="color:var(--amber-bright);font-family:'Orbitron'">8 hours</span></div>
       </div>
+    </div>
+
+    <!-- NFT Collection -->
+    <div class="section">
+      <div class="nft-section-header">
+        <div class="section-title" style="margin-bottom:0">💎 NFT Collection</div>
+        <div class="nft-network-tag">🔗 TON Chain</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin:0 0 10px;line-height:1.5">
+        Each Queen is a unique on-chain NFT with verifiable attributes. Owners get exclusive colony boosts.
+      </div>
+      <div class="nft-scroll-wrap" id="nftCardsWrap"></div>
+    </div>
+  </div>
+
+  <!-- MINT SOON MODAL -->
+  <div class="mint-modal-bg" id="mintModal" style="display:none" onclick="closeMintModal()">
+    <div class="mint-modal-card" onclick="event.stopPropagation()">
+      <span class="mint-modal-icon">🚀</span>
+      <div class="mint-modal-title">Minting Soon!</div>
+      <div class="mint-modal-desc">
+        Queen NFTs will be mintable on the <strong style="color:var(--amber-bright)">TON Blockchain</strong>.<br><br>
+        Hold your <strong style="color:var(--amber-bright)">$ANT tokens</strong> — early colony holders earn priority whitelist access!
+      </div>
+      <div class="mint-modal-chain">
+        <span>💎</span><span>TON Network</span><span style="color:var(--text-dim)">•</span>
+        <span style="color:var(--amber)">ETA Q3 2026</span>
+      </div>
+      <button class="mint-modal-close" onclick="closeMintModal()">GOT IT! 🔥</button>
     </div>
   </div>
 
@@ -1503,6 +1622,18 @@ const QUEEN_TYPES = [
   { key:'mythical', name:'Mythical Queen', eggsPerWeek:1000, price:1000000,   color:'#e74c3c', glow:'rgba(231,76,60,0.5)',   crown:'🔴' },
   { key:'zenith',   name:'Zenith Queen',   eggsPerWeek:5000, price:5000000,   color:'#00e5ff', glow:'rgba(0,229,255,0.6)',   crown:'🩵' },
 ];
+
+// ── NFT ATTRIBUTES PER RARITY ────────────────────────────────
+// All bars are 0-100 display scale. Balanced: higher rarity = higher all stats.
+const NFT_ATTRS = {
+  common:   { power:15, pB:15,  mining:'5%',   mB:5,   eggRate:'1/wk',   eB:8,   luck:5,  lB:5,   colony:8,  cB:8,   vitality:28, vB:28, supply:10000, edition:'Genesis #1' },
+  uncommon: { power:26, pB:26,  mining:'12%',  mB:12,  eggRate:'3/wk',   eB:18,  luck:15, lB:15,  colony:22, cB:22,  vitality:44, vB:44, supply:5000,  edition:'Genesis #2' },
+  rare:     { power:42, pB:42,  mining:'22%',  mB:22,  eggRate:'10/wk',  eB:33,  luck:28, lB:28,  colony:40, cB:40,  vitality:58, vB:58, supply:2000,  edition:'Genesis #3' },
+  epic:     { power:62, pB:62,  mining:'35%',  mB:35,  eggRate:'50/wk',  eB:54,  luck:44, lB:44,  colony:60, cB:60,  vitality:72, vB:72, supply:1000,  edition:'Genesis #4' },
+  legend:   { power:80, pB:80,  mining:'55%',  mB:55,  eggRate:'500/wk', eB:76,  luck:66, lB:66,  colony:78, cB:78,  vitality:84, vB:84, supply:500,   edition:'Genesis #5' },
+  mythical: { power:93, pB:93,  mining:'80%',  mB:80,  eggRate:'1K/wk',  eB:90,  luck:86, lB:86,  colony:92, cB:92,  vitality:95, vB:95, supply:100,   edition:'Genesis #6' },
+  zenith:   { power:99, pB:99,  mining:'100%', mB:100, eggRate:'5K/wk',  eB:100, luck:99, lB:99,  colony:99, cB:99,  vitality:99, vB:99, supply:10,    edition:'Genesis #7' },
+};
 
 // Egg hatch time = 8 hours in ms
 const EGG_HATCH_MS = 8 * 60 * 60 * 1000;
@@ -3457,11 +3588,104 @@ function drawQueenAvatar(key) {
   drawQueenAnt(c, 32, 40, 14, qt, 0.5);
 }
 
+// ── NFT CARDS ────────────────────────────────────────────────
+function renderNFTCards() {
+  const wrap = document.getElementById('nftCardsWrap');
+  if (!wrap) return;
+
+  wrap.innerHTML = QUEEN_TYPES.map((qt, idx) => {
+    const a = NFT_ATTRS[qt.key];
+    const rows = [
+      { lbl:'POWER',    val:a.power,    bar:a.pB  },
+      { lbl:'MINING',   val:a.mining,   bar:a.mB  },
+      { lbl:'EGG RATE', val:a.eggRate,  bar:a.eB  },
+      { lbl:'LUCK',     val:a.luck,     bar:a.lB  },
+      { lbl:'COLONY',   val:a.colony,   bar:a.cB  },
+      { lbl:'VITALITY', val:a.vitality, bar:a.vB  },
+    ];
+    return `
+    <div class="nft-card ${qt.key}">
+      <div class="nft-holo"></div>
+      <div class="nft-card-top">
+        <div class="nft-collection-lbl">ANT COLONY</div>
+        <div class="nft-rarity-pip">${qt.key.toUpperCase()}</div>
+      </div>
+      <canvas class="nft-portrait" id="nft_c_${qt.key}" width="188" height="124"></canvas>
+      <div class="nft-name-row">
+        <div class="nft-queen-name-lbl">${qt.name}</div>
+        <div class="nft-edition-lbl">${a.edition}</div>
+      </div>
+      <div class="nft-token-lbl">Token ID: #????${idx+1}</div>
+      <div class="nft-attrs">
+        ${rows.map(r=>`
+        <div class="nft-attr-row">
+          <div class="nft-attr-lbl">${r.lbl}</div>
+          <div class="nft-bar-track"><div class="nft-bar-fill" style="width:${r.bar}%"></div></div>
+          <div class="nft-attr-num">${r.val}</div>
+        </div>`).join('')}
+      </div>
+      <div class="nft-footer">
+        <div class="nft-footer-chain">🔗 TON</div>
+        <div>Supply: ${a.supply.toLocaleString()}</div>
+      </div>
+      <button class="nft-mint-btn" onclick="showMintModal('${qt.key}')">
+        <div class="nft-mint-dot"></div>
+        AVAILABLE SOON
+      </button>
+    </div>`;
+  }).join('');
+
+  // Draw portraits after DOM renders
+  setTimeout(() => QUEEN_TYPES.forEach(qt => drawNFTPortrait(qt.key)), 60);
+}
+
+function drawNFTPortrait(key) {
+  const canvas = document.getElementById('nft_c_'+key);
+  if (!canvas) return;
+  const c = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const qt = QUEEN_TYPES.find(q => q.key === key);
+  if (!qt) return;
+
+  // Dark chamber background
+  const bg = c.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#050010'); bg.addColorStop(0.5,'#0c0018'); bg.addColorStop(1,'#050010');
+  c.fillStyle = bg; c.fillRect(0,0,W,H);
+
+  // Rarity radial atmosphere
+  const rg = c.createRadialGradient(W/2,H*0.6,4, W/2,H*0.6, H*0.7);
+  rg.addColorStop(0, qt.glow.replace(/[\d.]+\)$/,'0.32)'));
+  rg.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=rg; c.fillRect(0,0,W,H);
+
+  // Subtle floor line
+  const fl = c.createLinearGradient(0,0,W,0);
+  fl.addColorStop(0,'rgba(0,0,0,0)'); fl.addColorStop(0.3,qt.color+'55');
+  fl.addColorStop(0.7,qt.color+'55'); fl.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=fl; c.fillRect(0,H*0.88,W,2);
+
+  // Ground shadow under queen
+  c.fillStyle='rgba(0,0,0,0.35)';
+  c.beginPath(); c.ellipse(W/2,H*0.88,22,6,0,0,Math.PI*2); c.fill();
+
+  // Draw queen static portrait (t=1.2 gives pleasing wing angle)
+  drawQueenAnt(c, W/2, H*0.64, 19, qt, 1.2);
+}
+
+function showMintModal(key) {
+  document.getElementById('mintModal').style.display = 'flex';
+  if(tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred('light');
+}
+function closeMintModal() {
+  document.getElementById('mintModal').style.display = 'none';
+}
+
 // ── QUEEN PAGE RENDER ────────────────────────────────────────
 function renderQueenPage() {
   renderQueenShop();
   renderEggChamber();
   updateQueenHeader();
+  renderNFTCards();
   if (!queenCtx) {
     setTimeout(initQueenCanvas, 100);
   } else {
