@@ -1917,18 +1917,21 @@ function claimDaily() {
 
 // ── SHARE VIA TELEGRAM ──
 function shareTelegram() {
-  const link = `https://t.me/${BOT_USERNAME}?start=ref_${STATE.userId || TG_USER?.id || 'DEMO'}`;
+  const link = `https://t.me/${BOT_USERNAME}?startapp=ref_${STATE.userId || TG_USER?.id || 'DEMO'}`;
   const text = '🐜 Join my Ant Colony! Build your empire & mine $ANT tokens!';
-  // Use Telegram's native share
-  if (tgApp?.openTelegramLink) {
-    tgApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+  // openLink handles all URLs including t.me/share; openTelegramLink as fallback
+  if (tgApp?.openLink) {
+    tgApp.openLink(shareUrl);
+  } else if (tgApp?.openTelegramLink) {
+    tgApp.openTelegramLink(shareUrl);
   } else {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
+    window.open(shareUrl, '_blank');
   }
 }
 
 function shareNative() {
-  const link = `https://t.me/${BOT_USERNAME}?start=ref_${STATE.userId || 'DEMO'}`;
+  const link = `https://t.me/${BOT_USERNAME}?startapp=ref_${STATE.userId || 'DEMO'}`;
   if (navigator.share) {
     navigator.share({ title: '🐜 Ant Colony', text: 'Mine $ANT tokens!', url: link });
   } else {
@@ -1938,7 +1941,7 @@ function shareNative() {
 }
 
 function copyInviteLink() {
-  const link = `https://t.me/${BOT_USERNAME}?start=ref_${STATE.userId || TG_USER?.id || 'DEMO'}`;
+  const link = `https://t.me/${BOT_USERNAME}?startapp=ref_${STATE.userId || TG_USER?.id || 'DEMO'}`;
   copyToClipboard(link);
   const btn = document.getElementById('copyBtn');
   btn.textContent='Copied!'; btn.classList.add('copied');
@@ -1948,7 +1951,27 @@ function copyInviteLink() {
 }
 
 function copyToClipboard(text) {
-  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+  // Telegram Mini App native clipboard API (best option)
+  if (tgApp?.writeTextToClipboard) {
+    tgApp.writeTextToClipboard(text, () => {});
+    return;
+  }
+  // Modern clipboard API
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(() => _execCopy(text));
+    return;
+  }
+  // Fallback for Android WebView / older browsers
+  _execCopy(text);
+}
+function _execCopy(text) {
+  const el = document.createElement('textarea');
+  el.value = text;
+  el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px;';
+  document.body.appendChild(el);
+  el.focus(); el.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(el);
 }
 
 // ── SYNC PROGRESS TO BOT ──
@@ -2471,7 +2494,7 @@ document.getElementById('upgradeModal').addEventListener('click',function(e){if(
 // ============================================================
 function renderInvitePage(){
   const uid=STATE.userId||TG_USER?.id||'DEMO';
-  document.getElementById('inviteLink').textContent=`t.me/${BOT_USERNAME}?start=ref_${uid}`;
+  document.getElementById('inviteLink').textContent=`t.me/${BOT_USERNAME}?startapp=ref_${uid}`;
   document.getElementById('invTotal').textContent=STATE.referrals;
   document.getElementById('invWorkers').textContent=STATE.referrals*RECRUIT_CONFIG.refWorkers;
   document.getElementById('invEarned').textContent=fmt(STATE.referrals*RECRUIT_CONFIG.refAnt,1);

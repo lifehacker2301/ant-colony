@@ -69,8 +69,8 @@ bot.use(session());
 //  /start  — Welcome & referral handling
 // ─────────────────────────────────────────────────
 bot.start(async (ctx) => {
-  const userId   = ctx.from.id;
-  const username = ctx.from.username;
+  const userId    = ctx.from.id;
+  const username  = ctx.from.username;
   const firstName = ctx.from.first_name || 'Miner';
 
   const user = getUser(userId, username, firstName);
@@ -102,17 +102,20 @@ bot.start(async (ctx) => {
   }
 
   const welcomeText =
-    `🐜 *Welcome to Ant Colony, ${firstName}!*\n\n` +
-    `Build the most powerful underground empire and mine *$ANT* tokens!\n\n` +
-    `🏰 *Your Colony:* ${getTierName(user.colonySize)}\n` +
-    `🐜 *Workers:* ${fmtK(user.colonySize)}\n` +
-    `💰 *Balance:* ${fmt(user.balance, 3)} $ANT\n\n` +
-    `Tap the button below to open your colony! 👇`;
+    `🐜 *Ant Colony — Build Your Underground Empire*\n\n` +
+    `Welcome, *${firstName}*! You've entered the world of Ant Colony — a strategic idle mining game on Telegram.\n\n` +
+    `⛏️ *Mine $ANT tokens* passively with your worker ants\n` +
+    `👑 *Buy Queens* to lay eggs and grow your colony\n` +
+    `🥚 *Hatch eggs* to unlock rare and legendary ants\n` +
+    `👥 *Recruit friends* and earn workers for every invite\n` +
+    `🏆 *Climb the leaderboard* and become the top colony\n` +
+    `💎 *Collect NFT Queens* — mintable on TON blockchain soon\n\n` +
+    `Your empire awaits, Commander. Tap below to begin! 👇`;
 
   await ctx.reply(welcomeText, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      [Markup.button.webApp('🐜 Open Ant Colony', `${MINI_APP_URL}?user=${userId}&ref=${ctx.from.username || userId}`)],
+      [Markup.button.webApp('🎮 Play Ant Colony', MINI_APP_URL)],
       [
         Markup.button.callback('📊 My Stats',  'stats'),
         Markup.button.callback('👥 Invite',    'invite'),
@@ -160,7 +163,7 @@ bot.command('stats', async (ctx) => {
 bot.command('invite', async (ctx) => {
   const user = getUser(ctx.from.id, ctx.from.username, ctx.from.first_name);
   const botUsername = ctx.botInfo?.username || 'AntColonyBot';
-  const refLink = `https://t.me/${botUsername}?start=ref_${ctx.from.id}`;
+  const refLink = `https://t.me/${botUsername}?startapp=ref_${ctx.from.id}`;
 
   const text =
     `🐜 *Recruit Ants for Your Colony!*\n\n` +
@@ -339,7 +342,7 @@ bot.action('invite', async (ctx) => {
   await ctx.answerCbQuery();
   ctx.command = { text: '/invite' };
   const botUsername = ctx.botInfo?.username || 'AntColonyBot';
-  const refLink = `https://t.me/${botUsername}?start=ref_${ctx.from.id}`;
+  const refLink = `https://t.me/${botUsername}?startapp=ref_${ctx.from.id}`;
   await ctx.reply(`🔗 Your invite link:\n\`${refLink}\``, { parse_mode: 'Markdown' });
 });
 
