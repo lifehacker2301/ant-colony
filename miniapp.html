@@ -3859,8 +3859,7 @@ setInterval(updateEggTimers, 1000);
 // ============================================================
 //  TOWER DEFENSE — ANT COLONY DEFENSE
 // ============================================================
-(function(){
-'use strict';
+try{(function(){
 const COLS=5, ROWS=3;
 let CW=72, CH=100;
 
@@ -4419,7 +4418,7 @@ window.tdStartWave=tdStartWave;
 window.tdRefreshShop=tdRefreshShop;
 window.tdSellMode=tdSellMode;
 window.renderGamesPage=renderGamesPage;
-})();
+})();}catch(err){console.error('TD init error:',err);window.openTDGame=function(){alert('Game failed to load: '+err.message);};window.renderGamesPage=function(){};}
 
 // ============================================================
 //  INIT
