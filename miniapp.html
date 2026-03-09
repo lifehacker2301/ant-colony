@@ -685,6 +685,71 @@ body::before {
 .mint-modal-close { background:linear-gradient(135deg,#f5a623,#d4800a); border:none; border-radius:12px; padding:12px 30px; font-family:'Orbitron'; font-size:11px; font-weight:700; color:#0a0500; cursor:pointer; letter-spacing:1px; }
 
 
+/* ══════════════════════════════════════════════
+   GAMES SECTION
+══════════════════════════════════════════════ */
+.game-entry-card {
+  background:linear-gradient(135deg,rgba(0,50,120,0.4),rgba(0,20,60,0.55));
+  border:1px solid rgba(0,160,255,0.35); border-radius:14px; padding:14px;
+  display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.2s;
+  position:relative; overflow:hidden;
+}
+.game-entry-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(0,120,255,0.06),transparent); pointer-events:none; }
+.game-entry-card:active { transform:scale(0.97); }
+.game-entry-thumb { font-size:44px; filter:drop-shadow(0 0 10px rgba(0,180,255,0.5)); flex-shrink:0; }
+.game-entry-info { flex:1; min-width:0; }
+.game-entry-title { font-family:'Cinzel Decorative'; font-size:13px; color:#60c0ff; margin-bottom:4px; }
+.game-entry-desc { font-size:11px; color:var(--text-secondary); line-height:1.5; margin-bottom:6px; }
+.game-entry-tags { display:flex; gap:5px; flex-wrap:wrap; }
+.game-tag { background:rgba(0,160,255,0.12); border:1px solid rgba(0,160,255,0.3); border-radius:6px; padding:2px 7px; font-size:8.5px; color:#60c0ff; font-family:'Orbitron'; letter-spacing:0.5px; }
+.game-entry-play { width:38px; height:38px; background:linear-gradient(135deg,#0055cc,#0033aa); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; box-shadow:0 0 16px rgba(0,120,255,0.45); }
+
+/* ── TOWER DEFENSE ── */
+#tdOverlay { flex-direction:column; overflow:hidden; }
+.td-topbar { display:flex; align-items:center; gap:8px; padding:8px 10px 5px; background:#03010b; border-bottom:1px solid rgba(100,0,200,0.3); flex-shrink:0; }
+.td-back-btn { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; cursor:pointer; flex-shrink:0; }
+.td-game-title { font-family:'Cinzel Decorative'; font-size:11px; color:var(--amber-bright); flex:1; text-align:center; }
+.td-wave-pill { background:rgba(245,166,35,0.18); border:1px solid rgba(245,166,35,0.5); border-radius:10px; padding:3px 10px; font-family:'Orbitron'; font-size:10px; color:var(--amber-bright); white-space:nowrap; }
+.td-statsbar { display:flex; gap:6px; padding:4px 10px; flex-shrink:0; flex-wrap:wrap; }
+.td-hud-pill { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:3px 10px; font-family:'Orbitron'; font-size:10px; font-weight:700; color:var(--text-primary); }
+.td-hud-pill.red { border-color:rgba(231,76,60,0.5); color:#ff8888; }
+.td-hud-pill.gold { border-color:rgba(245,166,35,0.5); color:var(--amber-bright); }
+.td-hud-pill.purple { border-color:rgba(180,0,255,0.5); color:#cc88ff; }
+.td-shop-wrap { background:#06020f; border-top:1px solid rgba(120,0,220,0.25); flex-shrink:0; padding:8px 10px 8px; }
+.td-shop-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+.td-shop-lbl { font-family:'Cinzel Decorative'; font-size:11px; color:#cc88ff; }
+.td-refresh-btn { background:rgba(160,0,255,0.1); border:1px solid rgba(160,0,255,0.3); border-radius:8px; padding:4px 10px; font-size:9px; color:#cc88ff; cursor:pointer; font-family:'Orbitron'; }
+.td-slot-row { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:7px; }
+.td-slot-row::-webkit-scrollbar { display:none; }
+.td-ant-slot { flex-shrink:0; width:74px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:7px 5px 6px; text-align:center; cursor:pointer; transition:all 0.15s; }
+.td-ant-slot:active { transform:scale(0.93); }
+.td-ant-slot.active { border-color:var(--amber)!important; background:rgba(245,166,35,0.1); box-shadow:0 0 10px rgba(245,166,35,0.3); }
+.td-ant-slot.used { opacity:0.28; pointer-events:none; }
+.td-ant-slot.earth   { border-color:rgba(139,105,20,0.55); }
+.td-ant-slot.fire    { border-color:rgba(204,51,0,0.55); }
+.td-ant-slot.water   { border-color:rgba(26,106,181,0.55); }
+.td-ant-slot.wind    { border-color:rgba(42,138,85,0.55); }
+.td-ant-slot.thunder { border-color:rgba(184,146,10,0.55); }
+.td-ant-slot.light   { border-color:rgba(200,168,32,0.55); }
+.td-ant-slot.dark    { border-color:rgba(106,0,128,0.55); }
+.td-slot-em { font-size:24px; display:block; line-height:1.2; }
+.td-slot-nm { font-size:8.5px; color:var(--text-dim); margin-top:2px; font-weight:600; }
+.td-slot-st { font-size:9px; color:#FFD700; }
+.td-slot-co { font-family:'Orbitron'; font-size:8px; color:var(--amber); }
+.td-hint { font-size:10px; color:#555; text-align:center; min-height:14px; margin-bottom:7px; }
+.td-action-row { display:flex; gap:8px; align-items:center; }
+.td-start-btn { flex:1; background:linear-gradient(135deg,#8b0000,#c0392b); border:none; border-radius:10px; padding:11px; font-family:'Orbitron'; font-size:10px; font-weight:700; color:#fff; cursor:pointer; letter-spacing:0.5px; transition:all 0.15s; }
+.td-start-btn:disabled { opacity:0.4; cursor:default; }
+.td-sell-btn { background:rgba(231,76,60,0.14); border:1px solid rgba(231,76,60,0.4); border-radius:10px; padding:11px 14px; font-family:'Orbitron'; font-size:9px; color:#ff8888; cursor:pointer; white-space:nowrap; }
+.td-result-overlay { position:absolute; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.88); backdrop-filter:blur(8px); }
+.td-result-icon { font-size:62px; margin-bottom:10px; animation:loading-bounce 1.2s ease-in-out infinite; }
+.td-result-title { font-family:'Cinzel Decorative'; font-size:20px; margin-bottom:8px; }
+.td-result-body { font-size:12px; color:var(--text-secondary); text-align:center; line-height:1.9; margin-bottom:22px; }
+.td-result-btn { background:linear-gradient(135deg,var(--amber),var(--gold)); border:none; border-radius:12px; padding:13px 28px; font-family:'Orbitron'; font-size:11px; font-weight:700; color:#0a0500; cursor:pointer; margin:3px; }
+.td-result-btn.sec { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; }
+@keyframes boss-flash { 0%,100%{background:rgba(0,0,0,0);} 50%{background:rgba(139,0,0,0.22);} }
+.td-boss-warn { animation:boss-flash 0.5s ease-in-out 4; }
+
 /* ── ACHIEVEMENTS ── */
 .achieve-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
 .achieve-item {
@@ -967,6 +1032,29 @@ body::before {
     </div>
   </div>
 
+  <!-- PAGE: GAMES -->
+  <div class="page" id="page-games">
+    <div style="height:12px"></div>
+    <div class="section">
+      <div class="section-title">🎮 Mini Games</div>
+      <div class="section-sub" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Play &amp; earn $ANT rewards</div>
+      <div class="game-entry-card" onclick="openTDGame()" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#06020f,#0d0520);border:1px solid rgba(100,0,200,0.4);border-radius:18px;padding:16px;cursor:pointer;transition:all 0.2s;">
+        <div class="game-entry-icon" style="font-size:42px;flex-shrink:0;">🐜</div>
+        <div class="game-entry-info" style="flex:1;min-width:0;">
+          <div class="game-entry-title">Ant Colony Defense</div>
+          <div class="game-entry-desc">Command elemental ant warriors against invading bugs. Upgrade to 3★, unlock Queen boosts, and defend your colony!</div>
+          <div class="game-entry-tags">
+            <span class="game-tag">TOWER DEFENSE</span>
+            <span class="game-tag">7 ELEMENTS</span>
+            <span class="game-tag">3★ MERGE</span>
+            <span class="game-tag">EARN $ANT</span>
+          </div>
+        </div>
+        <div class="game-entry-play">▶</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PAGE: INVITE -->
   <div class="page" id="page-invite">
     <div style="height:12px"></div>
@@ -1219,11 +1307,49 @@ body::before {
       <div class="achieve-grid" id="achieveGrid"></div>
     </div>
   </div>
+  <!-- TOWER DEFENSE OVERLAY -->
+  <div id="tdOverlay" style="display:none;position:fixed;inset:0;z-index:500;background:#03010b;flex-direction:column;overflow:hidden;">
+    <div class="td-topbar">
+      <div class="td-back-btn" onclick="closeTDGame()">←</div>
+      <div class="td-game-title">⚔️ ANT COLONY DEFENSE</div>
+      <div class="td-wave-pill">Wave <span id="tdWaveLbl">—</span></div>
+    </div>
+    <div class="td-statsbar">
+      <div class="td-hud-pill red">❤️ <span id="tdHpLbl">20</span></div>
+      <div class="td-hud-pill gold">🪙 <span id="tdCoinLbl">30</span></div>
+      <div class="td-hud-pill purple">👑 <span id="tdQueenLbl">×1.0</span></div>
+      <div class="td-hud-pill">⭐ <span id="tdScoreLbl">0</span></div>
+    </div>
+    <canvas id="tdCanvas" style="width:100%;flex:1;min-height:0;display:block;touch-action:none;"></canvas>
+    <div class="td-shop-wrap">
+      <div class="td-shop-top">
+        <div class="td-shop-lbl">🏪 ANT SHOP</div>
+        <button class="td-refresh-btn" onclick="tdRefreshShop()">🔄 Refresh (3🪙)</button>
+      </div>
+      <div class="td-slot-row" id="tdShopRow"></div>
+      <div class="td-hint" id="tdHint">Tap a shop ant then tap a grid cell to place</div>
+      <div class="td-action-row">
+        <button class="td-start-btn" id="tdStartBtn" onclick="tdStartWave()">⚔️ START WAVE 1</button>
+        <button class="td-sell-btn" id="tdSellBtn" onclick="tdSellMode()" style="display:none">💸 SELL</button>
+      </div>
+    </div>
+    <div class="td-result-overlay" id="tdResultOverlay" style="display:none;">
+      <div class="td-result-icon" id="tdResultIcon">🏆</div>
+      <div class="td-result-title" id="tdResultTitle">VICTORY!</div>
+      <div class="td-result-body" id="tdResultBody"></div>
+      <div>
+        <button class="td-result-btn" onclick="tdRestartGame()">▶ Play Again</button>
+        <button class="td-result-btn sec" onclick="closeTDGame()">✕ Exit</button>
+      </div>
+    </div>
+  </div>
+
   <!-- NAV -->
   <nav class="bottom-nav" style="justify-content:space-around;">
     <div class="nav-item active" onclick="navTo('home')" id="nav-home"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
     <div class="nav-item" onclick="navTo('colony')" id="nav-colony"><div class="nav-icon">🐜</div><div class="nav-label">Colony</div></div>
     <div class="nav-item queen-nav" onclick="navTo('queens')" id="nav-queens"><div class="nav-icon">👑</div><div class="nav-label">Queens</div></div>
+    <div class="nav-item" onclick="navTo('games')" id="nav-games"><div class="nav-icon">🎮</div><div class="nav-label">Games</div></div>
     <div class="nav-item" onclick="navTo('invite')" id="nav-invite"><div class="nav-icon">👥</div><div class="nav-label">Recruit</div></div>
     <div class="nav-item" onclick="navTo('leaderboard')" id="nav-leaderboard"><div class="nav-icon">🏆</div><div class="nav-label">Ranks</div></div>
     <div class="nav-item" onclick="navTo('wallet')" id="nav-wallet"><div class="nav-icon">💰</div><div class="nav-label">Wallet</div></div>
@@ -1763,6 +1889,7 @@ function navTo(p){
   if(p==='leaderboard') renderLeaderboard();
   if(p==='colony') renderColonyPage();
   if(p==='invite') renderInvitePage();
+  if(p==='games') renderGamesPage();
   if(p==='wallet') updateWallet();
   if(p==='queens'){
     renderQueenPage();
@@ -3728,6 +3855,571 @@ function updateEggTimers() {
 setInterval(processQueenEggs, 30000);
 // Update egg timers every second
 setInterval(updateEggTimers, 1000);
+
+// ============================================================
+//  TOWER DEFENSE — ANT COLONY DEFENSE
+// ============================================================
+(function(){
+'use strict';
+const COLS=5, ROWS=3;
+let CW=72, CH=100;
+
+const ELEMS={
+  earth:  {em:'🪨',name:'Earth',  col:'#8B6914',hpM:1.8,dmgM:1.0,spdM:0.7,range:2,spec:'stun',  costs:[8,16,32]},
+  fire:   {em:'🔥',name:'Fire',   col:'#FF4400',hpM:1.0,dmgM:1.8,spdM:1.2,range:2,spec:'burn',  costs:[9,18,36]},
+  water:  {em:'💧',name:'Water',  col:'#1A6AB5',hpM:1.3,dmgM:0.9,spdM:1.0,range:3,spec:'slow',  costs:[8,16,32]},
+  wind:   {em:'🌿',name:'Wind',   col:'#2A8A55',hpM:0.9,dmgM:1.1,spdM:1.6,range:3,spec:'multi', costs:[10,20,40]},
+  thunder:{em:'⚡',name:'Thunder',col:'#FFD700',hpM:1.1,dmgM:1.5,spdM:1.1,range:2,spec:'chain', costs:[11,22,44]},
+  light:  {em:'✨',name:'Light',  col:'#FFFAAA',hpM:1.2,dmgM:1.3,spdM:1.0,range:4,spec:'heal',  costs:[12,24,48]},
+  dark:   {em:'🌑',name:'Dark',   col:'#AA00CC',hpM:1.5,dmgM:1.4,spdM:0.9,range:2,spec:'drain', costs:[13,26,52]},
+};
+const EK=Object.keys(ELEMS);
+
+const ETYPES=[
+  {name:'Beetle',   em:'🪲',hpB:50,  spd:40,  dmg:1,  coin:3},
+  {name:'Larva',    em:'🐛',hpB:32,  spd:65,  dmg:1,  coin:2},
+  {name:'Wasp',     em:'🐝',hpB:25,  spd:100, dmg:2,  coin:4},
+  {name:'Spider',   em:'🕷️',hpB:90,  spd:45,  dmg:2,  coin:5},
+  {name:'Mantis',   em:'🦗',hpB:130, spd:55,  dmg:3,  coin:7},
+  {name:'Scarab King',   em:'🦀',hpB:600, spd:30,  dmg:5,  coin:25, boss:1},
+  {name:'Hornet Queen',  em:'🐞',hpB:1000,spd:50,  dmg:8,  coin:40, boss:1},
+  {name:'Titan Beetle',  em:'🦖',hpB:2000,spd:25,  dmg:12, coin:60, boss:1},
+];
+
+function buildWaveQueue(wave){
+  const q=[];
+  const iv=Math.max(350,1300-wave*55);
+  const cnt=5+wave*2;
+  const tMax=Math.min(4,Math.floor(wave/2));
+  const addGroup=(t,c,jitter)=>{
+    for(let i=0;i<c;i++) q.push({t,row:Math.floor(Math.random()*ROWS),iv:iv+(jitter?Math.random()*200:0)});
+  };
+  if(wave===5)  addGroup(5,1,0);
+  if(wave===10) addGroup(6,1,0);
+  if(wave===15) addGroup(7,1,0);
+  addGroup(Math.floor(Math.random()*(tMax+1)),cnt,true);
+  if(wave>3) addGroup(Math.min(4,Math.floor(Math.random()*(tMax+1)+1)),Math.ceil(cnt/2),true);
+  return q.sort(()=>Math.random()-0.5);
+}
+
+let TD={}, tdCvs=null, tdCtx=null, tdRaf=null, tdLast=0, tdReady=false;
+
+function tdInit(){
+  tdCvs=document.getElementById('tdCanvas');
+  tdCtx=tdCvs.getContext('2d');
+  const resize=()=>{
+    const r=tdCvs.getBoundingClientRect();
+    tdCvs.width=Math.round(r.width)||360;
+    tdCvs.height=Math.round(r.height)||300;
+    CW=tdCvs.width/COLS;
+    CH=tdCvs.height/ROWS;
+  };
+  resize();
+  if(!tdReady){
+    tdCvs.addEventListener('pointerdown',tdTap);
+    tdReady=true;
+  }
+}
+
+function tdNewGame(){
+  if(tdRaf){cancelAnimationFrame(tdRaf);tdRaf=null;}
+  const qCount=typeof STATE!=='undefined'?((STATE.queens||[]).filter(q=>q&&q.owned).length):0;
+  TD={
+    wave:0,hp:20,coins:30,score:0,
+    ants:[],enemies:[],projs:[],parts:[],
+    shop:[],pending:null,sellMode:false,
+    queenBonus:parseFloat((1+qCount*0.15).toFixed(2)),
+    spawnQueue:[],spawnTimer:0,waveEnded:false,running:false,over:false,
+  };
+  tdRollShop(true);
+  tdHUD();
+  tdRenderShop();
+  document.getElementById('tdResultOverlay').style.display='none';
+  const sb=document.getElementById('tdStartBtn');
+  sb.disabled=false; sb.textContent='⚔️ START WAVE 1';
+  document.getElementById('tdSellBtn').style.display='none';
+  document.getElementById('tdHint').textContent='Tap a shop ant then tap a grid cell to place';
+  document.getElementById('tdWaveLbl').textContent='—';
+  tdLast=performance.now();
+  tdRaf=requestAnimationFrame(tdLoop);
+}
+
+function tdLoop(ts){
+  if(TD.over){cancelAnimationFrame(tdRaf);tdRaf=null;return;}
+  const dt=Math.min(ts-tdLast,50);
+  tdLast=ts;
+  if(TD.running) tdUpdate(dt);
+  tdDraw();
+  tdRaf=requestAnimationFrame(tdLoop);
+}
+
+// ── UPDATE ──────────────────────────────────────────────────
+function tdUpdate(dt){
+  // spawn
+  TD.spawnTimer-=dt;
+  if(TD.spawnTimer<=0&&TD.spawnQueue.length>0){
+    const e=TD.spawnQueue.shift();
+    spawnEn(e.t,e.row);
+    TD.spawnTimer=e.iv;
+  }
+
+  // ant fire
+  for(const a of TD.ants){
+    a.cd-=dt;
+    if(a.cd>0) continue;
+    let best=null,bd=Infinity;
+    for(const en of TD.enemies){
+      if(en.row!==a.row) continue;
+      const dist=en.x-(a.col*CW+CW/2);
+      if(dist>0&&dist<=a.range*CW&&dist<bd){best=en;bd=dist;}
+    }
+    if(!best) continue;
+    a.cd=a.fireIv;
+    mkProj(a,best);
+  }
+
+  // move projs
+  for(let i=TD.projs.length-1;i>=0;i--){
+    const p=TD.projs[i];
+    if(p.enemy){p.tx=p.enemy.x;p.ty=enY(p.enemy);}
+    const dx=p.tx-p.x,dy=p.ty-p.y,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<p.spd*2||!p.enemy||p.enemy.dead){
+      if(p.enemy&&!p.enemy.dead) tdHit(p);
+      TD.projs.splice(i,1);
+    } else {
+      const n=p.spd/dist;
+      p.x+=dx*n;p.y+=dy*n;
+    }
+  }
+
+  // move enemies
+  for(let i=TD.enemies.length-1;i>=0;i--){
+    const en=TD.enemies[i];
+    en.slowed=Math.max(0,en.slowed-dt);
+    en.stunned=Math.max(0,en.stunned-dt);
+    en.shake=Math.max(0,en.shake-dt);
+    if(en.stunned<=0){
+      const spd=en.slowed>0?en.spd*0.45:en.spd;
+      en.x-=spd*(dt/1000);
+    }
+    // burn DoT
+    if(en.burn>0){
+      en.burnT-=dt;
+      if(en.burnT<=0){en.hp-=en.burnDps*(dt/1000)*60;en.burnT=300;}
+      en.burn=Math.max(0,en.burn-dt);
+    }
+    // drain DoT
+    if(en.drain>0){
+      en.drainT-=dt;
+      if(en.drainT<=0){
+        const h=en.drainDps*(dt/1000)*60;
+        for(const a of TD.ants) a.hp=Math.min(a.maxHp,a.hp+h*0.05);
+        en.drainT=300;
+      }
+      en.drain=Math.max(0,en.drain-dt);
+    }
+    if(en.x<-10){
+      TD.hp=Math.max(0,TD.hp-en.dmg);
+      en.dead=true;
+      TD.enemies.splice(i,1);
+      tdHUD();
+      if(TD.hp<=0){tdOver(false);return;}
+      continue;
+    }
+    if(en.hp<=0&&!en.dead){en.dead=true;tdKill(en);TD.enemies.splice(i,1);continue;}
+  }
+
+  // light healing aura
+  for(const a of TD.ants){
+    if(a.spec==='heal'&&a.star>=2){
+      for(const a2 of TD.ants){
+        if(a2===a) continue;
+        if(Math.abs(a2.col-a.col)<=1&&Math.abs(a2.row-a.row)<=1){
+          a2.hp=Math.min(a2.maxHp,a2.hp+0.4*(dt/1000)*a.star);
+        }
+      }
+    }
+  }
+
+  // particles
+  for(let i=TD.parts.length-1;i>=0;i--){
+    const p=TD.parts[i];
+    p.x+=p.vx*(dt/16);p.y+=p.vy*(dt/16);p.life-=dt;
+    if(p.life<=0) TD.parts.splice(i,1);
+  }
+
+  // wave end?
+  if(TD.spawnQueue.length===0&&TD.enemies.length===0&&!TD.waveEnded){
+    TD.waveEnded=true;TD.running=false;
+    const bonus=TD.wave*5;
+    TD.coins+=bonus;TD.score+=TD.wave*10;
+    tdHUD();
+    const sb=document.getElementById('tdStartBtn');
+    sb.disabled=false;sb.textContent=`⚔️ WAVE ${TD.wave+1}`;
+    document.getElementById('tdSellBtn').style.display='none';
+    document.getElementById('tdHint').textContent=`Wave ${TD.wave} cleared! +${bonus}🪙 bonus!`;
+    tdRollShop(false);tdRenderShop();
+    if(TD.wave>=20) tdOver(true);
+  }
+}
+
+function spawnEn(ti,row){
+  const t=ETYPES[ti];
+  const scale=1+(TD.wave-1)*0.28;
+  TD.enemies.push({
+    ti,row,x:tdCvs.width+40,
+    hp:t.hpB*scale,maxHp:t.hpB*scale,
+    spd:t.spd*(1+TD.wave*0.03),
+    dmg:t.dmg,coin:t.coin,boss:t.boss||0,
+    slowed:0,stunned:0,shake:0,
+    burn:0,burnDps:0,burnT:0,
+    drain:0,drainDps:0,drainT:0,
+    dead:false,
+  });
+}
+function enY(en){return en.row*CH+CH*0.5;}
+
+function mkProj(ant,enemy){
+  const ax=ant.col*CW+CW*0.5, ay=ant.row*CH+CH*0.45;
+  TD.projs.push({x:ax,y:ay,tx:enemy.x,ty:enY(enemy),spd:7+ant.star*1.5,
+    col:ELEMS[ant.elem].col,dmg:ant.dmg*TD.queenBonus,spec:ant.spec,star:ant.star,enemy});
+}
+
+function tdHit(proj){
+  const en=proj.enemy;
+  en.hp-=proj.dmg;en.shake=150;
+  part(en.x,enY(en),'-'+Math.round(proj.dmg),'#FFE66D');
+  switch(proj.spec){
+    case 'burn':
+      en.burn=2200;en.burnDps=proj.dmg*0.4*proj.star;en.burnT=0;break;
+    case 'slow':
+      en.slowed=1600+proj.star*400;break;
+    case 'stun':
+      if(Math.random()<0.12*proj.star) en.stunned=700+proj.star*200;break;
+    case 'chain':{
+      const near=TD.enemies.filter(e=>e!==en&&e.row===en.row&&Math.abs(e.x-en.x)<CW*1.8);
+      near.slice(0,proj.star+1).forEach(e=>{
+        e.hp-=proj.dmg*0.45;e.shake=80;
+        part(e.x,enY(e),'-'+Math.round(proj.dmg*0.45),'#00FFFF');
+      });
+      break;
+    }
+    case 'multi':
+      if(proj.star>=2){
+        TD.enemies.filter(e=>e!==en&&Math.abs(e.row-en.row)===1&&Math.abs(e.x-en.x)<CW).forEach(e=>{
+          e.hp-=proj.dmg*0.4;part(e.x,enY(e),'-'+Math.round(proj.dmg*0.4),'#00FF88');
+        });
+      }
+      break;
+    case 'drain':
+      en.drain=1600;en.drainDps=proj.dmg*0.25;en.drainT=0;break;
+  }
+  if(en.hp<=0&&!en.dead){en.dead=true;tdKill(en);TD.enemies.splice(TD.enemies.indexOf(en),1);}
+}
+function tdKill(en){
+  TD.coins+=en.coin;TD.score+=en.coin*3;
+  part(en.x,enY(en),'+'+en.coin+'🪙','#FFD700');
+  tdHUD();
+}
+
+// ── DRAW ────────────────────────────────────────────────────
+function tdDraw(){
+  const ctx=tdCtx,W=tdCvs.width,H=tdCvs.height;
+  ctx.clearRect(0,0,W,H);
+
+  // BG
+  ctx.fillStyle='#060112';ctx.fillRect(0,0,W,H);
+  // Subtle row stripes
+  for(let r=0;r<ROWS;r++){
+    ctx.fillStyle=r%2===0?'rgba(80,0,160,0.06)':'rgba(0,0,0,0.12)';
+    ctx.fillRect(0,r*CH,W,CH);
+  }
+  // Grid lines
+  ctx.strokeStyle='rgba(100,0,220,0.15)';ctx.lineWidth=1;
+  for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*CW,0);ctx.lineTo(c*CW,H);ctx.stroke();}
+  for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*CH);ctx.lineTo(W,r*CH);ctx.stroke();}
+  // Colony wall
+  const grd=ctx.createLinearGradient(0,0,10,0);
+  grd.addColorStop(0,'rgba(245,166,35,0.9)');grd.addColorStop(1,'rgba(245,166,35,0)');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,10,H);
+
+  // placement highlight
+  if(TD.pending!==null&&TD.shop[TD.pending]){
+    const s=TD.shop[TD.pending];
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      if(!TD.ants.find(a=>a.col===c&&a.row===r)){
+        ctx.strokeStyle=ELEMS[s.elem].col+'88';ctx.lineWidth=2;
+        ctx.strokeRect(c*CW+2,r*CH+2,CW-4,CH-4);
+      }
+    }
+  }
+
+  // Ant HP bars
+  for(const a of TD.ants){
+    const x=a.col*CW,y=a.row*CH;
+    const bw=CW-14,bh=4,bx=x+7,by=y+CH-7;
+    ctx.fillStyle='#300';ctx.fillRect(bx,by,bw,bh);
+    const p=a.hp/a.maxHp;
+    ctx.fillStyle=p>0.5?'#0C0':p>0.25?'#FA0':'#F00';
+    ctx.fillRect(bx,by,bw*p,bh);
+  }
+
+  // Range ring when placing
+  if(TD.pending!==null&&TD.shop[TD.pending]){
+    const s=TD.shop[TD.pending];
+    const e=ELEMS[s.elem];
+    for(const a of TD.ants){
+      if(a.elem===s.elem){
+        ctx.strokeStyle=e.col+'44';ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(a.col*CW+CW/2,a.row*CH+CH/2,a.range*CW,0,Math.PI*2);ctx.stroke();
+      }
+    }
+  }
+
+  // Ants
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(const a of TD.ants){
+    const x=a.col*CW+CW/2,y=a.row*CH+CH*0.42;
+    ctx.font=`${Math.min(CW,CH)*0.38}px serif`;
+    ctx.fillText(ELEMS[a.elem].em,x,y);
+    ctx.font=`bold ${CW*0.15}px monospace`;
+    ctx.fillStyle='#FFD700';
+    ctx.fillText('★'.repeat(a.star),x,y+CH*0.28);
+  }
+
+  // Enemies
+  for(const en of TD.enemies){
+    const t=ETYPES[en.ti];
+    const x=en.x+(en.shake>0?(Math.random()-0.5)*5:0);
+    const y=enY(en);
+    // HP bar
+    const bw=en.boss?52:38,bh=en.boss?7:5;
+    ctx.fillStyle='#400';ctx.fillRect(x-bw/2,y-CH*0.4,bw,bh);
+    const hp=Math.max(0,en.hp/en.maxHp);
+    ctx.fillStyle=en.burn>0?'#FF8800':hp>0.5?'#0C0':'#F44';
+    ctx.fillRect(x-bw/2,y-CH*0.4,bw*hp,bh);
+    // emoji
+    const sz=en.boss?Math.min(CW,CH)*0.5:Math.min(CW,CH)*0.36;
+    ctx.font=`${sz}px serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(t.em,x,y);
+    // status indicators
+    ctx.font='9px serif';
+    let sx2=x+bw/2+3;
+    if(en.slowed>0){ctx.fillText('❄️',sx2,y-CH*0.38);sx2+=12;}
+    if(en.stunned>0){ctx.fillText('💫',sx2,y-CH*0.38);sx2+=12;}
+    if(en.burn>0){ctx.fillText('🔥',sx2,y-CH*0.38);}
+  }
+
+  // Projectiles
+  for(const p of TD.projs){
+    ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);
+    ctx.fillStyle=p.col;
+    ctx.shadowColor=p.col;ctx.shadowBlur=10;
+    ctx.fill();ctx.shadowBlur=0;
+  }
+
+  // Particles
+  ctx.textAlign='center';
+  for(const p of TD.parts){
+    const a=Math.min(1,p.life/p.maxLife*2);
+    ctx.globalAlpha=a;
+    ctx.font='bold 11px monospace';
+    ctx.fillStyle=p.col;
+    ctx.fillText(p.txt,p.x,p.y);
+  }
+  ctx.globalAlpha=1;
+}
+
+function part(x,y,txt,col){
+  TD.parts.push({x,y,vx:(Math.random()-0.5)*0.9,vy:-1.5,txt,col,life:900,maxLife:900});
+}
+
+// ── SHOP ────────────────────────────────────────────────────
+function tdRollShop(fresh){
+  TD.shop=[];
+  for(let i=0;i<4;i++){
+    const elem=EK[Math.floor(Math.random()*EK.length)];
+    let star=1;
+    const r=Math.random();
+    if(TD.wave>=8&&r<0.22) star=2;
+    if(TD.wave>=14&&r<0.08) star=3;
+    const e=ELEMS[elem];
+    TD.shop.push({elem,star,cost:e.costs[star-1]});
+  }
+  TD.pending=null;
+}
+
+function tdRenderShop(){
+  const row=document.getElementById('tdShopRow');
+  if(!row) return;
+  row.innerHTML='';
+  TD.shop.forEach((s,i)=>{
+    if(!s){row.innerHTML+='<div class="td-ant-slot used" style="width:74px"></div>';return;}
+    const e=ELEMS[s.elem];
+    const ok=TD.coins>=s.cost;
+    const div=document.createElement('div');
+    div.className=`td-ant-slot ${s.elem}${TD.pending===i?' active':''}${!ok?' used':''}`;
+    div.innerHTML=`<span class="td-slot-em">${e.em}</span><span class="td-slot-nm">${e.name}</span><span class="td-slot-st">${'★'.repeat(s.star)}</span><span class="td-slot-co">${s.cost}🪙</span>`;
+    div.onclick=()=>tdShopTap(i);
+    row.appendChild(div);
+  });
+}
+
+function tdShopTap(i){
+  const s=TD.shop[i];
+  if(!s||TD.coins<s.cost){showToast('Not enough 🪙');return;}
+  TD.sellMode=false;
+  TD.pending=TD.pending===i?null:i;
+  document.getElementById('tdHint').textContent=TD.pending!==null
+    ?`Tap grid cell to place ${ELEMS[s.elem].em} ${ELEMS[s.elem].name} (${s.star}★)`
+    :'Tap shop ant → tap grid cell to place';
+  tdRenderShop();
+}
+
+function tdRefreshShop(){
+  if(TD.coins<3){showToast('Need 3🪙 to refresh');return;}
+  TD.coins-=3;tdRollShop(false);tdHUD();tdRenderShop();
+}
+
+function tdTap(e){
+  e.preventDefault();
+  const rect=tdCvs.getBoundingClientRect();
+  const scX=tdCvs.width/rect.width,scY=tdCvs.height/rect.height;
+  const cx=(e.clientX-rect.left)*scX,cy=(e.clientY-rect.top)*scY;
+  const col=Math.floor(cx/CW),row=Math.floor(cy/CH);
+  if(col<0||col>=COLS||row<0||row>=ROWS) return;
+
+  if(TD.sellMode){
+    const idx=TD.ants.findIndex(a=>a.col===col&&a.row===row);
+    if(idx>=0){
+      const a=TD.ants[idx];
+      const ref=Math.floor(ELEMS[a.elem].costs[a.star-1]*0.5);
+      TD.coins+=ref;TD.ants.splice(idx,1);
+      showToast(`Sold for ${ref}🪙`);tdHUD();tdRenderShop();
+    }
+    return;
+  }
+  if(TD.pending===null) return;
+  if(TD.ants.find(a=>a.col===col&&a.row===row)){showToast('Cell occupied!');return;}
+  const slot=TD.shop[TD.pending];
+  if(TD.coins<slot.cost){showToast('Not enough 🪙');return;}
+  TD.coins-=slot.cost;
+  const e=ELEMS[slot.elem];
+  const baseHp=85*(1+slot.star*0.55)*e.hpM;
+  const baseDmg=22*(1+slot.star*0.65)*e.dmgM;
+  const ant={elem:slot.elem,star:slot.star,col,row,
+    hp:baseHp,maxHp:baseHp,dmg:baseDmg,range:e.range,spec:e.spec,
+    fireIv:Math.round(1900/e.spdM/(1+slot.star*0.22)),cd:0};
+  TD.ants.push(ant);
+  TD.shop[TD.pending]=null;TD.pending=null;
+  tdMerge(ant.elem,ant.star);
+  tdHUD();tdRenderShop();
+  document.getElementById('tdHint').textContent='Tap shop ant → tap grid cell to place';
+}
+
+function tdMerge(elem,star){
+  if(star>=3) return;
+  const m=TD.ants.filter(a=>a.elem===elem&&a.star===star);
+  if(m.length<3) return;
+  const [a,b,c]=m;
+  TD.ants=TD.ants.filter(x=>x!==a&&x!==b&&x!==c);
+  const e=ELEMS[elem],ns=star+1;
+  const baseHp=85*(1+ns*0.55)*e.hpM;
+  const baseDmg=22*(1+ns*0.65)*e.dmgM;
+  TD.ants.push({elem,star:ns,col:a.col,row:a.row,
+    hp:baseHp,maxHp:baseHp,dmg:baseDmg,range:e.range,spec:e.spec,
+    fireIv:Math.round(1900/e.spdM/(1+ns*0.22)),cd:0});
+  showToast(`✨ ${e.name} Ant merged to ${ns}★!`);
+  tdMerge(elem,ns);
+}
+
+// ── SELL MODE ──────────────────────────────────────────────
+function tdSellMode(){
+  TD.sellMode=!TD.sellMode;
+  TD.pending=null;
+  document.getElementById('tdHint').textContent=TD.sellMode
+    ?'Tap an ant to sell (50% refund)'
+    :'Tap shop ant → tap grid cell to place';
+  const btn=document.getElementById('tdSellBtn');
+  if(btn) btn.style.background=TD.sellMode?'rgba(231,76,60,0.4)':'';
+  tdRenderShop();
+}
+
+// ── WAVE ──────────────────────────────────────────────────
+function tdStartWave(){
+  if(TD.running||TD.over) return;
+  TD.wave++;
+  TD.running=true;TD.waveEnded=false;
+  const sb=document.getElementById('tdStartBtn');
+  sb.disabled=true;sb.textContent='⚔️ WAVE IN PROGRESS…';
+  document.getElementById('tdSellBtn').style.display='block';
+  document.getElementById('tdHint').textContent='';
+  document.getElementById('tdWaveLbl').textContent=TD.wave;
+  if([5,10,15].includes(TD.wave)){
+    showToast('⚠️ BOSS WAVE!');
+    tdCvs.classList.add('td-boss-warn');
+    setTimeout(()=>tdCvs.classList.remove('td-boss-warn'),2500);
+  }
+  TD.spawnQueue=buildWaveQueue(TD.wave);
+  TD.spawnTimer=600;
+}
+
+// ── GAME OVER ─────────────────────────────────────────────
+function tdOver(win){
+  TD.over=true;TD.running=false;
+  const ov=document.getElementById('tdResultOverlay');
+  ov.style.display='flex';
+  document.getElementById('tdResultIcon').textContent=win?'🏆':'💀';
+  const title=document.getElementById('tdResultTitle');
+  title.textContent=win?'VICTORY!':'DEFEATED!';
+  title.style.color=win?'#FFD700':'#FF4444';
+  const antR=win?TD.wave*0.02:TD.wave*0.005;
+  document.getElementById('tdResultBody').innerHTML=
+    `Wave reached: <strong>${TD.wave}</strong><br>`+
+    `Score: <strong>${TD.score}</strong><br>`+
+    (antR>0?`Reward: <strong style="color:#FFD700">+${antR.toFixed(3)} $ANT</strong>`:'');
+  if(antR>0&&typeof STATE!=='undefined'){
+    STATE.ant=(STATE.ant||0)+antR;
+    if(typeof saveState==='function') saveState();
+    if(typeof updateBalanceDisplay==='function') updateBalanceDisplay();
+  }
+}
+
+// ── HUD ───────────────────────────────────────────────────
+function tdHUD(){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('tdHpLbl',TD.hp);
+  set('tdCoinLbl',TD.coins);
+  set('tdQueenLbl','×'+TD.queenBonus.toFixed(1));
+  set('tdScoreLbl',TD.score);
+}
+
+// ── LIFECYCLE ─────────────────────────────────────────────
+function openTDGame(){
+  const ov=document.getElementById('tdOverlay');
+  ov.style.display='flex';
+  requestAnimationFrame(()=>{tdInit();tdNewGame();});
+}
+function closeTDGame(){
+  if(tdRaf){cancelAnimationFrame(tdRaf);tdRaf=null;}
+  document.getElementById('tdOverlay').style.display='none';
+}
+function tdRestartGame(){
+  document.getElementById('tdResultOverlay').style.display='none';
+  tdNewGame();
+}
+function renderGamesPage(){}
+
+// Expose globals
+window.openTDGame=openTDGame;
+window.closeTDGame=closeTDGame;
+window.tdRestartGame=tdRestartGame;
+window.tdStartWave=tdStartWave;
+window.tdRefreshShop=tdRefreshShop;
+window.tdSellMode=tdSellMode;
+window.renderGamesPage=renderGamesPage;
+})();
 
 // ============================================================
 //  INIT
