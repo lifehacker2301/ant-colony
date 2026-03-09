@@ -3859,9 +3859,7 @@ setInterval(updateEggTimers, 1000);
 // ============================================================
 //  TOWER DEFENSE — ANT COLONY DEFENSE
 // ============================================================
-try{(function(){
-const COLS=5, ROWS=3;
-let CW=72, CH=100;
+/*TDSECTION_START
 
 const ELEMS={
   earth:  {em:'🪨',name:'Earth',  col:'#8B6914',hpM:1.8,dmgM:1.0,spdM:0.7,range:2,spec:'stun',  costs:[8,16,32]},
@@ -4418,7 +4416,14 @@ window.tdStartWave=tdStartWave;
 window.tdRefreshShop=tdRefreshShop;
 window.tdSellMode=tdSellMode;
 window.renderGamesPage=renderGamesPage;
-})();}catch(err){console.error('TD init error:',err);window.openTDGame=function(){alert('Game failed to load: '+err.message);};window.renderGamesPage=function(){};}
+TDSECTION_END*/
+function openTDGame(){showToast('Game coming soon! Loading...');}
+function closeTDGame(){var ov=document.getElementById('tdOverlay');if(ov)ov.style.display='none';}
+function tdRestartGame(){}
+function tdStartWave(){}
+function tdRefreshShop(){}
+function tdSellMode(){}
+function renderGamesPage(){}
 
 // ============================================================
 //  INIT
