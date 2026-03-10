@@ -161,6 +161,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .mobile-nav{display:none;}
 @media(max-width:700px){.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(6,4,2,0.97);border-top:1px solid var(--border);padding:6px 2px;overflow-x:auto;gap:2px;}.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;cursor:pointer;border-radius:8px;flex-shrink:0;}.mobile-nav-item.active{background:rgba(245,166,35,0.12);}.mni{font-size:19px;}.mnl{font-size:9px;color:var(--text-dim);white-space:nowrap;}.mobile-nav-item.active .mnl{color:var(--amber);}}
 .live-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.4);border-radius:10px;padding:3px 10px;font-size:10px;font-family:'Orbitron';color:var(--green-br);}
+
+/* AIRDROPS ADMIN */
+.airdrop-admin-card{background:var(--bg-mid);border:1px solid rgba(120,0,255,0.25);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;}
+.airdrop-admin-logo{width:46px;height:46px;border-radius:10px;object-fit:cover;background:#1a0033;flex-shrink:0;border:1px solid rgba(120,0,255,0.3);}
+.airdrop-admin-info{flex:1;min-width:0;}
+.airdrop-admin-name{font-weight:700;font-size:13px;color:var(--amber-br);margin-bottom:3px;}
+.airdrop-admin-meta{font-size:11px;color:var(--text-dim);line-height:1.5;}
+.airdrop-admin-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.airdrop-admin-edit{background:rgba(245,166,35,0.12);border:1px solid var(--border-br);border-radius:8px;padding:6px 11px;font-size:11px;color:var(--amber);cursor:pointer;font-family:'Orbitron';}
+.airdrop-admin-del{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.35);border-radius:8px;padding:6px 11px;font-size:11px;color:var(--red);cursor:pointer;font-family:'Orbitron';}
+.airdrop-logo-preview{width:52px;height:52px;border-radius:12px;object-fit:cover;background:#1a0033;border:1px solid rgba(120,0,255,0.3);display:block;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -205,6 +216,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="nav-item" onclick="showPanel('referral')"><span class="nav-icon">🔗</span>Referral Rate</div>
       <div class="nav-lbl" style="margin-top:8px">Comms</div>
       <div class="nav-item" onclick="showPanel('announce')"><span class="nav-icon">📢</span>Announce</div>
+      <div class="nav-lbl" style="margin-top:8px">Content</div>
+      <div class="nav-item" onclick="showPanel('airdrops')"><span class="nav-icon">🪂</span>Airdrops</div>
       <div class="nav-lbl" style="margin-top:8px">Config</div>
       <div class="nav-item" onclick="showPanel('security')"><span class="nav-icon">🔐</span>Security</div>
     </nav>
@@ -524,6 +537,75 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         </div>
       </div>
 
+      <!-- AIRDROPS -->
+      <div class="panel" id="panel-airdrops">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
+          <div><h1 style="font-family:'Cinzel Decorative';font-size:15px;color:#cc88ff">🪂 Airdrops</h1><div style="font-size:11px;color:var(--text-dim);margin-top:2px">Manage partner airdrop campaigns</div></div>
+          <button class="btn btn-ghost" onclick="toggleAirdropForm()" id="newAirdropBtn">+ New Airdrop</button>
+        </div>
+
+        <!-- CREATE / EDIT FORM -->
+        <div id="airdropFormWrap" style="display:none">
+          <div class="card" style="border-color:rgba(120,0,255,0.3)">
+            <div class="card-title" id="airdropFormTitle">🪂 New Airdrop</div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex:2">
+                <div class="form-label">Project Link (URL)</div>
+                <input class="form-input" id="airdropLink" placeholder="https://example.com" oninput="previewAirdropLogo()"/>
+              </div>
+              <div class="form-group" style="flex:1">
+                <div class="form-label">Logo Preview</div>
+                <img id="airdropLogoPreview" class="airdrop-logo-preview" src="" alt="logo" onerror="this.style.opacity='0.3'"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Project Name</div>
+                <input class="form-input" id="airdropName" placeholder="Project name"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Reward ($ANT)</div>
+                <input class="form-input" id="airdropReward" type="number" min="0" placeholder="e.g. 50"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Duration (days)</div>
+                <input class="form-input" id="airdropDuration" type="number" min="1" max="365" placeholder="1 – 365"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Start Date</div>
+                <input class="form-input" id="airdropStartDate" type="datetime-local"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Description</div>
+                <textarea class="form-textarea" id="airdropDescription" placeholder="Describe the airdrop..." style="min-height:70px"></textarea>
+              </div>
+            </div>
+
+            <input type="hidden" id="airdropEditId"/>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-primary" onclick="saveAirdrop()">💾 Save Airdrop</button>
+              <button class="btn btn-ghost" onclick="cancelAirdropForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIST -->
+        <div class="card">
+          <div class="card-title">Active Airdrops</div>
+          <div id="airdropAdminList">
+            <div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Loading airdrops...</div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -537,6 +619,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="mobile-nav-item" onclick="showPanel('mining')"><div class="mni">⛏️</div><div class="mnl">Mining</div></div>
     <div class="mobile-nav-item" onclick="showPanel('referral')"><div class="mni">🔗</div><div class="mnl">Referral</div></div>
     <div class="mobile-nav-item" onclick="showPanel('announce')"><div class="mni">📢</div><div class="mnl">Announce</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('airdrops')"><div class="mni">🪂</div><div class="mnl">Airdrops</div></div>
     <div class="mobile-nav-item" onclick="showPanel('security')"><div class="mni">🔐</div><div class="mnl">Security</div></div>
   </div>
 </div>
@@ -1279,6 +1362,7 @@ function showPanel(id) {
   if (id === 'security') { updateSecurityPanel(); updateTokenStatus(); }
   if (id === 'announce') updateTokenStatus();
   if (id === 'mining' || id === 'referral') loadSettingsIntoForms();
+  if (id === 'airdrops') loadAirdropsAdmin();
 }
 
 // -- UTILS -----------------------------------------------------
@@ -1337,6 +1421,184 @@ document.addEventListener('DOMContentLoaded', () => {
     if (this.files && this.files[0]) handleFileSelect(this.files[0]);
   });
 });
+
+// ===============================================================
+//  AIRDROPS ADMIN
+// ===============================================================
+function getDomainAdmin(url) {
+  try { return url.replace(/^https?:\/\//,'').split('/')[0]; } catch(e) { return ''; }
+}
+
+function previewAirdropLogo() {
+  var link = document.getElementById('airdropLink').value.trim();
+  var img = document.getElementById('airdropLogoPreview');
+  if (!img) return;
+  if (!link) { img.src=''; return; }
+  var domain = getDomainAdmin(link);
+  img.src = 'https://www.google.com/s2/favicons?domain='+domain+'&sz=64';
+  img.style.opacity = '1';
+}
+
+function toggleAirdropForm() {
+  var wrap = document.getElementById('airdropFormWrap');
+  var btn = document.getElementById('newAirdropBtn');
+  if (!wrap) return;
+  if (wrap.style.display === 'none') {
+    clearAirdropForm();
+    wrap.style.display = 'block';
+    if (btn) btn.textContent = '✕ Cancel';
+    // Set default start date to now
+    var now = new Date();
+    now.setSeconds(0,0);
+    document.getElementById('airdropStartDate').value = now.toISOString().slice(0,16);
+  } else {
+    wrap.style.display = 'none';
+    if (btn) btn.textContent = '+ New Airdrop';
+  }
+}
+
+function cancelAirdropForm() {
+  var wrap = document.getElementById('airdropFormWrap');
+  var btn = document.getElementById('newAirdropBtn');
+  if (wrap) wrap.style.display = 'none';
+  if (btn) btn.textContent = '+ New Airdrop';
+  clearAirdropForm();
+}
+
+function clearAirdropForm() {
+  document.getElementById('airdropEditId').value = '';
+  document.getElementById('airdropLink').value = '';
+  document.getElementById('airdropName').value = '';
+  document.getElementById('airdropReward').value = '';
+  document.getElementById('airdropDuration').value = '';
+  document.getElementById('airdropDescription').value = '';
+  document.getElementById('airdropStartDate').value = '';
+  var img = document.getElementById('airdropLogoPreview');
+  if (img) { img.src=''; img.style.opacity='0.3'; }
+  var title = document.getElementById('airdropFormTitle');
+  if (title) title.textContent = '\uD83E\uDE82 New Airdrop';
+}
+
+function saveAirdrop() {
+  if (!db) { toast('Firebase not connected', 'error'); return; }
+  var link = document.getElementById('airdropLink').value.trim();
+  var name = document.getElementById('airdropName').value.trim();
+  var reward = parseFloat(document.getElementById('airdropReward').value) || 0;
+  var duration = parseInt(document.getElementById('airdropDuration').value) || 1;
+  var description = document.getElementById('airdropDescription').value.trim();
+  var startDateStr = document.getElementById('airdropStartDate').value;
+  var editId = document.getElementById('airdropEditId').value;
+
+  if (!link) { toast('Please enter a project link', 'error'); return; }
+  if (!name) { toast('Please enter a project name', 'error'); return; }
+  if (reward <= 0) { toast('Please enter a valid reward amount', 'error'); return; }
+  if (duration < 1 || duration > 365) { toast('Duration must be 1-365 days', 'error'); return; }
+
+  var startDate = startDateStr ? new Date(startDateStr).getTime() : Date.now();
+
+  var data = {
+    link: link,
+    name: name,
+    reward: reward,
+    duration: duration,
+    description: description,
+    startDate: startDate,
+    createdAt: editId ? undefined : Date.now()
+  };
+  // Remove undefined keys
+  if (!editId) data.createdAt = Date.now();
+
+  var ref = editId ? db.ref('airdrops/' + editId) : db.ref('airdrops').push();
+  ref.set(data, function(err) {
+    if (err) { toast('Error saving: ' + err.message, 'error'); return; }
+    toast(editId ? '\u2713 Airdrop updated!' : '\u2713 Airdrop created!', 'success');
+    cancelAirdropForm();
+    loadAirdropsAdmin();
+  });
+}
+
+function editAirdrop(id) {
+  if (!db) return;
+  db.ref('airdrops/' + id).once('value', function(snap) {
+    var a = snap.val();
+    if (!a) { toast('Airdrop not found', 'error'); return; }
+    document.getElementById('airdropEditId').value = id;
+    document.getElementById('airdropLink').value = a.link || '';
+    document.getElementById('airdropName').value = a.name || '';
+    document.getElementById('airdropReward').value = a.reward || '';
+    document.getElementById('airdropDuration').value = a.duration || 1;
+    document.getElementById('airdropDescription').value = a.description || '';
+    if (a.startDate) {
+      var d = new Date(a.startDate);
+      document.getElementById('airdropStartDate').value = d.toISOString().slice(0,16);
+    }
+    var title = document.getElementById('airdropFormTitle');
+    if (title) title.textContent = '\u270F Edit: ' + (a.name || 'Airdrop');
+    var img = document.getElementById('airdropLogoPreview');
+    if (img && a.link) {
+      img.src = 'https://www.google.com/s2/favicons?domain=' + getDomainAdmin(a.link) + '&sz=64';
+      img.style.opacity = '1';
+    }
+    var wrap = document.getElementById('airdropFormWrap');
+    var btn = document.getElementById('newAirdropBtn');
+    if (wrap) wrap.style.display = 'block';
+    if (btn) btn.textContent = '\u2715 Cancel';
+    wrap.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+}
+
+function deleteAirdrop(id, name) {
+  if (!confirm('Delete airdrop "' + name + '"? This cannot be undone.')) return;
+  if (!db) return;
+  db.ref('airdrops/' + id).remove(function(err) {
+    if (err) { toast('Error: ' + err.message, 'error'); return; }
+    toast('\uD83D\uDDD1 Airdrop deleted', 'success');
+    loadAirdropsAdmin();
+  });
+}
+
+function loadAirdropsAdmin() {
+  if (!db) { return; }
+  var list = document.getElementById('airdropAdminList');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Loading...</div>';
+  db.ref('airdrops').once('value', function(snap) {
+    var data = snap.val() || {};
+    var keys = Object.keys(data);
+    if (keys.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-dim);font-size:13px">\uD83E\uDE82 No airdrops yet. Create one above!</div>';
+      return;
+    }
+    // Sort by startDate
+    keys.sort(function(a,b){ return (data[a].startDate||0) - (data[b].startDate||0); });
+    var html = '';
+    var now = Date.now();
+    for (var i = 0; i < keys.length; i++) {
+      var id = keys[i];
+      var a = data[id];
+      var logoUrl = 'https://www.google.com/s2/favicons?domain=' + getDomainAdmin(a.link||'') + '&sz=64';
+      var endTime = (a.startDate||now) + (a.duration||1)*86400000;
+      var active = now >= (a.startDate||0) && now <= endTime;
+      var statusDot = active ? '<span style="color:var(--green-br);font-size:10px">\u25CF Active</span>' : (now < (a.startDate||0) ? '<span style="color:var(--amber);font-size:10px">\u25CF Scheduled</span>' : '<span style="color:var(--red);font-size:10px">\u25CF Ended</span>');
+      html += '<div class="airdrop-admin-card">' +
+        '<img class="airdrop-admin-logo" src="' + logoUrl + '" onerror="this.style.opacity=\'0.3\'" alt="logo">' +
+        '<div class="airdrop-admin-info">' +
+          '<div class="airdrop-admin-name">' + esc(a.name||'Unnamed') + ' ' + statusDot + '</div>' +
+          '<div class="airdrop-admin-meta">' +
+            '\uD83D\uDD17 ' + esc(a.link||'') + '<br>' +
+            '\uD83E\uDE99 ' + (a.reward||0) + ' $ANT &nbsp;\u2022&nbsp; \uD83D\uDDD3 ' + (a.duration||1) + ' day(s)' +
+            (a.description ? '<br>\uD83D\uDCDD ' + esc(a.description.slice(0,80)) + (a.description.length>80?'...':'') : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="airdrop-admin-actions">' +
+          '<button class="airdrop-admin-edit" onclick="editAirdrop(\'' + id + '\')">Edit</button>' +
+          '<button class="airdrop-admin-del" onclick="deleteAirdrop(\'' + id + '\',\'' + esc(a.name||'this airdrop') + '\')">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }
+    list.innerHTML = html;
+  });
+}
 
 // -- BOOT ------------------------------------------------------
 checkSession();
