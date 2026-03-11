@@ -620,6 +620,9 @@ body::before {
   animation:egg-hatch-glow 0.8s ease-in-out infinite;
 }
 .hatch-all-btn:active { transform:scale(0.95); }
+/* Collapsible egg grid */
+.egg-grid.egg-collapsed { display:none; }
+.egg-chevron-up { transform:rotate(-180deg); }
 
 /* Hatch result popup */
 .hatch-popup {
@@ -1186,11 +1189,12 @@ body::before {
     <div class="section">
       <div class="section-title">🥚 Egg Chamber</div>
       <div class="egg-chamber-card">
-        <div class="egg-chamber-header">
+        <div class="egg-chamber-header" onclick="toggleEggChamber()" style="cursor:pointer;user-select:none;">
           <div class="egg-chamber-title">Incubating Eggs</div>
           <div style="display:flex;align-items:center;gap:8px;">
-            <button class="hatch-all-btn" id="hatchAllBtn" onclick="hatchAllReady()" style="display:none">🥚 Hatch All</button>
+            <button class="hatch-all-btn" id="hatchAllBtn" onclick="event.stopPropagation();hatchAllReady()" style="display:none">🥚 Hatch All</button>
             <div class="egg-count-badge" id="eggCountBadge">0 eggs</div>
+            <span id="eggChevron" style="font-size:12px;color:var(--text-dim);transition:transform 0.25s;display:inline-block;">▼</span>
           </div>
         </div>
         <div class="egg-grid" id="eggGrid">
@@ -3226,6 +3230,15 @@ Laid by your ${qt?.name || 'Queen'}.`;
 
 function closeHatchPopup() {
   document.getElementById('hatchPopup').classList.remove('show');
+}
+
+function toggleEggChamber() {
+  const grid = document.getElementById('eggGrid');
+  const chevron = document.getElementById('eggChevron');
+  if (!grid) return;
+  const collapsed = grid.classList.toggle('egg-collapsed');
+  if (chevron) chevron.classList.toggle('egg-chevron-up', !collapsed);
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.selectionChanged();
 }
 
 // ── BUY QUEEN ───────────────────────────────────────────────
