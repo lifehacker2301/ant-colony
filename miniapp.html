@@ -4306,8 +4306,9 @@ function tdOver(win){
     `Score: <strong>${TD.score}</strong><br>`+
     (antR>0?`Reward: <strong style="color:#FFD700">+${antR.toFixed(3)} $ANT</strong>`:'');
   if(antR>0&&typeof STATE!=='undefined'){
-    STATE.ant=(STATE.ant||0)+antR;
-    if(typeof saveState==='function') saveState();
+    STATE.balance=(STATE.balance||0)+antR;
+    STATE.totalMined=(STATE.totalMined||0)+antR;
+    if(typeof saveAccount==='function') saveAccount();
     if(typeof updateBalanceDisplay==='function') updateBalanceDisplay();
   }
 }

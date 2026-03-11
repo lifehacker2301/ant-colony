@@ -1425,6 +1425,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===============================================================
 //  AIRDROPS ADMIN
 // ===============================================================
+var _adminAirdropData = {};
+
 function getDomainAdmin(url) {
   try { return url.replace(/^https?:\/\//,'').split('/')[0]; } catch(e) { return ''; }
 }
@@ -1502,10 +1504,8 @@ function saveAirdrop() {
     reward: reward,
     duration: duration,
     description: description,
-    startDate: startDate,
-    createdAt: editId ? undefined : Date.now()
+    startDate: startDate
   };
-  // Remove undefined keys
   if (!editId) data.createdAt = Date.now();
 
   var ref = editId ? db.ref('airdrops/' + editId) : db.ref('airdrops').push();
@@ -1547,7 +1547,8 @@ function editAirdrop(id) {
   });
 }
 
-function deleteAirdrop(id, name) {
+function deleteAirdrop(id) {
+  var name = (_adminAirdropData[id] && _adminAirdropData[id].name) || 'this airdrop';
   if (!confirm('Delete airdrop "' + name + '"? This cannot be undone.')) return;
   if (!db) return;
   db.ref('airdrops/' + id).remove(function(err) {
@@ -1564,6 +1565,7 @@ function loadAirdropsAdmin() {
   list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Loading...</div>';
   db.ref('airdrops').once('value', function(snap) {
     var data = snap.val() || {};
+    _adminAirdropData = data;
     var keys = Object.keys(data);
     if (keys.length === 0) {
       list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-dim);font-size:13px">\uD83E\uDE82 No airdrops yet. Create one above!</div>';
@@ -1592,7 +1594,7 @@ function loadAirdropsAdmin() {
         '</div>' +
         '<div class="airdrop-admin-actions">' +
           '<button class="airdrop-admin-edit" onclick="editAirdrop(\'' + id + '\')">Edit</button>' +
-          '<button class="airdrop-admin-del" onclick="deleteAirdrop(\'' + id + '\',\'' + esc(a.name||'this airdrop') + '\')">Delete</button>' +
+          '<button class="airdrop-admin-del" onclick="deleteAirdrop(\'' + id + '\')">Delete</button>' +
         '</div>' +
       '</div>';
     }
