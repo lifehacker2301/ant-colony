@@ -82,6 +82,16 @@ body::before {
 .logo-sub { font-size:9px; color:var(--amber-dim); letter-spacing:3px; text-transform:uppercase; }
 
 .header-right { display:flex; align-items:center; gap:8px; }
+.music-btn {
+  width:30px; height:30px; border-radius:50%; border:none;
+  background:linear-gradient(135deg,#1a1200,#2a1e00);
+  border:1px solid var(--amber-dim); color:var(--amber);
+  font-size:14px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; flex-shrink:0;
+}
+.music-btn:active { transform:scale(0.88); }
+.music-btn.playing { border-color:var(--amber-bright); color:var(--amber-bright); box-shadow:0 0 10px rgba(245,166,35,0.35); animation:music-pulse 2s ease-in-out infinite; }
+@keyframes music-pulse { 0%,100%{box-shadow:0 0 8px rgba(245,166,35,0.3);} 50%{box-shadow:0 0 18px rgba(245,166,35,0.7);} }
 .ant-balance {
   background: linear-gradient(135deg, var(--earth) 0%, var(--dirt) 100%);
   border: 1px solid var(--amber-dim); border-radius:16px;
@@ -942,6 +952,7 @@ body::before {
     </div>
     <div class="header-right">
       <div class="ant-balance" onclick="navTo('wallet')" style="cursor:pointer" title="Open Wallet">🪙 <span id="headerBalance">0.000</span> $ANT</div>
+      <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Toggle Music">🎵</button>
       <div class="tg-avatar" id="tgAvatar">👤</div>
     </div>
   </header>
@@ -4726,6 +4737,176 @@ window.loadAirdrops = loadAirdrops;
 window.joinAirdrop = joinAirdrop;
 window.claimAirdrop = claimAirdrop;
 window.closeAirdropOverlay = closeAirdropOverlay;
+
+})();
+
+// ============================================================
+//  AMBIENT MUSIC SYSTEM  (Web Audio API — no external files)
+// ============================================================
+(function(){
+  var ctx = null, masterGain = null, reverbNode = null;
+  var musicOn = false, nodes = [];
+
+  // A-minor pentatonic: A C D E G across two octaves
+  var NOTES = [220, 261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25, 784];
+
+  function boot() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 0;
+    masterGain.connect(ctx.destination);
+    buildReverb();
+  }
+
+  function buildReverb() {
+    reverbNode = ctx.createConvolver();
+    var len = ctx.sampleRate * 2.5;
+    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var c = 0; c < 2; c++) {
+      var d = buf.getChannelData(c);
+      for (var i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.5);
+    }
+    reverbNode.buffer = buf;
+    reverbNode.connect(masterGain);
+  }
+
+  // ── Layer 1: earth drone ──────────────────────────────────
+  function startDrone() {
+    [[55,0.10],[82.41,0.06],[110,0.04]].forEach(function(pair) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = pair[0];
+      var lfo = ctx.createOscillator();
+      lfo.frequency.value = 0.07 + Math.random()*0.05;
+      var lfoG = ctx.createGain(); lfoG.gain.value = 1.5;
+      lfo.connect(lfoG); lfoG.connect(osc.frequency);
+      var g = ctx.createGain(); g.gain.value = pair[1];
+      osc.connect(g); g.connect(masterGain);
+      lfo.start(); osc.start();
+      nodes.push(lfo, osc);
+    });
+  }
+
+  // ── Layer 2: wind (filtered noise loop) ───────────────────
+  function startWind() {
+    var rate = ctx.sampleRate;
+    var buf = ctx.createBuffer(1, rate * 3, rate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+    var src = ctx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    var lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass'; lpf.frequency.value = 320; lpf.Q.value = 0.7;
+    var lfo = ctx.createOscillator(); lfo.frequency.value = 0.04;
+    var lfoG = ctx.createGain(); lfoG.gain.value = 180;
+    lfo.connect(lfoG); lfoG.connect(lpf.frequency);
+    var g = ctx.createGain(); g.gain.value = 0.055;
+    src.connect(lpf); lpf.connect(g); g.connect(masterGain);
+    lfo.start(); src.start();
+    nodes.push(lfo, src);
+  }
+
+  // ── Layer 3: cricket chirps ────────────────────────────────
+  function chirp() {
+    if (!musicOn) return;
+    var count = 2 + Math.floor(Math.random()*5);
+    for (var i = 0; i < count; i++) {
+      (function(delay) {
+        setTimeout(function() {
+          if (!musicOn || !ctx) return;
+          var osc = ctx.createOscillator();
+          osc.type = 'square';
+          osc.frequency.value = 3200 + Math.random()*1600;
+          var bpf = ctx.createBiquadFilter();
+          bpf.type = 'bandpass'; bpf.frequency.value = 4500; bpf.Q.value = 12;
+          var env = ctx.createGain();
+          var t = ctx.currentTime;
+          env.gain.setValueAtTime(0, t);
+          env.gain.linearRampToValueAtTime(0.035, t + 0.008);
+          env.gain.linearRampToValueAtTime(0, t + 0.055);
+          osc.connect(bpf); bpf.connect(env); env.connect(masterGain);
+          osc.start(t); osc.stop(t + 0.07);
+        }, delay);
+      })(i * 75 + Math.random()*25);
+    }
+    setTimeout(chirp, 1200 + Math.random()*3500);
+  }
+
+  // ── Layer 4: pentatonic melody ────────────────────────────
+  function note() {
+    if (!musicOn || !ctx) return;
+    var freq = NOTES[Math.floor(Math.random()*NOTES.length)];
+    var dur  = 1.8 + Math.random()*2.4;
+    var osc  = ctx.createOscillator();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    var env  = ctx.createGain();
+    var t    = ctx.currentTime;
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(0.18, t + 0.08);
+    env.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(env);
+    if (reverbNode) env.connect(reverbNode);
+    env.connect(masterGain);
+    osc.start(t); osc.stop(t + dur + 0.1);
+    setTimeout(note, 2200 + Math.random()*4800);
+  }
+
+  // ── Layer 5: soft leaf-rustle hits ────────────────────────
+  function rustle() {
+    if (!musicOn || !ctx) return;
+    var rate = ctx.sampleRate;
+    var buf  = ctx.createBuffer(1, Math.floor(rate * 0.12), rate);
+    var d    = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 1.5);
+    var src  = ctx.createBufferSource(); src.buffer = buf;
+    var hpf  = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 2000;
+    var g    = ctx.createGain(); g.gain.value = 0.07 + Math.random()*0.05;
+    src.connect(hpf); hpf.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(rustle, 800 + Math.random()*2500);
+  }
+
+  // ── Public ────────────────────────────────────────────────
+  window.toggleMusic = function() {
+    var btn = document.getElementById('musicBtn');
+    if (musicOn) {
+      musicOn = false;
+      if (masterGain) {
+        masterGain.gain.cancelScheduledValues(ctx.currentTime);
+        masterGain.gain.setValueAtTime(masterGain.gain.value, ctx.currentTime);
+        masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+      }
+      setTimeout(function() {
+        nodes.forEach(function(n){ try{ n.stop(); }catch(e){} });
+        nodes = [];
+      }, 1600);
+      if (btn) { btn.textContent = '🎵'; btn.classList.remove('playing'); }
+      showToast('🔇 Music off');
+    } else {
+      musicOn = true;
+      boot();
+      masterGain.gain.cancelScheduledValues(ctx.currentTime);
+      masterGain.gain.setValueAtTime(0, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0.75, ctx.currentTime + 2.5);
+      nodes = [];
+      startDrone();
+      startWind();
+      chirp();
+      note();
+      rustle();
+      if (btn) { btn.textContent = '🔊'; btn.classList.add('playing'); }
+      showToast('🎵 Nature music on');
+      if (tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred('light');
+    }
+  };
+
+  // Pause when app is hidden, resume when visible again
+  document.addEventListener('visibilitychange', function() {
+    if (!ctx) return;
+    if (document.hidden) { ctx.suspend(); }
+    else if (musicOn)    { ctx.resume(); }
+  });
 
 })();
 
