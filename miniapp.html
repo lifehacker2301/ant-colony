@@ -801,7 +801,25 @@ body::before {
   border:1px solid var(--border-bright); border-radius:18px; padding:20px;
   text-align:center; margin-bottom:14px;
 }
-.profile-big-avatar { font-size:52px; margin-bottom:8px; }
+.profile-big-avatar {
+  width:88px; height:88px; border-radius:50%; margin:0 auto 12px;
+  background:linear-gradient(135deg,#3d2b08,#1a1200);
+  border:3px solid var(--amber);
+  box-shadow:0 0 24px rgba(245,166,35,0.35);
+  display:flex; align-items:center; justify-content:center;
+  font-size:44px; overflow:hidden; cursor:pointer;
+  position:relative; transition:border-color 0.2s, transform 0.15s;
+}
+.profile-big-avatar:active { transform:scale(0.95); border-color:var(--amber-bright); }
+.profile-big-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+.profile-big-avatar::after {
+  content:'\270F';
+  position:absolute; bottom:2px; right:2px;
+  width:20px; height:20px; border-radius:50%;
+  background:var(--amber); color:#000; font-size:10px;
+  display:flex; align-items:center; justify-content:center;
+  line-height:20px; text-align:center;
+}
 .profile-colony-name { font-family:'Cinzel Decorative'; font-size:18px; color:var(--amber-bright); margin-bottom:4px; }
 .profile-username { font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
 .profile-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
@@ -2520,6 +2538,7 @@ function setAvatarEl(el, customAvatar) {
 function applyAvatar() {
   setAvatarEl(document.getElementById('tgAvatar'), STATE.customAvatar);
   setAvatarEl(document.getElementById('tgCardAvatar'), STATE.customAvatar);
+  setAvatarEl(document.getElementById('profileAvatar'), STATE.customAvatar);
 }
 
 function openAvatarEdit() {
@@ -3062,11 +3081,11 @@ function saveColonyName() {
 
 function renderProfilePage() {
   if (!TG_USER) return;
-  const avatarEmojis = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥'];
-  const emoji = avatarEmojis[TG_USER.id % avatarEmojis.length];
   const colonyName = STATE.colonyCustomName || TG_USER.first_name+"'s Colony";
 
-  document.getElementById('profileAvatar').textContent = emoji;
+  const profAv = document.getElementById('profileAvatar');
+  setAvatarEl(profAv, STATE.customAvatar);
+  profAv.onclick = openAvatarEdit;
   document.getElementById('profileColonyName').textContent = colonyName;
   document.getElementById('profileUsername').textContent = TG_USER.username ? '@'+TG_USER.username : 'ID: '+TG_USER.id;
   document.getElementById('pTotalMined').textContent = STATE.totalMined.toFixed(2);
