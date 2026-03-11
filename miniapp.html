@@ -95,8 +95,53 @@ body::before {
   border: 2px solid var(--amber); overflow:hidden;
   background: linear-gradient(135deg, #3d2b08, #1a1200);
   display:flex; align-items:center; justify-content:center; font-size:16px;
+  cursor:pointer; position:relative; transition:border-color 0.2s;
 }
-.tg-avatar img { width:100%; height:100%; object-fit:cover; }
+.tg-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+.tg-avatar:active { border-color:var(--amber-bright); transform:scale(0.93); }
+/* Camera edit hint overlay */
+#tgAvatar::after {
+  content:'\270F';
+  position:absolute; bottom:-1px; right:-1px;
+  width:13px; height:13px; border-radius:50%;
+  background:var(--amber); color:#000; font-size:7px;
+  display:flex; align-items:center; justify-content:center;
+  line-height:13px; text-align:center;
+}
+
+/* ── AVATAR EDIT SHEET ── */
+#avatarEditSheet { display:none; }
+#avatarEditSheet.open { display:flex; }
+.avatar-edit-sheet { padding:22px 18px 32px; }
+.avatar-edit-current {
+  display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:20px;
+}
+.avatar-edit-preview {
+  width:72px; height:72px; border-radius:50%;
+  border:3px solid var(--amber);
+  background:linear-gradient(135deg,#3d2b08,#1a1200);
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; overflow:hidden;
+}
+.avatar-edit-preview img { width:100%; height:100%; object-fit:cover; }
+.avatar-edit-label { font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; }
+.avatar-tg-btn {
+  width:100%; padding:12px; border-radius:12px; border:1px solid var(--amber-dim);
+  background:linear-gradient(135deg,rgba(61,43,8,0.5),rgba(26,18,0,0.5));
+  color:var(--amber-bright); font-family:'Rajdhani'; font-size:13px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-bottom:14px;
+}
+.avatar-tg-btn:active { opacity:0.7; }
+.avatar-section-lbl { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+.avatar-emoji-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.avatar-emoji-opt {
+  aspect-ratio:1; border-radius:12px; border:2px solid transparent;
+  background:var(--bg-card); display:flex; align-items:center; justify-content:center;
+  font-size:24px; cursor:pointer; transition:all 0.15s;
+}
+.avatar-emoji-opt:active { transform:scale(0.9); }
+.avatar-emoji-opt.selected { border-color:var(--amber-bright); background:rgba(245,166,35,0.12); }
 
 /* ── COLONY HERO ── */
 .colony-hero {
@@ -832,6 +877,22 @@ body::before {
   <div class="onboard-terms">By starting, you agree to the Terms of Service.<br>Your Telegram identity is used to create your account.</div>
 </div>
 
+<!-- AVATAR EDIT SHEET -->
+<div class="modal-overlay" id="avatarEditSheet">
+  <div class="modal-sheet avatar-edit-sheet">
+    <div class="modal-handle"></div>
+    <div class="avatar-edit-current">
+      <div class="avatar-edit-preview" id="avatarEditPreview">👤</div>
+      <div class="avatar-edit-label">Your Avatar</div>
+    </div>
+    <button class="avatar-tg-btn" id="avatarTgBtn" onclick="pickTgAvatar()" style="display:none">
+      📷 Use My Telegram Profile Photo
+    </button>
+    <div class="avatar-section-lbl">Choose an emoji</div>
+    <div class="avatar-emoji-grid" id="avatarEmojiGrid"></div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1486,6 +1547,7 @@ function saveAccount() {
     lastQueenEgg: STATE.lastQueenEgg || {},
     dailyStreak: STATE.dailyStreak || 0,
     _serverMultiplier: STATE._serverMultiplier || 1,
+    customAvatar: STATE.customAvatar || null,
   };
   try { localStorage.setItem(STORAGE_KEY + '_' + TG_USER.id, JSON.stringify(data)); } catch(e){}
 }
@@ -1595,6 +1657,7 @@ function restoreAccount(saved) {
   STATE.lastQueenEgg    = saved.lastQueenEgg || {};
   STATE.dailyStreak     = saved.dailyStreak || 0;
   STATE._serverMultiplier = saved._serverMultiplier || 1;
+  STATE.customAvatar    = saved.customAvatar || null;
 
   // Reset daily claim if it's a new day
   const today = new Date().toDateString();
@@ -1837,11 +1900,9 @@ function initUI() {
   STATE.userId = TG_USER.id;
   const name = TG_USER.first_name + (TG_USER.last_name ? ' '+TG_USER.last_name : '');
   const username = TG_USER.username ? '@'+TG_USER.username : 'ID: '+TG_USER.id;
-  const avatarEmojis = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥'];
-  const emoji = avatarEmojis[TG_USER.id % avatarEmojis.length];
-
-  // Header avatar
-  document.getElementById('tgAvatar').textContent = emoji;
+  // Header avatar — auto-load TG photo or custom choice
+  applyAvatar();
+  document.getElementById('tgAvatar').onclick = openAvatarEdit;
 
   // User card on home page
   const card = document.getElementById('tgUserCard');
@@ -1849,7 +1910,6 @@ function initUI() {
   document.getElementById('tgUserName').textContent = name;
   document.getElementById('tgUserSub').textContent = username;
   document.getElementById('tgUserRank').textContent = '#'+STATE.rank;
-  document.getElementById('tgCardAvatar').textContent = emoji;
 
   // Invite link
   document.getElementById('inviteLink').textContent = `t.me/${BOT_USERNAME}?start=ref_${TG_USER.id}`;
@@ -2425,6 +2485,96 @@ function initBgCanvas(){
 }
 
 // ============================================================
+//  AVATAR SYSTEM
+// ============================================================
+const AVATAR_EMOJIS = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥','🦎','🐉','🔮','🌙','🌿','🏆','🎯','🦅','🔱','🌊'];
+
+function getAutoEmoji() {
+  return AVATAR_EMOJIS[TG_USER ? TG_USER.id % AVATAR_EMOJIS.length : 0];
+}
+
+// Set avatar content safely using DOM methods (no innerHTML)
+function setAvatarEl(el, customAvatar) {
+  if (!el) return;
+  const photoUrl = tgApp?.initDataUnsafe?.user?.photo_url;
+  // Clear current content
+  while (el.firstChild) el.removeChild(el.firstChild);
+  if (!customAvatar || customAvatar === 'tg') {
+    if (photoUrl) {
+      const img = document.createElement('img');
+      img.alt = 'avatar';
+      img.src = photoUrl;
+      img.onerror = function() {
+        while (el.firstChild) el.removeChild(el.firstChild);
+        el.textContent = getAutoEmoji();
+      };
+      el.appendChild(img);
+    } else {
+      el.textContent = getAutoEmoji();
+    }
+  } else {
+    el.textContent = customAvatar;
+  }
+}
+
+function applyAvatar() {
+  setAvatarEl(document.getElementById('tgAvatar'), STATE.customAvatar);
+  setAvatarEl(document.getElementById('tgCardAvatar'), STATE.customAvatar);
+}
+
+function openAvatarEdit() {
+  const sheet = document.getElementById('avatarEditSheet');
+  if (!sheet) return;
+  const photoUrl = tgApp?.initDataUnsafe?.user?.photo_url;
+
+  // Update preview in the sheet
+  setAvatarEl(document.getElementById('avatarEditPreview'), STATE.customAvatar);
+
+  // Show TG photo button only if Telegram provides a photo URL
+  const tgBtn = document.getElementById('avatarTgBtn');
+  if (tgBtn) tgBtn.style.display = photoUrl ? 'flex' : 'none';
+
+  // Build emoji grid safely
+  const grid = document.getElementById('avatarEmojiGrid');
+  if (grid) {
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+    AVATAR_EMOJIS.forEach(function(em) {
+      const div = document.createElement('div');
+      div.className = 'avatar-emoji-opt' + (STATE.customAvatar === em ? ' selected' : '');
+      div.textContent = em;
+      div.onclick = function() { pickEmojiAvatar(em); };
+      grid.appendChild(div);
+    });
+  }
+
+  sheet.classList.add('open');
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.selectionChanged();
+}
+
+function closeAvatarEdit() {
+  const sheet = document.getElementById('avatarEditSheet');
+  if (sheet) sheet.classList.remove('open');
+}
+
+function pickTgAvatar() {
+  STATE.customAvatar = 'tg';
+  saveAccount();
+  applyAvatar();
+  setAvatarEl(document.getElementById('avatarEditPreview'), 'tg');
+  closeAvatarEdit();
+  showToast('\u2705 Using your Telegram profile photo!');
+}
+
+function pickEmojiAvatar(em) {
+  STATE.customAvatar = em;
+  saveAccount();
+  applyAvatar();
+  closeAvatarEdit();
+  showToast('\u2705 Avatar updated!');
+  if (tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred('light');
+}
+
+// ============================================================
 //  MINING
 // ============================================================
 function updateBalanceDisplay() {
@@ -2544,6 +2694,7 @@ function buyWorkers(key,workers,cost,levelIndex){
 }
 
 document.getElementById('upgradeModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+document.getElementById('avatarEditSheet').addEventListener('click',function(e){if(e.target===this)closeAvatarEdit();});
 
 // ============================================================
 //  INVITE PAGE
