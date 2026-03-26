@@ -5331,9 +5331,23 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     buyA.appendChild(buyBtn);
     area.appendChild(buyA);
 
+    // TX requirements box (set by admin)
+    if (task.txReqs) {
+      var reqBox = document.createElement('div');
+      reqBox.style.cssText = 'background:rgba(0,180,255,0.08);border:1px solid rgba(0,180,255,0.2);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#66ccff;line-height:1.5';
+      var reqTitle = document.createElement('div');
+      reqTitle.style.cssText = 'font-weight:700;margin-bottom:3px;font-size:10px;letter-spacing:0.4px';
+      reqTitle.textContent = '\ud83d\udcdd TX REQUIREMENTS';
+      reqBox.appendChild(reqTitle);
+      var reqText = document.createElement('div');
+      reqText.textContent = task.txReqs;
+      reqBox.appendChild(reqText);
+      area.appendChild(reqBox);
+    }
+
     var hint = document.createElement('div');
     hint.style.cssText = 'font-size:11px;color:var(--text-dim);margin-bottom:10px';
-    hint.textContent = 'After purchasing, paste your wallet address and transaction hash below:';
+    hint.textContent = 'Paste your wallet address and transaction hash below:';
     area.appendChild(hint);
 
     var walletInput = document.createElement('input');

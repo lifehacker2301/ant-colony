@@ -605,6 +605,117 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Loading airdrops...</div>
           </div>
         </div>
+
+        <!-- ══ OPTIONAL AIRDROP TASKS SUBSECTION ══ -->
+        <div style="border-top:1px solid rgba(0,200,80,0.2);margin:24px 0 18px"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-family:'Cinzel Decorative';font-size:13px;color:#44ee88">💰 Optional Airdrop Tasks</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Token-buy tasks — players submit wallet + TX hash for review</div>
+          </div>
+          <button class="btn btn-ghost" style="border-color:rgba(0,200,80,0.4);color:#44ee88;font-size:11px" onclick="toggleOptForm()" id="newOptBtn">+ New Task</button>
+        </div>
+
+        <!-- OPTIONAL TASK CREATE / EDIT FORM -->
+        <div id="optFormWrap" style="display:none;margin-bottom:14px">
+          <div class="card" style="border-color:rgba(0,200,80,0.35)">
+            <div class="card-title" id="optFormTitle" style="color:#44ee88">💰 New Optional Task</div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex:2">
+                <div class="form-label">Project Link (for logo &amp; reference)</div>
+                <input class="form-input" id="optLink" placeholder="https://tokenproject.com" oninput="previewOptLogo()"/>
+              </div>
+              <div class="form-group" style="flex:1">
+                <div class="form-label">Logo Preview</div>
+                <img id="optLogoPreview" class="airdrop-logo-preview" src="" alt="logo" onerror="this.style.opacity='0.3'"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">DEX Buy Link <span style="color:#44ee88;font-size:10px">(redirects player to buy token)</span></div>
+                <input class="form-input" id="optBuyLink" placeholder="https://app.uniswap.org/#/swap?outputCurrency=0x..."/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Task / Project Name</div>
+                <input class="form-input" id="optName" placeholder="e.g. BNB Token Task"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Token Symbol</div>
+                <input class="form-input" id="optTokenSymbol" placeholder="e.g. BNB"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Token Full Name</div>
+                <input class="form-input" id="optTokenName" placeholder="e.g. BNB Chain"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Minimum Purchase (USD) <span style="color:#44ee88;font-size:10px">(min buy amount)</span></div>
+                <input class="form-input" id="optMinUSD" type="number" min="1" placeholder="e.g. 10"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Reward ($ANT)</div>
+                <input class="form-input" id="optReward" type="number" min="0" placeholder="e.g. 100"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">TX Hash Requirements <span style="color:var(--text-dim);font-size:10px">(instructions shown to player)</span></div>
+                <textarea class="form-textarea" id="optTxReqs" placeholder="e.g. Submit the transaction hash from BNB Chain showing a minimum $10 purchase of BNB. Hash must be from your own wallet." style="min-height:60px"></textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Duration (days)</div>
+                <input class="form-input" id="optDuration" type="number" min="1" max="365" placeholder="1 – 365"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Start Date</div>
+                <input class="form-input" id="optStartDate" type="datetime-local"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Description</div>
+                <textarea class="form-textarea" id="optDescription" placeholder="Describe what players need to do..." style="min-height:60px"></textarea>
+              </div>
+            </div>
+
+            <input type="hidden" id="optEditId"/>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-primary" style="background:rgba(0,130,50,0.9)" onclick="saveOptTask()">💾 Save Task</button>
+              <button class="btn btn-ghost" onclick="cancelOptForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPTIONAL TASK LIST -->
+        <div class="card" style="border-color:rgba(0,200,80,0.18)">
+          <div class="card-title" style="color:#44ee88">Active Optional Tasks</div>
+          <div id="optTaskAdminList">
+            <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px">Loading tasks...</div>
+          </div>
+        </div>
+
+        <!-- SUBMISSIONS VIEWER -->
+        <div class="card" id="optSubsCard" style="display:none;border-color:rgba(0,180,255,0.2)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="card-title" style="color:#66ccff;margin-bottom:0">📋 Submissions — <span id="optSubsTaskName"></span></div>
+            <button class="btn btn-ghost" style="font-size:11px" onclick="closeOptSubmissions()">✕ Close</button>
+          </div>
+          <div id="optSubsList">
+            <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px">No submissions yet</div>
+          </div>
+        </div>
       </div>
 
       <!-- OPTIONAL TASKS PANEL -->
@@ -1734,7 +1845,7 @@ function previewOptLogo() {
 function toggleOptForm() {
   var wrap = document.getElementById('optFormWrap');
   if (wrap.style.display === 'none') {
-    ['optLink','optBuyLink','optName','optTokenSymbol','optTokenName','optDescription','optEditId'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
+    ['optLink','optBuyLink','optName','optTokenSymbol','optTokenName','optTxReqs','optDescription','optEditId'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
     ['optMinUSD','optReward','optDuration','optStartDate'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
     document.getElementById('optFormTitle').textContent = '\ud83d\udcb0 New Optional Task';
     document.getElementById('optLogoPreview').src = '';
@@ -1758,12 +1869,13 @@ function saveOptTask() {
   var reward = parseFloat(document.getElementById('optReward').value) || 0;
   var duration = parseInt(document.getElementById('optDuration').value) || 30;
   var startDate = document.getElementById('optStartDate').value;
+  var txReqs = document.getElementById('optTxReqs').value.trim();
   var description = document.getElementById('optDescription').value.trim();
   var editId = document.getElementById('optEditId').value;
   if (!name) { showToast('Task name is required', 'error'); return; }
   if (!link) { showToast('Project link is required', 'error'); return; }
   if (!startDate) { showToast('Start date is required', 'error'); return; }
-  var data = { link: link, buyLink: buyLink, name: name, tokenSymbol: tokenSymbol, tokenName: tokenName, minUSD: minUSD, reward: reward, duration: duration, startDate: startDate, description: description };
+  var data = { link: link, buyLink: buyLink, name: name, tokenSymbol: tokenSymbol, tokenName: tokenName, minUSD: minUSD, reward: reward, duration: duration, startDate: startDate, txReqs: txReqs, description: description };
   if (editId) {
     db.ref('optAirdrops/' + editId).set(data).then(function() { showToast('Task updated!', 'success'); cancelOptForm(); loadOptAdmin(); });
   } else {
@@ -1785,6 +1897,7 @@ function editOptTask(id) {
   document.getElementById('optReward').value = t.reward || 0;
   document.getElementById('optDuration').value = t.duration || '';
   document.getElementById('optStartDate').value = t.startDate || '';
+  document.getElementById('optTxReqs').value = t.txReqs || '';
   document.getElementById('optDescription').value = t.description || '';
   document.getElementById('optEditId').value = id;
   previewOptLogo();
@@ -1820,6 +1933,18 @@ function _makeOptTaskRow(id, t) {
   metaEl.textContent = (t.tokenSymbol||'') + ' \u2022 Min $' + (t.minUSD||10) + ' \u2022 ' + (t.reward||0) + ' $ANT';
   info.appendChild(nameEl);
   info.appendChild(metaEl);
+  if (t.buyLink) {
+    var dexEl = document.createElement('div');
+    dexEl.style.cssText = 'font-size:10px;color:#66aaff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    dexEl.textContent = '\ud83d\uded2 ' + t.buyLink;
+    info.appendChild(dexEl);
+  }
+  if (t.txReqs) {
+    var txEl = document.createElement('div');
+    txEl.style.cssText = 'font-size:10px;color:var(--text-dim);margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    txEl.textContent = '\ud83d\udcdd TX: ' + t.txReqs;
+    info.appendChild(txEl);
+  }
   row.appendChild(info);
   var subsBtn = document.createElement('button');
   subsBtn.className = 'airdrop-admin-edit';
@@ -1925,7 +2050,26 @@ function viewOptSubmissions(taskId) {
   var task = _optTaskData[taskId];
   if (taskNameEl) taskNameEl.textContent = task ? task.name : taskId;
   if (card) card.style.display = 'block';
-  if (subsList) { subsList.textContent = ''; var ld=document.createElement('div'); ld.style.cssText='text-align:center;padding:20px;color:var(--text-dim)'; ld.textContent='Loading...'; subsList.appendChild(ld); }
+  if (subsList) {
+    subsList.textContent = '';
+    // Show TX requirements reminder for the admin
+    if (task && task.txReqs) {
+      var reqBox = document.createElement('div');
+      reqBox.style.cssText = 'background:rgba(0,180,255,0.08);border:1px solid rgba(0,180,255,0.22);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:#66ccff';
+      var reqLabel = document.createElement('strong');
+      reqLabel.textContent = 'TX Requirements: ';
+      reqBox.appendChild(reqLabel);
+      reqBox.appendChild(document.createTextNode(task.txReqs));
+      subsList.appendChild(reqBox);
+    }
+    if (task && task.minUSD) {
+      var minBox = document.createElement('div');
+      minBox.style.cssText = 'background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.22);border-radius:8px;padding:6px 12px;margin-bottom:12px;font-size:11px;color:#44ee88';
+      minBox.textContent = 'Min purchase: $' + task.minUSD + ' USD of ' + (task.tokenSymbol || 'token');
+      subsList.appendChild(minBox);
+    }
+    var ld = document.createElement('div'); ld.style.cssText='text-align:center;padding:20px;color:var(--text-dim)'; ld.textContent='Loading...'; subsList.appendChild(ld);
+  }
   db.ref('optAirdropSubmits').once('value').then(function(snap) {
     var allSubs = snap.val() || {};
     subsList.textContent = '';
