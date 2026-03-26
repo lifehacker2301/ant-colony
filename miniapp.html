@@ -2156,9 +2156,9 @@ function requestWithdraw() {
 }
 
 // ============================================================
-//  COLONY CANVAS
+//  COLONY CANVAS — REALISTIC 3D ANT SCENE
 // ============================================================
-let ants=[], colonyCtx, colonyCanvas;
+let ants=[], colonyCtx, colonyCanvas, sceneObjs=[];
 function initColonyCanvas(){
   colonyCanvas=document.getElementById('colonyCanvas');
   colonyCtx=colonyCanvas.getContext('2d');
@@ -2167,93 +2167,259 @@ function initColonyCanvas(){
   const w = wrap.offsetWidth || window.innerWidth || 360;
   const h = wrap.offsetHeight || 200;
   colonyCanvas.width=w; colonyCanvas.height=h;
-  for(let i=0;i<15;i++) spawnAnt();
+  ants=[]; sceneObjs=[];
+  for(let i=0;i<12;i++) spawnAnt();
+  buildScene(w,h);
   drawColony();
-  // Re-check size after a short delay (Telegram WebView timing fix)
   setTimeout(()=>{
     const w2=wrap.offsetWidth||360, h2=wrap.offsetHeight||200;
     if(w2!==colonyCanvas.width||h2!==colonyCanvas.height){
       colonyCanvas.width=w2; colonyCanvas.height=h2;
-      ants=[];
-      for(let i=0;i<15;i++) spawnAnt();
+      ants=[]; sceneObjs=[];
+      for(let i=0;i<12;i++) spawnAnt();
+      buildScene(w2,h2);
     }
-  }, 500);
+  },500);
 }
 
 function spawnAnt(){
-  ants.push({x:Math.random()*(colonyCanvas.width||360),y:Math.random()*(colonyCanvas.height||200),vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,size:5+Math.random()*4,angle:Math.random()*Math.PI*2,targetX:Math.random()*360,targetY:Math.random()*200,timer:Math.random()*200,type:Math.floor(Math.random()*4)});
+  const W=colonyCanvas.width||360, H=colonyCanvas.height||200;
+  const gY=H*0.32;
+  const y=gY+Math.random()*(H-gY)*0.85;
+  ants.push({x:Math.random()*W, y, vx:(Math.random()-.5)*1.2, vy:(Math.random()-.5)*0.6,
+    angle:Math.random()*Math.PI*2, targetX:Math.random()*W,
+    targetY:gY+Math.random()*(H-gY)*0.8,
+    timer:Math.random()*200, type:Math.floor(Math.random()*4),
+    legPhase:Math.random()*Math.PI*2, carryFood:Math.random()<0.2});
 }
 
-const ANT_COLORS=['#f5a623','#d4800a','#8b5e10','#3d2b08'];
-function drawAnt(c,x,y,sz,angle,color){
-  c.save(); c.translate(x,y); c.rotate(angle); c.fillStyle=color;
-  c.beginPath(); c.ellipse(0,sz*.4,sz*.35,sz*.5,0,0,Math.PI*2); c.fill();
-  c.beginPath(); c.ellipse(0,-sz*.1,sz*.25,sz*.3,0,0,Math.PI*2); c.fill();
-  c.beginPath(); c.ellipse(0,-sz*.55,sz*.2,sz*.22,0,0,Math.PI*2); c.fill();
-  c.strokeStyle=color; c.lineWidth=0.8;
-  [-1,1].forEach(s=>{c.beginPath();c.moveTo(s*sz*.2,-sz*.1);c.lineTo(s*sz*.7,sz*.1);c.stroke();c.beginPath();c.moveTo(s*sz*.2,0);c.lineTo(s*sz*.7,sz*.25);c.stroke();c.beginPath();c.moveTo(s*sz*.2,sz*.2);c.lineTo(s*sz*.6,sz*.45);c.stroke();});
-  c.beginPath();c.moveTo(-sz*.1,-sz*.65);c.lineTo(-sz*.3,-sz);c.stroke();
-  c.beginPath();c.moveTo(sz*.1,-sz*.65);c.lineTo(sz*.3,-sz);c.stroke();
+function buildScene(W,H){
+  sceneObjs=[];
+  const gY=H*0.32;
+  for(let i=0;i<14;i++){
+    const x=(i*137.5+23)%W;
+    const y=gY+((i*97.3+41)%(H-gY-8));
+    const depth=(y-gY)/(H-gY);
+    const base=3+(i%5)*2.5, r=base*(0.35+depth*0.65);
+    const g1=82+(i%6)*10, g2=g1-14, g3=g2-10;
+    sceneObjs.push({t:'stone',x,y,r,rx:r*(0.85+(i%3)*0.15),ry:r*0.66,rot:(i*43.7)%(Math.PI*2),col:`rgb(${g1},${g2},${g3})`});
+  }
+  for(let i=0;i<28;i++){
+    const x=(i*53.7+71)%W;
+    const y=gY+((i*71.3+13)%(H-gY-4));
+    const depth=(y-gY)/(H-gY);
+    sceneObjs.push({t:'grain',x,y,r:0.6+depth*1.8,col:`hsl(${28+(i%14)},${42+i%28}%,${20+i%16}%)`});
+  }
+  const kinds=['beetle','beetle','grub','seed','seed','seed','crumb','crumb'];
+  for(let i=0;i<8;i++){
+    const x=(i*89+60)%(W*0.88)+W*0.06;
+    const y=gY*1.1+((i*67+30)%(H*0.58));
+    const depth=(y-gY)/(H-gY);
+    const sz=(4+(i%4)*3)*(0.42+depth*0.58);
+    sceneObjs.push({t:kinds[i%kinds.length],x,y,sz,angle:(i*71.3)%(Math.PI*2)});
+  }
+  sceneObjs.sort((a,b)=>a.y-b.y);
+}
+
+function drawStone(c,obj){
+  c.save(); c.translate(obj.x,obj.y); c.rotate(obj.rot);
+  c.fillStyle='rgba(0,0,0,0.22)';
+  c.beginPath(); c.ellipse(obj.r*0.18,obj.r*0.32,obj.rx*0.88,obj.ry*0.3,0,0,Math.PI*2); c.fill();
+  const sg=c.createRadialGradient(-obj.rx*0.28,-obj.ry*0.28,0,0,0,obj.rx);
+  sg.addColorStop(0,'rgba(198,182,162,0.9)'); sg.addColorStop(0.3,obj.col); sg.addColorStop(1,'rgba(38,28,18,0.95)');
+  c.fillStyle=sg; c.beginPath(); c.ellipse(0,0,obj.rx,obj.ry,0,0,Math.PI*2); c.fill();
+  c.strokeStyle='rgba(28,16,6,0.45)'; c.lineWidth=0.7;
+  c.beginPath(); c.ellipse(0,0,obj.rx,obj.ry,0,0,Math.PI*2); c.stroke();
   c.restore();
 }
 
-// ── TIER-BASED COLONY BACKGROUNDS ──────────────────────────
+function drawFood(c,obj){
+  c.save(); c.translate(obj.x,obj.y); c.rotate(obj.angle);
+  const s=obj.sz;
+  if(obj.t==='beetle'){
+    c.fillStyle='#0c0904'; c.beginPath(); c.ellipse(0,0,s*0.54,s*0.8,0,0,Math.PI*2); c.fill();
+    const eG=c.createLinearGradient(-s*0.28,-s*0.58,s*0.1,s*0.28);
+    eG.addColorStop(0,'rgba(75,52,22,0.65)'); eG.addColorStop(1,'rgba(8,6,2,0)');
+    c.fillStyle=eG; c.beginPath(); c.ellipse(0,0,s*0.48,s*0.73,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='rgba(38,22,8,0.75)'; c.lineWidth=s*0.07;
+    c.beginPath(); c.moveTo(0,-s*0.68); c.lineTo(0,s*0.68); c.stroke();
+    c.strokeStyle='rgba(28,18,6,0.65)'; c.lineWidth=s*0.055;
+    for(let i=-1;i<=1;i++){const ly=i*s*0.2; c.beginPath(); c.moveTo(-s*0.48,ly); c.lineTo(-s*0.82,ly+s*0.14); c.stroke(); c.beginPath(); c.moveTo(s*0.48,ly); c.lineTo(s*0.82,ly+s*0.14); c.stroke();}
+    c.fillStyle='#150c05'; c.beginPath(); c.ellipse(0,-s*0.8,s*0.24,s*0.18,0,0,Math.PI*2); c.fill();
+  } else if(obj.t==='grub'){
+    for(let i=0;i<5;i++){
+      const sy2=(-1+i*0.5)*s, sr=s*0.36*(1-Math.abs(i-2)/6);
+      const gG=c.createRadialGradient(-sr*0.28,sy2-sr*0.28,0,0,sy2,sr*1.1);
+      gG.addColorStop(0,'rgba(228,212,172,0.95)'); gG.addColorStop(1,'rgba(155,136,96,0.8)');
+      c.fillStyle=gG; c.beginPath(); c.arc(0,sy2,sr,0,Math.PI*2); c.fill();
+      if(i>0){c.strokeStyle='rgba(158,138,98,0.45)'; c.lineWidth=0.5; c.beginPath(); c.ellipse(0,sy2-sr,sr*0.88,sr*0.18,0,0,Math.PI*2); c.stroke();}
+    }
+    c.fillStyle='#9c7c3c'; c.beginPath(); c.ellipse(0,-s*1.12,s*0.22,s*0.19,0,0,Math.PI*2); c.fill();
+  } else if(obj.t==='seed'){
+    const sG=c.createRadialGradient(-s*0.18,-s*0.38,0,0,0,s*0.68);
+    sG.addColorStop(0,'#d2a54e'); sG.addColorStop(0.6,'#886020'); sG.addColorStop(1,'#482f0e');
+    c.fillStyle=sG; c.beginPath(); c.ellipse(0,0,s*0.38,s*0.68,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='rgba(58,35,10,0.35)'; c.lineWidth=0.5;
+    c.beginPath(); c.moveTo(0,-s*0.65); c.lineTo(0,s*0.65); c.stroke();
+  } else {
+    c.fillStyle='#ba8848'; c.beginPath(); c.arc(0,0,s*0.58,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(195,155,75,0.5)'; c.beginPath(); c.arc(-s*0.14,-s*0.14,s*0.24,0,Math.PI*2); c.fill();
+  }
+  c.restore();
+}
+
+function drawAnt(c,x,y,sz,angle,t,legPhase,carryFood){
+  c.save(); c.translate(x,y); c.rotate(angle);
+  const s=sz;
+  c.fillStyle='rgba(0,0,0,0.18)';
+  c.beginPath(); c.ellipse(0,s*0.88,s*0.72,s*0.16,0,0,Math.PI*2); c.fill();
+  const aG=c.createRadialGradient(-s*0.08,s*0.3,s*0.04,0,s*0.55,s*0.68);
+  aG.addColorStop(0,'#7c4520'); aG.addColorStop(0.5,'#4a2510'); aG.addColorStop(1,'#1e0e06');
+  c.fillStyle=aG; c.beginPath(); c.ellipse(0,s*0.54,s*0.38,s*0.52,0,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(195,125,55,0.16)';
+  c.beginPath(); c.ellipse(-s*0.11,s*0.3,s*0.15,s*0.1,-0.35,0,Math.PI*2); c.fill();
+  c.fillStyle='#381805'; c.beginPath(); c.ellipse(0,s*0.02,s*0.1,s*0.12,0,0,Math.PI*2); c.fill();
+  const tG=c.createRadialGradient(-s*0.07,-s*0.18,s*0.02,0,-s*0.12,s*0.28);
+  tG.addColorStop(0,'#8a4e22'); tG.addColorStop(0.6,'#4a2810'); tG.addColorStop(1,'#221208');
+  c.fillStyle=tG; c.beginPath(); c.ellipse(0,-s*0.13,s*0.24,s*0.28,0,0,Math.PI*2); c.fill();
+  const hG=c.createRadialGradient(-s*0.08,-s*0.46,s*0.02,0,-s*0.42,s*0.24);
+  hG.addColorStop(0,'#9a5828'); hG.addColorStop(0.5,'#5c2e12'); hG.addColorStop(1,'#280e04');
+  c.fillStyle=hG; c.beginPath(); c.ellipse(0,-s*0.44,s*0.21,s*0.23,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#0a0502';
+  c.beginPath(); c.arc(-s*0.11,-s*0.5,s*0.05,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(s*0.11,-s*0.5,s*0.05,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(255,255,255,0.52)';
+  c.beginPath(); c.arc(-s*0.085,-s*0.52,s*0.018,0,Math.PI*2); c.fill();
+  c.strokeStyle='#2e1508'; c.lineWidth=s*0.065; c.lineCap='round';
+  c.beginPath(); c.moveTo(-s*0.13,-s*0.59); c.quadraticCurveTo(-s*0.3,-s*0.67,-s*0.21,-s*0.74); c.stroke();
+  c.beginPath(); c.moveTo(s*0.13,-s*0.59); c.quadraticCurveTo(s*0.3,-s*0.67,s*0.21,-s*0.74); c.stroke();
+  c.strokeStyle='#3d2008'; c.lineWidth=s*0.042; c.lineCap='round';
+  const as=Math.sin(t*2.8+legPhase)*0.12;
+  c.beginPath(); c.moveTo(-s*0.11,-s*0.61); c.lineTo(-s*0.27,-s*0.87+as*s); c.lineTo(-s*0.4,-s*1.06+as*s*0.55); c.stroke();
+  c.beginPath(); c.moveTo(s*0.11,-s*0.61); c.lineTo(s*0.27,-s*0.87-as*s); c.lineTo(s*0.4,-s*1.06-as*s*0.55); c.stroke();
+  c.strokeStyle='#3a1c08'; c.lineWidth=s*0.058; c.lineCap='round';
+  const g1=Math.sin(t*4.5+legPhase)*s*0.1;
+  const g2=Math.sin(t*4.5+legPhase+Math.PI)*s*0.1;
+  [[-1,g1,g2],[1,g2,g1]].forEach(([side,ga,gb])=>{
+    const lx=side*s*0.2;
+    c.beginPath(); c.moveTo(lx,-s*0.05); c.lineTo(lx+side*s*0.38,-s*0.01+ga); c.lineTo(lx+side*s*0.6,s*0.16+ga*0.5); c.stroke();
+    c.beginPath(); c.moveTo(lx,-s*0.13); c.lineTo(lx+side*s*0.43,s*0.04+gb); c.lineTo(lx+side*s*0.67,s*0.22+gb*0.5); c.stroke();
+    c.beginPath(); c.moveTo(side*s*0.16,s*0.05); c.lineTo(side*s*0.41,s*0.17+ga); c.lineTo(side*s*0.63,s*0.36+ga*0.5); c.stroke();
+  });
+  if(carryFood){
+    c.save(); c.translate(0,-s*0.92);
+    c.fillStyle='#be8c45'; c.beginPath(); c.arc(0,0,s*0.27,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(195,155,72,0.55)'; c.beginPath(); c.arc(-s*0.07,-s*0.07,s*0.11,0,Math.PI*2); c.fill();
+    c.restore();
+  }
+  c.restore();
+}
+
+// ── TIER-BASED COLONY ──────────────────────────────────────
 
 function getTierIndex(){
   const s=STATE.colonySize;
-  if(s>=20000)return 7;
-  if(s>=5000)return 6;
-  if(s>=1000)return 5;
-  if(s>=400)return 4;
-  if(s>=150)return 3;
-  if(s>=50)return 2;
-  if(s>=10)return 1;
-  return 0;
+  if(s>=20000)return 7; if(s>=5000)return 6; if(s>=1000)return 5;
+  if(s>=400)return 4; if(s>=150)return 3; if(s>=50)return 2;
+  if(s>=10)return 1; return 0;
 }
 
-// Draw background sky/ground based on tier
 function drawBackground(c,W,H,tier,t){
-  // Sky gradient — gets more dramatic with tier
+  const gY=H*0.32;
   const skies=[
-    ['#0d0900','#1a1000','#0a0700'],   // 0 Egg — dark dirt
-    ['#0a0800','#160e00','#080600'],   // 1 Larva — very dark
-    ['#0d0a00','#1c1200','#0a0800'],   // 2 Scout — brown tones
-    ['#080a12','#101820','#060a10'],   // 3 Village — night blue hint
-    ['#0a0608','#180a10','#080408'],   // 4 Garrison — dark red hint
-    ['#060810','#0e1020','#040608'],   // 5 Fortress — deep blue/purple
-    ['#080614','#10081c','#060412'],   // 6 Empire — dark purple
-    ['#0a0800','#201400','#0a0600'],   // 7 Legendary — golden dark
+    ['#c47018','#7a3d10','#3d1e06'],['#c47018','#7a3d10','#3d1e06'],['#c47018','#7a3d10','#3d1e06'],
+    ['#8a5520','#4a2e0e','#251608'],['#6a3010','#3a1808','#1e0c04'],
+    ['#3a2040','#1e1028','#100814'],['#1c1030','#0e0818','#08040e'],
+    ['#201008','#140a04','#0a0502']
   ];
   const sky=skies[Math.min(tier,7)];
-  const g=c.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,sky[0]); g.addColorStop(0.5,sky[1]); g.addColorStop(1,sky[2]);
-  c.fillStyle=g; c.fillRect(0,0,W,H);
-}
-
-// Draw tunnels — more complex per tier
-function drawTunnels(c,W,H,tier,t){
-  const colors=['rgba(61,43,8,0.25)','rgba(61,43,8,0.3)','rgba(61,43,8,0.35)','rgba(50,50,80,0.3)','rgba(80,30,30,0.3)','rgba(40,40,100,0.35)','rgba(60,20,80,0.35)','rgba(120,80,0,0.4)'];
-  c.strokeStyle=colors[Math.min(tier,7)]; c.lineWidth=6+tier;
-  const numTunnels=3+tier;
-  for(let i=0;i<numTunnels;i++){
-    c.beginPath();
-    c.moveTo(W*(0.05+i*(0.9/numTunnels)),H);
-    c.bezierCurveTo(W*(0.02+i*(0.95/numTunnels)),H*.6,W*(0.1+i*(0.85/numTunnels)),H*.35,W*(0.12+i*(0.82/numTunnels)),H*.05);
-    c.stroke();
+  const sg=c.createLinearGradient(0,0,0,gY);
+  sg.addColorStop(0,sky[0]); sg.addColorStop(0.5,sky[1]); sg.addColorStop(1,sky[2]);
+  c.fillStyle=sg; c.fillRect(0,0,W,gY);
+  if(tier<5){
+    const sx=W*0.82,sy=gY*0.3,pulse=1+Math.sin(t*0.5)*0.05;
+    const sunG=c.createRadialGradient(sx,sy,2,sx,sy,28*pulse);
+    sunG.addColorStop(0,'rgba(255,215,95,0.9)'); sunG.addColorStop(0.3,'rgba(255,170,45,0.38)'); sunG.addColorStop(1,'rgba(255,140,18,0)');
+    c.fillStyle=sunG; c.beginPath(); c.arc(sx,sy,28*pulse,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(255,228,115,0.95)'; c.beginPath(); c.arc(sx,sy,7,0,Math.PI*2); c.fill();
+  } else {
+    const mx=W*0.8,my=gY*0.35;
+    c.fillStyle='rgba(195,208,228,0.85)'; c.beginPath(); c.arc(mx,my,7,0,Math.PI*2); c.fill();
+    c.fillStyle=sky[1]; c.beginPath(); c.arc(mx+3,my-1,5.5,0,Math.PI*2); c.fill();
+    for(let i=0;i<8;i++){
+      const sx2=(i*97+20)%(W*0.92),sy2=(i*53+10)%(gY*0.88);
+      c.fillStyle=`rgba(215,228,255,${(Math.sin(t*2+i)+1)*0.22+0.08})`;
+      c.beginPath(); c.arc(sx2,sy2,0.8,0,Math.PI*2); c.fill();
+    }
   }
-  // Higher tiers get cross-tunnels
-  if(tier>=3){
-    c.lineWidth=4; c.strokeStyle=colors[tier].replace('0.','0.15');
-    for(let i=0;i<tier-1;i++){
-      const y=H*(0.3+i*0.15);
-      c.beginPath(); c.moveTo(W*0.1,y); c.bezierCurveTo(W*0.3,y-20,W*0.7,y+20,W*0.9,y); c.stroke();
+  const dg=c.createLinearGradient(0,gY,0,H);
+  dg.addColorStop(0,tier>=6?'#1e0f06':'#4e2d10');
+  dg.addColorStop(0.3,tier>=6?'#160b04':'#3a2008');
+  dg.addColorStop(0.7,'#201005');
+  dg.addColorStop(1,'#150902');
+  c.fillStyle=dg; c.fillRect(0,gY,W,H-gY);
+  c.fillStyle=tier>=6?'#2a1508':'#5a3418';
+  c.beginPath(); c.moveTo(0,gY);
+  for(let x=0;x<=W;x+=15) c.lineTo(x,gY+Math.sin(x*0.055)*3.5+Math.sin(x*0.13+1.7)*1.8);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  for(let i=0;i<65;i++){
+    const px=(i*139+17)%W,py=gY+4+((i*83+29)%(H-gY-6)),lm=18+(i%20);
+    c.fillStyle=`rgba(${lm+18},${lm+5},${lm},0.4)`;
+    c.beginPath(); c.arc(px,py,0.4+(i%4)*0.3,0,Math.PI*2); c.fill();
+  }
+  if(tier>=2){
+    c.strokeStyle='rgba(50,28,8,0.32)'; c.lineWidth=1;
+    for(let i=0;i<tier;i++){
+      const rx=(i*73+55)%W;
+      c.beginPath(); c.moveTo(rx,gY+5);
+      c.bezierCurveTo(rx-15,gY+20,rx+20,gY+35,rx-10,gY+50+i*8); c.stroke();
     }
   }
 }
 
-// Draw the main colony structure per tier
 function drawColonyStructure(c,W,H,tier,t,cx,cy){
+  const moundW=42+tier*18,moundH=20+tier*10,holeR=8+tier*3;
+  const mG=c.createRadialGradient(cx,cy-moundH*0.3,4,cx,cy+4,moundW*0.85);
+  mG.addColorStop(0,'#7a4820'); mG.addColorStop(0.5,'#5a3214'); mG.addColorStop(1,'rgba(30,16,5,0)');
+  c.fillStyle=mG; c.beginPath(); c.ellipse(cx,cy,moundW,moundH*0.72,0,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(88,52,18,0.72)';
+  c.beginPath(); c.arc(cx,cy+4,moundW*0.54,Math.PI,0); c.closePath(); c.fill();
+  const hG=c.createRadialGradient(cx,cy+6,1,cx,cy+6,holeR*1.5);
+  hG.addColorStop(0,'#050201'); hG.addColorStop(0.7,'rgba(10,5,2,0.94)'); hG.addColorStop(1,'rgba(5,2,0,0)');
+  c.fillStyle=hG; c.beginPath(); c.ellipse(cx,cy+6,holeR,holeR*0.63,0,0,Math.PI*2); c.fill();
+  for(let i=0;i<6+tier*2;i++){
+    const dx=Math.cos(i*1.15+0.5)*(holeR*1.3+i*2.8);
+    const dy=Math.sin(i*1.15+0.5)*(holeR*0.6+i*1.2)+8;
+    c.fillStyle=`rgba(95,58,22,${0.58-i*0.035})`;
+    c.beginPath(); c.ellipse(cx+dx,cy+dy,1.5+(i%3)*1.2,(1.5+(i%3)*1.2)*0.65,0,0,Math.PI*2); c.fill();
+  }
+  if(tier>=2){
+    const sh=Math.floor(tier/2);
+    for(let i=0;i<sh;i++){
+      const side=i%2===0?-1:1,hx=cx+side*(moundW*0.5+i*12),hy=cy+8+(i%2)*6,hr=holeR*0.54;
+      c.fillStyle='#040200'; c.beginPath(); c.ellipse(hx,hy,hr,hr*0.58,0,0,Math.PI*2); c.fill();
+      c.fillStyle='rgba(68,40,14,0.48)';
+      c.beginPath(); c.arc(hx,hy+2,hr*1.75,Math.PI,0); c.closePath(); c.fill();
+    }
+  }
+  const glow=(Math.sin(t*1.5)+1)/2;
+  const glowC=['rgba(178,98,28','rgba(155,75,18','rgba(178,98,28','rgba(95,55,12','rgba(78,38,8','rgba(98,58,14','rgba(75,28,98','rgba(218,155,38'];
+  const ig=c.createRadialGradient(cx,cy+6,0,cx,cy+6,holeR*2.2);
+  ig.addColorStop(0,`${glowC[Math.min(tier,7)]},${0.12+glow*0.1})`);
+  ig.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=ig; c.beginPath(); c.arc(cx,cy+6,holeR*2.5,0,Math.PI*2); c.fill();
+  if(tier>=6){
+    c.strokeStyle='rgba(198,138,58,0.11)'; c.lineWidth=1.5;
+    for(let i=0;i<3;i++){
+      const tx=cx+(i-1)*W*0.28;
+      c.beginPath(); c.moveTo(cx,cy+8);
+      c.bezierCurveTo(cx+(tx-cx)*0.4,cy+30,cx+(tx-cx)*0.7,cy+15,tx,cy+5); c.stroke();
+    }
+  }
+}
 
+// DEAD CODE — kept for reference only
+function _oldDrawColonyStructure_UNUSED(c,W,H,tier,t,cx,cy){
   if(tier===0){
     // 🥚 EGG CHAMBER — small dirt mound, single hole
     const hg=c.createRadialGradient(cx,cy-10,3,cx,cy,50);
@@ -2466,43 +2632,37 @@ function drawColony(){
   c.clearRect(0,0,W,H);
   const t=Date.now()/1000;
   const tier=getTierIndex();
-  const cx=W/2, cy=H*.72;
+  const gY=H*0.32;
+  const cx=W/2, cy=H*0.68;
 
   drawBackground(c,W,H,tier,t);
-  drawTunnels(c,W,H,tier,t);
-  drawColonyStructure(c,W,H,tier,t,cx,cy);
 
-  // Ants — color changes with tier
-  const antPalettes=[
-    ['#f5a623','#d4800a','#8b5e10','#3d2b08'], // 0-2 normal
-    ['#f5a623','#d4800a','#8b5e10','#3d2b08'],
-    ['#f5a623','#d4800a','#c8a060','#3d2b08'],
-    ['#c8a060','#a08040','#f5a623','#d4800a'], // 3-4 village/garrison
-    ['#cc3030','#f5a623','#d4800a','#8b5e10'],
-    ['#8888ff','#f5a623','#aabbff','#d4800a'], // 5-6 fortress/empire
-    ['#cc88ff','#f5a623','#aa66ee','#ffcc44'],
-    ['#ffcc44','#f5a623','#ffe088','#d4800a'], // 7 legendary
-  ];
-  const palette=antPalettes[Math.min(tier,7)];
-  const numAnts=Math.min(4+Math.floor(STATE.colonySize/4),60);
-  while(ants.length<numAnts)spawnAnt();
-  while(ants.length>numAnts)ants.pop();
-  ants.forEach(a=>{
-    a.timer++;
-    if(a.timer>80+Math.random()*120){a.timer=0;a.targetX=20+Math.random()*(W-40);a.targetY=15+Math.random()*(H-30);}
-    const dx=a.targetX-a.x,dy=a.targetY-a.y,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist>2){const spd=0.6+Math.random()*.6;a.x+=(dx/dist)*spd;a.y+=(dy/dist)*spd;a.angle=Math.atan2(dx,-dy);}
-    a.x=Math.max(6,Math.min(W-6,a.x)); a.y=Math.max(6,Math.min(H-6,a.y));
-    drawAnt(c,a.x,a.y,a.size,a.angle,palette[a.type%4]);
+  // Static scene objects (depth-sorted: stones, grains, food)
+  sceneObjs.forEach(obj=>{
+    if(obj.t==='stone') drawStone(c,obj);
+    else if(obj.t==='grain'){c.fillStyle=obj.col; c.beginPath(); c.arc(obj.x,obj.y,obj.r,0,Math.PI*2); c.fill();}
+    else drawFood(c,obj);
   });
 
-  // Mining sparkles around structure
-  for(let i=0;i<5;i++){
-    const px=cx+Math.cos(t*2+i*1.26)*55, py=cy-10+Math.sin(t*1.5+i*1.26)*22;
-    const alpha=(Math.sin(t*3+i*2)+1)/2*0.6;
-    const sparkColor=tier>=7?`rgba(255,210,0,${alpha})`:tier>=5?`rgba(150,150,255,${alpha})`:tier>=4?`rgba(255,80,80,${alpha})`:`rgba(245,166,35,${alpha})`;
-    c.fillStyle=sparkColor; c.beginPath(); c.arc(px,py,1.5,0,Math.PI*2); c.fill();
-  }
+  drawColonyStructure(c,W,H,tier,t,cx,cy);
+
+  // Ants — perspective-scaled by depth, depth-sorted
+  const numAnts=Math.min(4+Math.floor(STATE.colonySize/4),55);
+  while(ants.length<numAnts) spawnAnt();
+  while(ants.length>numAnts) ants.pop();
+  ants.sort((a,b)=>a.y-b.y);
+  ants.forEach(a=>{
+    a.timer++;
+    if(a.timer>80+Math.random()*120){
+      a.timer=0; a.targetX=20+Math.random()*(W-40); a.targetY=gY+8+Math.random()*(H-gY-20);
+    }
+    const dx=a.targetX-a.x,dy=a.targetY-a.y,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>2){const spd=0.55+Math.random()*0.45; a.x+=(dx/dist)*spd; a.y+=(dy/dist)*spd; a.angle=Math.atan2(dx,-dy);}
+    a.x=Math.max(6,Math.min(W-6,a.x)); a.y=Math.max(gY+4,Math.min(H-5,a.y));
+    const depth=(a.y-gY)/(H-gY);
+    const sz=(5+(a.type%3)*2)*(0.28+depth*0.75);
+    drawAnt(c,a.x,a.y,sz,a.angle,t,a.legPhase,a.carryFood);
+  });
 
   requestAnimationFrame(drawColony);
 }
