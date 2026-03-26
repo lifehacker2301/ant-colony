@@ -3521,7 +3521,50 @@ function updateQueenHeader() {
 
 // ── QUEEN CANVAS (hero animation) ────────────────────────────
 let queenCtx, queenCanvasEl;
-const queenAnims = []; // {x,y,qt,wingAngle,bobOffset,speed}
+const queenAnims = [];
+let queenEggPositions = [];
+
+function buildQueenEggPositions(W, H) {
+  queenEggPositions = [];
+  const floorY = H * 0.74;
+  const cx = W * 0.5;
+  const clusters = [
+    {x:cx-W*0.08, y:floorY-H*0.06, sx:W*0.20, sy:H*0.10, n:180},
+    {x:cx+W*0.16, y:floorY+H*0.01, sx:W*0.14, sy:H*0.07, n:110},
+    {x:cx-W*0.24, y:floorY+H*0.03, sx:W*0.11, sy:H*0.06, n:80},
+    {x:cx+W*0.05, y:floorY+H*0.05, sx:W*0.09, sy:H*0.05, n:80},
+    {x:cx-W*0.10, y:floorY+H*0.07, sx:W*0.07, sy:H*0.04, n:50},
+  ];
+  clusters.forEach(cl=>{
+    for(let i=0;i<cl.n;i++){
+      const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random());
+      const x=cl.x+Math.cos(a)*r*cl.sx*0.5;
+      const y=cl.y+Math.sin(a)*r*cl.sy*0.5;
+      const depth=Math.max(0,Math.min(1,(y-H*0.3)/(H*0.7)));
+      const sz=(1.2+depth*2.2)*(0.65+Math.random()*0.7);
+      queenEggPositions.push({x,y,rx:sz*0.52,ry:sz*0.88,angle:(Math.random()-0.5)*0.7,alpha:0.72+Math.random()*0.28});
+    }
+  });
+  queenEggPositions.sort((a,b)=>a.y-b.y);
+}
+
+function drawEggs(c, count) {
+  const n=Math.min(count, queenEggPositions.length);
+  for(let i=0;i<n;i++){
+    const e=queenEggPositions[i];
+    c.save(); c.translate(e.x,e.y); c.rotate(e.angle);
+    c.fillStyle='rgba(0,0,0,0.12)';
+    c.beginPath(); c.ellipse(e.rx*0.12,e.ry*0.2,e.rx*0.82,e.ry*0.2,0,0,Math.PI*2); c.fill();
+    const eg=c.createRadialGradient(-e.rx*0.22,-e.ry*0.28,0,0,0,e.rx*1.15);
+    eg.addColorStop(0,`rgba(250,244,232,${e.alpha})`);
+    eg.addColorStop(0.55,`rgba(228,220,200,${e.alpha*0.95})`);
+    eg.addColorStop(1,`rgba(192,182,158,${e.alpha*0.82})`);
+    c.fillStyle=eg; c.beginPath(); c.ellipse(0,0,e.rx,e.ry,0,0,Math.PI*2); c.fill();
+    c.fillStyle=`rgba(255,255,255,${e.alpha*0.42})`;
+    c.beginPath(); c.ellipse(-e.rx*0.18,-e.ry*0.24,e.rx*0.25,e.ry*0.18,-0.28,0,Math.PI*2); c.fill();
+    c.restore();
+  }
+}
 
 function initQueenCanvas() {
   queenCanvasEl = document.getElementById('queenCanvas');
@@ -3530,6 +3573,7 @@ function initQueenCanvas() {
   const wrap = queenCanvasEl.parentElement;
   queenCanvasEl.width  = wrap.offsetWidth || 360;
   queenCanvasEl.height = wrap.offsetHeight || 180;
+  buildQueenEggPositions(queenCanvasEl.width, queenCanvasEl.height);
   rebuildQueenAnims();
   drawQueenCanvas();
 }
@@ -3538,18 +3582,17 @@ function rebuildQueenAnims() {
   queenAnims.length = 0;
   const W = queenCanvasEl?.width || 360;
   const H = queenCanvasEl?.height || 180;
+  const floorY = H * 0.60;
   const ownedQueens = QUEEN_TYPES.filter(qt => STATE.queens[qt.key]);
   ownedQueens.forEach((qt, i) => {
+    const n = ownedQueens.length;
+    const spacing = W * 0.70 / Math.max(n, 1);
+    const startX = W * 0.15 + spacing * 0.5;
     queenAnims.push({
-      x: W * (0.15 + i * (0.7 / Math.max(ownedQueens.length,1))),
-      y: H * 0.55,
+      x: startX + i * spacing,
+      y: floorY,
       qt,
-      wingAngle: 0,
       bobOffset: Math.random() * Math.PI * 2,
-      speed: 0.4 + Math.random() * 0.3,
-      targetX: W * Math.random(),
-      targetY: H * 0.35 + Math.random() * H * 0.35,
-      timer: 0,
     });
   });
 }
@@ -3569,125 +3612,156 @@ function drawQueenCanvas() {
   const t = Date.now() / 1000;
   c.clearRect(0, 0, W, H);
 
-  // ── Deep underground chamber background ──
+  // ── Realistic underground soil chamber ──
   const bg = c.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#04000a'); bg.addColorStop(0.5,'#0b0014'); bg.addColorStop(1,'#040008');
-  c.fillStyle = bg; c.fillRect(0,0,W,H);
+  bg.addColorStop(0,'#0e0803'); bg.addColorStop(0.4,'#1c1007'); bg.addColorStop(0.8,'#281508'); bg.addColorStop(1,'#180c04');
+  c.fillStyle=bg; c.fillRect(0,0,W,H);
 
-  // Subtle wall texture lines
-  c.strokeStyle='rgba(80,0,120,0.07)'; c.lineWidth=1;
-  for(let i=0;i<8;i++){
-    c.beginPath(); c.moveTo(0,H*0.1+i*H*0.11); c.lineTo(W,H*0.08+i*H*0.12); c.stroke();
+  // Arched chamber wall shape — inner lighter soil
+  const chG=c.createRadialGradient(W/2,H*0.44,H*0.08,W/2,H*0.44,H*0.62);
+  chG.addColorStop(0,'rgba(58,32,10,0.96)');
+  chG.addColorStop(0.55,'rgba(38,20,7,0.78)');
+  chG.addColorStop(1,'rgba(15,8,2,0)');
+  c.fillStyle=chG;
+  c.beginPath(); c.ellipse(W/2,H*0.44,W*0.49,H*0.6,0,0,Math.PI*2); c.fill();
+
+  // Soil wall layers
+  c.strokeStyle='rgba(48,25,8,0.38)'; c.lineWidth=1;
+  for(let i=0;i<10;i++){
+    c.beginPath(); c.moveTo(0,H*0.06+i*H*0.095);
+    for(let x=0;x<=W;x+=22) c.lineTo(x,H*0.06+i*H*0.095+Math.sin(x*0.045+i)*2.8);
+    c.stroke();
   }
 
-  // Crystal pillars on sides
-  [[W*0.05,H*0.95],[W*0.12,H*0.85],[W*0.88,H*0.95],[W*0.95,H*0.85]].forEach(([cx,cy],i)=>{
-    const ht=H*(0.3+i%2*0.12);
-    const cg=c.createLinearGradient(cx,cy,cx,cy-ht);
-    cg.addColorStop(0,'rgba(60,0,100,0.5)'); cg.addColorStop(0.5,'rgba(120,20,200,0.35)'); cg.addColorStop(1,'rgba(200,100,255,0.15)');
-    c.fillStyle=cg;
-    c.beginPath(); c.moveTo(cx-6,cy); c.lineTo(cx-3,cy-ht); c.lineTo(cx,cy-ht-10); c.lineTo(cx+3,cy-ht); c.lineTo(cx+6,cy); c.closePath(); c.fill();
-    c.strokeStyle='rgba(180,80,255,0.25)'; c.lineWidth=0.8; c.stroke();
+  // Roots crawling on walls
+  const rootDefs=[
+    [W*0.07,H*0.08, W*0.04,H*0.4, W*0.10,H*0.68],
+    [W*0.20,H*0.04, W*0.25,H*0.28, W*0.16,H*0.52],
+    [W*0.80,H*0.06, W*0.85,H*0.38, W*0.78,H*0.62],
+    [W*0.93,H*0.10, W*0.97,H*0.46, W*0.89,H*0.70],
+    [W*0.50,H*0.01, W*0.48,H*0.18, W*0.53,H*0.33],
+    [W*0.35,H*0.03, W*0.32,H*0.22, W*0.38,H*0.42],
+  ];
+  rootDefs.forEach(([x1,y1,x2,y2,x3,y3])=>{
+    c.strokeStyle='rgba(32,16,4,0.58)'; c.lineWidth=1.6; c.lineCap='round';
+    c.beginPath(); c.moveTo(x1,y1);
+    c.bezierCurveTo(x2,y2,x3,y3,x3+6,y3+14); c.stroke();
+    c.lineWidth=0.8;
+    c.beginPath(); c.moveTo(x2,y2); c.lineTo(x2-11,y2+13); c.stroke();
+    c.beginPath(); c.moveTo(x2,y2); c.lineTo(x2+9,y2+16); c.stroke();
   });
 
-  // Glowing ground plane with reflection
-  const ground = c.createLinearGradient(0,H*0.78,0,H);
-  ground.addColorStop(0,'rgba(80,0,140,0.15)'); ground.addColorStop(0.5,'rgba(50,0,90,0.35)'); ground.addColorStop(1,'rgba(20,0,40,0.6)');
-  c.fillStyle=ground; c.fillRect(0,H*0.78,W,H*0.22);
-  // Ground line glow
-  const gl=c.createLinearGradient(0,0,W,0);
-  gl.addColorStop(0,'rgba(0,0,0,0)'); gl.addColorStop(0.3,'rgba(160,60,255,0.3)'); gl.addColorStop(0.7,'rgba(160,60,255,0.3)'); gl.addColorStop(1,'rgba(0,0,0,0)');
-  c.fillStyle=gl; c.fillRect(0,H*0.78,W,2);
-
-  // Ambient color from owned queens
-  if (queenAnims.length > 0) {
-    queenAnims.forEach(qa => {
-      const ag = c.createRadialGradient(qa.x, H, 0, qa.x, H*0.5, H*0.6);
-      ag.addColorStop(0, qa.qt.glow.replace(/[\d.]+\)$/,'0.08)'));
-      ag.addColorStop(1,'rgba(0,0,0,0)');
-      c.fillStyle=ag; c.fillRect(0,0,W,H);
-    });
+  // Micro soil texture dots
+  for(let i=0;i<60;i++){
+    const px=(i*139+23)%W, py=(i*97+41)%H, lm=9+(i%14);
+    c.fillStyle=`rgba(${lm+16},${lm+6},${lm},0.38)`;
+    c.beginPath(); c.arc(px,py,0.5+(i%3)*0.35,0,Math.PI*2); c.fill();
   }
 
-  // Floating magic particles
-  for(let i=0;i<28;i++){
-    const px=((t*15+i*43)%W);
-    const py=H-(((t*12+i*27)%(H*0.9)));
-    const pa=(Math.sin(t*1.8+i*0.7)+1)/2;
-    const ps=0.8+pa*1.2;
-    const col = i%3===0?`rgba(200,100,255,${pa*0.5})`:i%3===1?`rgba(100,200,255,${pa*0.4})`:`rgba(255,180,80,${pa*0.3})`;
-    c.fillStyle=col;
-    c.beginPath(); c.arc(px,py,ps,0,Math.PI*2); c.fill();
+  // Ground floor
+  const floorY=H*0.74;
+  const fg=c.createLinearGradient(0,floorY-4,0,H);
+  fg.addColorStop(0,'rgba(65,35,10,0.94)'); fg.addColorStop(0.45,'rgba(42,22,6,0.97)'); fg.addColorStop(1,'rgba(20,10,3,1)');
+  c.fillStyle=fg; c.fillRect(0,floorY-4,W,H-floorY+4);
+  c.fillStyle='rgba(82,46,14,0.82)';
+  c.beginPath(); c.moveTo(0,floorY-4);
+  for(let x=0;x<=W;x+=16) c.lineTo(x,floorY-4+Math.sin(x*0.058)*2.8+Math.sin(x*0.12+1.2)*1.4);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+
+  // Warm amber egg-glow ambient
+  if(queenAnims.length>0){
+    const eg=c.createRadialGradient(W*0.44,H*0.72,8,W*0.44,H*0.68,W*0.52);
+    eg.addColorStop(0,'rgba(225,185,75,0.14)');
+    eg.addColorStop(0.5,'rgba(200,140,40,0.07)');
+    eg.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=eg; c.fillRect(0,0,W,H);
   }
 
-  if (queenAnims.length === 0) {
-    // Placeholder — empty throne
-    const tg=c.createRadialGradient(W/2,H/2,5,W/2,H/2,55);
-    tg.addColorStop(0,'rgba(180,0,255,0.18)'); tg.addColorStop(1,'rgba(0,0,0,0)');
-    c.fillStyle=tg; c.beginPath(); c.arc(W/2,H/2,55,0,Math.PI*2); c.fill();
-    c.fillStyle='rgba(180,0,255,0.35)'; c.font='40px serif';
-    c.textAlign='center'; c.textBaseline='middle'; c.fillText('👑',W/2,H/2);
-    c.fillStyle='rgba(160,100,220,0.7)'; c.font='600 12px Rajdhani';
-    c.fillText('Purchase a Queen to begin',W/2,H/2+46);
+  // Rarity glow from queens
+  queenAnims.forEach(qa=>{
+    const qg=c.createRadialGradient(qa.x,qa.y+15,3,qa.x,qa.y,38*1.8);
+    qg.addColorStop(0,qa.qt.glow.replace(/[\d.]+\)$/,'0.20)'));
+    qg.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=qg; c.fillRect(0,0,W,H);
+  });
+
+  // ── 500 decorative eggs (visual only — independent of Egg Chamber) ──
+  if(queenAnims.length>0) drawEggs(c, 500);
+
+  // ── Floating dust motes ──
+  for(let i=0;i<14;i++){
+    const px=((t*7+i*51)%W);
+    const py=H*0.12-(((t*4.5+i*34)%(H*0.82)));
+    const pa=(Math.sin(t*1.1+i*0.75)+1)/2;
+    c.fillStyle=`rgba(205,158,75,${pa*0.20})`;
+    c.beginPath(); c.arc(px,py,0.6+pa*0.5,0,Math.PI*2); c.fill();
+  }
+
+  if(queenAnims.length===0){
+    const tg=c.createRadialGradient(W/2,H*0.48,5,W/2,H*0.48,52);
+    tg.addColorStop(0,'rgba(175,95,28,0.18)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=tg; c.beginPath(); c.arc(W/2,H*0.48,52,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(165,95,30,0.40)'; c.font='36px serif';
+    c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('\uD83D\uDC1C',W/2,H*0.45);
+    c.fillStyle='rgba(165,112,48,0.68)'; c.font='600 11px Rajdhani';
+    c.fillText('Purchase a Queen to begin',W/2,H*0.45+40);
   } else {
-    // Dynamic size based on queen count
-    const qsz = queenAnims.length<=1?32:queenAnims.length<=2?26:queenAnims.length<=4?21:17;
-    queenAnims.forEach(qa => {
-      qa.timer++;
-      if(qa.timer > 90+Math.random()*70){ qa.timer=0; qa.targetX=35+Math.random()*(W-70); qa.targetY=H*0.2+Math.random()*(H*0.55); }
-      const dx=qa.targetX-qa.x, dy=qa.targetY-qa.y, dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist>1.5){qa.x+=dx/dist*qa.speed; qa.y+=dy/dist*qa.speed;}
-      qa.bobOffset+=0.04;
-      // Ground shadow
-      c.save(); c.globalAlpha=0.2;
-      c.fillStyle='rgba(0,0,0,0.5)';
-      c.beginPath(); c.ellipse(qa.x, H*0.82, qsz*0.6, qsz*0.12, 0, 0, Math.PI*2); c.fill();
+    const qsz=queenAnims.length<=1?40:queenAnims.length<=2?31:queenAnims.length<=4?25:20;
+    queenAnims.forEach(qa=>{
+      qa.bobOffset+=0.016;
+      // Floor shadow
+      c.save(); c.globalAlpha=0.22;
+      c.fillStyle='rgba(0,0,0,0.65)';
+      c.beginPath(); c.ellipse(qa.x,floorY+2,qsz*0.68,qsz*0.14,0,0,Math.PI*2); c.fill();
       c.restore();
-      drawQueenAnt(c, qa.x, qa.y+Math.sin(qa.bobOffset)*4, qsz, qa.qt, t);
+      // Subtle breathing bob (no flying)
+      drawQueenAnt(c, qa.x, qa.y+Math.sin(qa.bobOffset)*1.8, qsz, qa.qt, t);
     });
   }
 
   requestAnimationFrame(drawQueenCanvas);
 }
 
-// ── Fantasy Queen Ant — detailed character ─────────────────────
+// ── Realistic Queen Ant — rarity-colored, laying eggs ──────────
 function drawQueenAnt(c, x, y, sz, qt, t) {
   const col  = qt.color;
   const key  = qt.key;
   const dark = shadeCol(col, -55);
   const lite = shadeCol(col, 65);
-  const pulse = (Math.sin(t * 2.2) + 1) * 0.5;
+  const pulse = (Math.sin(t * 1.4) + 1) * 0.5;
 
   c.save();
   c.translate(x, y);
 
   // ═══ 1. AMBIENT AURA ═══
-  const aura = c.createRadialGradient(0, sz*0.1, sz*0.2, 0, sz*0.1, sz*3.8);
-  aura.addColorStop(0, qt.glow.replace(/[\d.]+\)$/,`${0.22+pulse*0.1})`));
-  aura.addColorStop(0.5, qt.glow.replace(/[\d.]+\)$/,'0.06)'));
+  const aura = c.createRadialGradient(0, sz*0.1, sz*0.2, 0, sz*0.1, sz*3.5);
+  aura.addColorStop(0, qt.glow.replace(/[\d.]+\)$/,`${0.20+pulse*0.08})`));
+  aura.addColorStop(0.5, qt.glow.replace(/[\d.]+\)$/,'0.05)'));
   aura.addColorStop(1, 'rgba(0,0,0,0)');
-  c.fillStyle=aura; c.beginPath(); c.arc(0,sz*0.1,sz*3.8,0,Math.PI*2); c.fill();
+  c.fillStyle=aura; c.beginPath(); c.arc(0,sz*0.1,sz*3.5,0,Math.PI*2); c.fill();
 
-  // ═══ 2. WINGS ═══
-  const wFlap1 = Math.sin(t*9.5)*0.38;
-  const wFlap2 = Math.sin(t*9.5+0.5)*0.3;
+  // ═══ 2. WINGS — resting/folded, spread wide, NOT flapping ═══
+  // Very slow breathing movement only (queen is laying eggs, not flying)
+  const wFlap1 = Math.sin(t*0.55)*0.04 - 0.10;
+  const wFlap2 = Math.sin(t*0.55+0.25)*0.03 - 0.06;
 
   function drawWing(side, flapAngle, isHind) {
     c.save();
-    c.translate(side*sz*0.18, -sz*0.08);
-    c.rotate(side*flapAngle);
-    const wl = isHind ? sz*1.05 : sz*1.55;
-    const wh = isHind ? sz*0.38 : sz*0.52;
+    c.translate(side*sz*0.18, -sz*0.04);
+    c.rotate(side*(flapAngle + 0.18));  // angled outward & slightly down at rest
+    const wl = isHind ? sz*1.05 : sz*1.50;
+    const wh = isHind ? sz*0.36 : sz*0.48;
 
-    // Wing shape (organic bezier)
+    // Wing shape — flatter/more horizontal for resting posture
     c.beginPath();
     c.moveTo(0,0);
     if(side>0){
-      c.bezierCurveTo( wl*0.22,-wh*1.35, wl*0.78,-wh*0.95, wl,-wh*0.08);
-      c.bezierCurveTo( wl*0.82, wh*0.5,  wl*0.22, wh*0.52, 0,0);
+      c.bezierCurveTo( wl*0.25,-wh*0.72, wl*0.76,-wh*0.52, wl, wh*0.05);
+      c.bezierCurveTo( wl*0.80, wh*0.55,  wl*0.25, wh*0.50, 0,0);
     } else {
-      c.bezierCurveTo(-wl*0.22,-wh*1.35,-wl*0.78,-wh*0.95,-wl,-wh*0.08);
-      c.bezierCurveTo(-wl*0.82, wh*0.5, -wl*0.22, wh*0.52, 0,0);
+      c.bezierCurveTo(-wl*0.25,-wh*0.72,-wl*0.76,-wh*0.52,-wl, wh*0.05);
+      c.bezierCurveTo(-wl*0.80, wh*0.55, -wl*0.25, wh*0.50, 0,0);
     }
     c.closePath();
 
@@ -3780,9 +3854,22 @@ function drawQueenAnt(c, x, y, sz, qt, t) {
   // Abdomen highlight
   c.fillStyle='rgba(255,255,255,0.18)';
   c.beginPath(); c.ellipse(-aW*0.25,aY-aH*0.18,aW*0.22,aH*0.18,-0.4,0,Math.PI*2); c.fill();
-  // Stinger tip
+  // Stinger/ovipositor tip
   c.fillStyle=dark;
   c.beginPath(); c.moveTo(-sz*0.08,aY+aH*0.5); c.lineTo(0,aY+aH*0.72); c.lineTo(sz*0.08,aY+aH*0.5); c.closePath(); c.fill();
+  // Freshly-laid egg at abdomen tip — pulsing visibility
+  const eggPulse=(Math.sin(t*1.2)+1)/2;
+  if(eggPulse>0.15){
+    const etx=0, ety=aY+aH*0.82;
+    const eeg=c.createRadialGradient(etx-sz*0.06,ety-sz*0.08,0,etx,ety,sz*0.22);
+    eeg.addColorStop(0,`rgba(252,246,234,${0.9*eggPulse})`);
+    eeg.addColorStop(0.6,`rgba(228,220,198,${0.75*eggPulse})`);
+    eeg.addColorStop(1,`rgba(190,180,155,0)`);
+    c.fillStyle=eeg;
+    c.beginPath(); c.ellipse(etx,ety,sz*0.11,sz*0.18,0,0,Math.PI*2); c.fill();
+    c.fillStyle=`rgba(255,255,255,${0.45*eggPulse})`;
+    c.beginPath(); c.ellipse(etx-sz*0.04,ety-sz*0.05,sz*0.04,sz*0.06,-0.3,0,Math.PI*2); c.fill();
+  }
   c.restore();
 
   // ═══ 5. PETIOLE (waist node) ═══
