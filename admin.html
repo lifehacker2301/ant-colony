@@ -1872,15 +1872,15 @@ function saveOptTask() {
   var txReqs = document.getElementById('optTxReqs').value.trim();
   var description = document.getElementById('optDescription').value.trim();
   var editId = document.getElementById('optEditId').value;
-  if (!name) { showToast('Task name is required', 'error'); return; }
-  if (!link) { showToast('Project link is required', 'error'); return; }
-  if (!startDate) { showToast('Start date is required', 'error'); return; }
+  if (!name) { toast('Task name is required', 'error'); return; }
+  if (!link) { toast('Project link is required', 'error'); return; }
+  if (!startDate) { toast('Start date is required', 'error'); return; }
   var data = { link: link, buyLink: buyLink, name: name, tokenSymbol: tokenSymbol, tokenName: tokenName, minUSD: minUSD, reward: reward, duration: duration, startDate: startDate, txReqs: txReqs, description: description };
   if (editId) {
-    db.ref('optAirdrops/' + editId).set(data).then(function() { showToast('Task updated!', 'success'); cancelOptForm(); loadOptAdmin(); });
+    db.ref('optAirdrops/' + editId).set(data).then(function() { toast('\u2713 Task updated!', 'success'); cancelOptForm(); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
   } else {
     data.createdAt = Date.now();
-    db.ref('optAirdrops').push(data).then(function() { showToast('Task created!', 'success'); cancelOptForm(); loadOptAdmin(); });
+    db.ref('optAirdrops').push(data).then(function() { toast('\u2713 Task created!', 'success'); cancelOptForm(); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
   }
 }
 
@@ -1909,7 +1909,7 @@ function deleteOptTask(id) {
   var t = _optTaskData[id];
   var taskName = t ? t.name : id;
   openModal('\ud83d\uddd1\ufe0f Delete Task', 'Delete "' + taskName + '"? This cannot be undone.', function() {
-    db.ref('optAirdrops/' + id).remove().then(function() { showToast('Task deleted', 'success'); loadOptAdmin(); });
+    db.ref('optAirdrops/' + id).remove().then(function() { toast('\ud83d\uddd1 Task deleted', 'success'); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
   }, 'danger');
 }
 
@@ -2087,11 +2087,11 @@ function viewOptSubmissions(taskId) {
 }
 
 function approveOptSub(uid, taskId) {
-  db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'approved' }).then(function() { showToast('Submission approved', 'success'); viewOptSubmissions(taskId); });
+  db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'approved' }).then(function() { toast('\u2713 Submission approved', 'success'); viewOptSubmissions(taskId); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
 }
 
 function rejectOptSub(uid, taskId) {
-  db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'rejected' }).then(function() { showToast('Submission rejected', 'success'); viewOptSubmissions(taskId); });
+  db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'rejected' }).then(function() { toast('\u2715 Submission rejected', 'success'); viewOptSubmissions(taskId); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
 }
 
 function closeOptSubmissions() {

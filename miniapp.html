@@ -5072,15 +5072,17 @@ window.closeAirdropOverlay = closeAirdropOverlay;
   function loadOptAirdrops() {
     var list = document.getElementById('optAirdropList');
     if (!list) return;
-    if (!window.fbDb) return;
+    if (!window.fbDb) { setTimeout(loadOptAirdrops, 1500); return; }
     var uid = String(TG_USER.id);
     fbDb.ref(OPT_DB_PATH).once('value').then(function(snap) {
       var tasks = snap.val() || {};
       var now = Date.now();
       var ids = Object.keys(tasks).filter(function(id) {
         var t = tasks[id];
-        if (!t.startDate) return false;
-        return new Date(t.startDate).getTime() <= now;
+        // No startDate = show immediately; invalid/future date = hide
+        if (!t.startDate) return true;
+        var ms = new Date(t.startDate).getTime();
+        return isNaN(ms) ? false : ms <= now;
       });
       if (ids.length === 0) {
         list.textContent = '';
