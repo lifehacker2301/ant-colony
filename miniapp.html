@@ -771,6 +771,34 @@ body::before {
 .airdrop-review-bar { height:4px; background:rgba(245,166,35,0.15); border-radius:2px; margin-top:8px; overflow:hidden; }
 .airdrop-review-fill { height:100%; background:linear-gradient(90deg,#f5a623,#ffd060); border-radius:2px; transition:width 0.5s; }
 
+/* ── OPTIONAL TASKS ── */
+.opt-task-card { background:linear-gradient(135deg,rgba(5,20,10,0.88),rgba(5,35,15,0.72)); border:1px solid rgba(0,200,80,0.28); border-radius:16px; padding:16px; margin-bottom:12px; position:relative; overflow:hidden; transition:all 0.2s; }
+.opt-task-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(0,200,80,0.04),transparent); pointer-events:none; }
+.opt-task-card-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.opt-task-logo { width:44px; height:44px; border-radius:10px; background:rgba(0,200,80,0.12); border:1px solid rgba(0,200,80,0.28); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+.opt-task-logo img { width:36px; height:36px; object-fit:contain; }
+.opt-task-title { font-family:'Cinzel Decorative'; font-size:12px; color:#44ee88; margin-bottom:3px; }
+.opt-task-domain { font-size:10px; color:var(--text-dim); font-family:'Orbitron'; }
+.opt-task-desc { font-size:11px; color:var(--text-secondary); line-height:1.55; margin-bottom:10px; }
+.opt-task-meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.opt-task-reward-pill { background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.35); border-radius:8px; padding:4px 10px; font-size:10px; color:var(--amber-bright); font-family:'Orbitron'; }
+.opt-min-pill { background:rgba(0,200,80,0.1); border:1px solid rgba(0,200,80,0.3); border-radius:8px; padding:4px 10px; font-size:10px; color:#44ee88; font-family:'Orbitron'; }
+.opt-task-time-pill { background:rgba(0,180,255,0.08); border:1px solid rgba(0,180,255,0.25); border-radius:8px; padding:4px 10px; font-size:10px; color:#66ccff; font-family:'Orbitron'; }
+.opt-join-btn { width:100%; background:linear-gradient(135deg,#006630,#004422); border:none; border-radius:10px; padding:12px; font-family:'Orbitron'; font-size:10px; font-weight:700; color:#44ee88; cursor:pointer; letter-spacing:0.5px; transition:all 0.15s; }
+.opt-join-btn:active { transform:scale(0.97); }
+.opt-join-btn.review { background:linear-gradient(135deg,#1a1200,#2a1e00); border:1px solid rgba(245,166,35,0.3); color:var(--amber-bright); cursor:default; }
+.opt-join-btn.claim { background:linear-gradient(135deg,#f5a623,#d4800a); color:#0a0500; }
+.opt-join-btn.claimed { background:rgba(39,174,96,0.15); border:1px solid rgba(39,174,96,0.4); color:#2ecc71; cursor:default; }
+.opt-join-btn.expired { background:rgba(100,100,100,0.1); border:1px solid rgba(100,100,100,0.3); color:#666; cursor:default; }
+.opt-submit-input { width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(0,200,80,0.3); border-radius:10px; padding:10px 12px; font-size:12px; color:#eee; box-sizing:border-box; outline:none; margin-bottom:10px; font-family:inherit; }
+.opt-submit-input:focus { border-color:rgba(0,200,80,0.7); }
+.opt-submit-input::placeholder { color:rgba(255,255,255,0.28); }
+.opt-review-bar { height:4px; background:rgba(0,200,80,0.15); border-radius:2px; margin-top:8px; overflow:hidden; }
+.opt-review-fill { height:100%; background:linear-gradient(90deg,#00cc55,#44ff88); border-radius:2px; transition:width 0.5s; }
+.opt-badge { display:inline-block; font-size:9px; font-family:'Orbitron'; padding:2px 7px; border-radius:5px; font-weight:700; margin-left:6px; vertical-align:middle; }
+.opt-badge.new { background:rgba(0,200,80,0.18); border:1px solid rgba(0,200,80,0.45); color:#44ee88; }
+.opt-badge.hot { background:rgba(255,80,0,0.18); border:1px solid rgba(255,80,0,0.45); color:#ff8844; }
+
 /* ── ACHIEVEMENTS ── */
 .achieve-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
 .achieve-item {
@@ -1103,6 +1131,43 @@ body::before {
           <div style="font-size:13px;color:var(--text-dim)">Loading airdrops...</div>
         </div>
       </div>
+    </div>
+
+    <!-- OPTIONAL TASKS SECTION -->
+    <div class="section" style="margin-top:8px">
+      <div class="section-title" style="margin-bottom:4px">💰 Optional Tasks</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">
+        Buy partner tokens (min $10), submit proof, and earn bonus $ANT rewards.
+      </div>
+      <div id="optAirdropList">
+        <div class="airdrop-empty" id="optAirdropLoading">
+          <div style="font-size:32px;margin-bottom:8px">⏳</div>
+          <div style="font-size:13px;color:var(--text-dim)">Loading tasks...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPT AIRDROP OVERLAY -->
+  <div id="optAirdropOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:999;align-items:flex-end;justify-content:center;pointer-events:none">
+    <div id="optAirdropSheet" style="background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:20px 18px 32px;pointer-events:all;transform:translateY(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1)">
+      <div style="display:flex;align-items:center;margin-bottom:14px">
+        <div id="optSheetLogo" style="width:42px;height:42px;border-radius:10px;background:var(--bg2);margin-right:12px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px"></div>
+        <div>
+          <div id="optSheetName" style="font-weight:700;font-size:15px"></div>
+          <div id="optSheetToken" style="font-size:11px;color:var(--text-dim)"></div>
+        </div>
+        <button onclick="closeOptOverlay()" style="margin-left:auto;background:none;border:none;font-size:22px;color:var(--text-dim);cursor:pointer;padding:4px">✕</button>
+      </div>
+      <div id="optSheetDesc" style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.55"></div>
+      <div style="background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:11px;color:var(--text-dim)">Minimum Purchase</div>
+        <div id="optSheetMin" style="font-weight:700;font-size:14px;color:var(--amber-bright)"></div>
+      </div>
+      <div id="optSheetActionArea">
+        <!-- dynamic: step 1 buy link, step 2 submit form, step 3 review, step 4 claim -->
+      </div>
+      <div id="optSheetMsg" style="font-size:12px;text-align:center;margin-top:10px;min-height:18px;color:var(--amber-bright)"></div>
     </div>
   </div>
 
@@ -4985,6 +5050,397 @@ window.joinAirdrop = joinAirdrop;
 window.claimAirdrop = claimAirdrop;
 window.closeAirdropOverlay = closeAirdropOverlay;
 
+})();
+
+// ============================================================
+//  OPTIONAL TASKS SECTION
+// ============================================================
+(function(){
+  var OPT_DB_PATH = 'optAirdrops';
+  var OPT_SUB_PATH = 'optAirdropSubmits';
+  var _currentOptTask = null;
+
+  // Safe HTML escaping — all Firebase data goes through this before innerHTML
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function getDomain(url) {
+    try { return new URL(url).hostname; } catch(e) { return ''; }
+  }
+
+  function loadOptAirdrops() {
+    var list = document.getElementById('optAirdropList');
+    if (!list) return;
+    if (!window.fbDb) return;
+    var uid = String(TG_USER.id);
+    fbDb.ref(OPT_DB_PATH).once('value').then(function(snap) {
+      var tasks = snap.val() || {};
+      var now = Date.now();
+      var ids = Object.keys(tasks).filter(function(id) {
+        var t = tasks[id];
+        if (!t.startDate) return false;
+        return new Date(t.startDate).getTime() <= now;
+      });
+      if (ids.length === 0) {
+        list.textContent = '';
+        var empty = document.createElement('div');
+        empty.className = 'airdrop-empty';
+        empty.innerHTML = '<div style="font-size:32px;margin-bottom:8px">\ud83d\udcad</div>';
+        var lbl = document.createElement('div');
+        lbl.style.fontSize = '13px';
+        lbl.style.color = 'var(--text-dim)';
+        lbl.textContent = 'No tasks available yet';
+        empty.appendChild(lbl);
+        list.appendChild(empty);
+        return;
+      }
+      fbDb.ref(OPT_SUB_PATH + '/' + uid).once('value').then(function(subSnap) {
+        var subs = subSnap.val() || {};
+        list.textContent = '';
+        ids.forEach(function(id) { list.appendChild(renderOptCard(tasks[id], id, subs[id])); });
+      });
+    }).catch(function() {
+      list.textContent = '';
+      var err = document.createElement('div');
+      err.className = 'airdrop-empty';
+      err.textContent = 'Failed to load tasks';
+      list.appendChild(err);
+    });
+  }
+
+  function renderOptCard(task, id, sub) {
+    var now = Date.now();
+    var domain = getDomain(task.link || '');
+    var logoUrl = domain ? 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64' : '';
+    var endMs = task.startDate ? new Date(task.startDate).getTime() + (task.duration || 30) * 86400000 : Infinity;
+    var expired = now > endMs;
+    var status = sub ? sub.status : null;
+    var btnLabel = 'JOIN TASK';
+    var btnClass = '';
+    if (expired && status !== 'claimed') { btnLabel = 'EXPIRED'; btnClass = 'expired'; }
+    else if (status === 'claimed') { btnLabel = '\u2713 CLAIMED'; btnClass = 'claimed'; }
+    else if (status === 'approved') { btnLabel = '\u2b50 CLAIM REWARD'; btnClass = 'claim'; }
+    else if (status === 'review') {
+      var elapsed = now - (sub.submittedAt || now);
+      var pct = Math.min(100, Math.round(elapsed / 864000));
+      if (elapsed >= 86400000) { btnLabel = '\u2b50 CLAIM REWARD'; btnClass = 'claim'; }
+      else { btnLabel = 'UNDER REVIEW \u2022 ' + pct + '%'; btnClass = 'review'; }
+    } else if (status === 'rejected') { btnLabel = 'RESUBMIT'; }
+
+    var card = document.createElement('div');
+    card.className = 'opt-task-card';
+
+    // card head
+    var head = document.createElement('div');
+    head.className = 'opt-task-card-head';
+    var logoDiv = document.createElement('div');
+    logoDiv.className = 'opt-task-logo';
+    if (logoUrl) {
+      var img = document.createElement('img');
+      img.src = logoUrl;
+      img.style.cssText = 'width:36px;height:36px;object-fit:contain';
+      img.onerror = function() { this.style.display = 'none'; };
+      logoDiv.appendChild(img);
+    } else {
+      logoDiv.textContent = '\ud83d\udcb0';
+    }
+    head.appendChild(logoDiv);
+    var titleWrap = document.createElement('div');
+    var titleEl = document.createElement('div');
+    titleEl.className = 'opt-task-title';
+    titleEl.textContent = task.name || 'Task';
+    if (!sub && !expired) {
+      var badge = document.createElement('span');
+      badge.className = 'opt-badge new';
+      badge.textContent = 'NEW';
+      titleEl.appendChild(badge);
+    }
+    var domainEl = document.createElement('div');
+    domainEl.className = 'opt-task-domain';
+    domainEl.textContent = domain;
+    titleWrap.appendChild(titleEl);
+    titleWrap.appendChild(domainEl);
+    head.appendChild(titleWrap);
+    card.appendChild(head);
+
+    // description
+    var desc = document.createElement('div');
+    desc.className = 'opt-task-desc';
+    desc.textContent = task.description || '';
+    card.appendChild(desc);
+
+    // meta pills
+    var meta = document.createElement('div');
+    meta.className = 'opt-task-meta';
+    var rPill = document.createElement('span');
+    rPill.className = 'opt-task-reward-pill';
+    rPill.textContent = '\ud83c\udf1f ' + (task.reward || 0) + ' $ANT';
+    var mPill = document.createElement('span');
+    mPill.className = 'opt-min-pill';
+    mPill.textContent = 'Min $' + (task.minUSD || 10) + ' ' + (task.tokenSymbol || 'TOKEN');
+    meta.appendChild(rPill);
+    meta.appendChild(mPill);
+    if (task.duration) {
+      var tPill = document.createElement('span');
+      tPill.className = 'opt-task-time-pill';
+      tPill.textContent = task.duration + 'd';
+      meta.appendChild(tPill);
+    }
+    card.appendChild(meta);
+
+    // action button
+    var btn = document.createElement('button');
+    btn.className = 'opt-join-btn ' + btnClass;
+    btn.textContent = btnLabel;
+    btn.setAttribute('data-optid', id);
+    btn.onclick = function() { openOptSubmit(id); };
+    card.appendChild(btn);
+
+    // review bar
+    if (status === 'review') {
+      var elapsed2 = now - (sub.submittedAt || now);
+      var pct2 = Math.min(100, Math.round(elapsed2 / 864000));
+      var bar = document.createElement('div');
+      bar.className = 'opt-review-bar';
+      var fill = document.createElement('div');
+      fill.className = 'opt-review-fill';
+      fill.style.width = pct2 + '%';
+      bar.appendChild(fill);
+      card.appendChild(bar);
+    }
+    return card;
+  }
+
+  function openOptSubmit(id) {
+    if (!window.fbDb) return;
+    var uid = String(TG_USER.id);
+    fbDb.ref(OPT_DB_PATH + '/' + id).once('value').then(function(snap) {
+      var task = snap.val();
+      if (!task) return;
+      fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).once('value').then(function(subSnap) {
+        var sub = subSnap.val();
+        _currentOptTask = { id: id, task: task };
+        _showOptOverlay(task, id, sub);
+      });
+    });
+  }
+
+  function _showOptOverlay(task, id, sub) {
+    var domain = getDomain(task.link || '');
+    var logoUrl = domain ? 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64' : '';
+    var logoEl = document.getElementById('optSheetLogo');
+    if (logoEl) {
+      logoEl.textContent = '';
+      if (logoUrl) {
+        var img = document.createElement('img');
+        img.src = logoUrl;
+        img.style.cssText = 'width:36px;height:36px;object-fit:contain';
+        img.onerror = function() { this.style.display = 'none'; };
+        logoEl.appendChild(img);
+      } else {
+        logoEl.textContent = '\ud83d\udcb0';
+      }
+    }
+    var nameEl = document.getElementById('optSheetName');
+    if (nameEl) nameEl.textContent = task.name || 'Optional Task';
+    var tokenEl = document.getElementById('optSheetToken');
+    if (tokenEl) tokenEl.textContent = (task.tokenSymbol || '') + (task.tokenName ? ' \u2014 ' + task.tokenName : '');
+    var descEl = document.getElementById('optSheetDesc');
+    if (descEl) descEl.textContent = task.description || '';
+    var minEl = document.getElementById('optSheetMin');
+    if (minEl) minEl.textContent = 'Min $' + (task.minUSD || 10) + ' USD of ' + (task.tokenSymbol || 'token');
+    var msgEl = document.getElementById('optSheetMsg');
+    if (msgEl) msgEl.textContent = '';
+    _renderOptAction(task, id, sub);
+    var overlay = document.getElementById('optAirdropOverlay');
+    var sheet = document.getElementById('optAirdropSheet');
+    if (overlay) { overlay.style.display = 'flex'; overlay.style.alignItems = 'flex-end'; overlay.style.justifyContent = 'center'; overlay.style.pointerEvents = 'all'; }
+    if (sheet) { setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 30); }
+    tgApp.HapticFeedback && tgApp.HapticFeedback.impactOccurred('light');
+  }
+
+  function _renderOptAction(task, id, sub) {
+    var area = document.getElementById('optSheetActionArea');
+    if (!area) return;
+    area.textContent = '';
+    var now = Date.now();
+    var status = sub ? sub.status : null;
+    var elapsed = sub ? (now - (sub.submittedAt || now)) : 0;
+    var autoReady = status === 'review' && elapsed >= 86400000;
+
+    if (status === 'claimed') {
+      var claimedDiv = document.createElement('div');
+      claimedDiv.style.cssText = 'text-align:center;padding:16px 0;color:#2ecc71;font-size:22px';
+      claimedDiv.textContent = '\u2713';
+      var claimedLbl = document.createElement('div');
+      claimedLbl.style.cssText = 'text-align:center;font-size:13px;color:#2ecc71;margin-bottom:8px';
+      claimedLbl.textContent = 'Reward Claimed!';
+      area.appendChild(claimedDiv);
+      area.appendChild(claimedLbl);
+      return;
+    }
+    if (status === 'approved' || autoReady) {
+      var claimBtn = document.createElement('button');
+      claimBtn.className = 'opt-join-btn claim';
+      claimBtn.textContent = '\u2b50 CLAIM ' + (task.reward || 0) + ' $ANT';
+      claimBtn.onclick = function() { claimOptAirdrop(id); };
+      area.appendChild(claimBtn);
+      return;
+    }
+    if (status === 'review') {
+      var pct = Math.min(100, Math.round(elapsed / 864000));
+      var revLbl = document.createElement('div');
+      revLbl.style.cssText = 'text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:10px';
+      revLbl.textContent = 'Under review\u2026 (' + pct + '% complete)';
+      var bar = document.createElement('div');
+      bar.className = 'opt-review-bar';
+      var fill = document.createElement('div');
+      fill.className = 'opt-review-fill';
+      fill.style.width = pct + '%';
+      bar.appendChild(fill);
+      var waitLbl = document.createElement('div');
+      waitLbl.style.cssText = 'font-size:10px;color:var(--text-dim);text-align:center;margin-top:8px';
+      waitLbl.textContent = 'Come back in ' + Math.max(0, Math.ceil((86400000 - elapsed) / 3600000)) + 'h to claim your reward.';
+      area.appendChild(revLbl);
+      area.appendChild(bar);
+      area.appendChild(waitLbl);
+      return;
+    }
+    // No sub or rejected — show buy link + form
+    if (status === 'rejected') {
+      var rejLbl = document.createElement('div');
+      rejLbl.style.cssText = 'font-size:11px;color:#ff6655;margin-bottom:10px;text-align:center';
+      rejLbl.textContent = 'Your previous submission was rejected. Please resubmit.';
+      area.appendChild(rejLbl);
+    }
+    _appendSubmitForm(area, task, id);
+  }
+
+  function _appendSubmitForm(area, task, id) {
+    var buyLink = task.buyLink || task.link || '#';
+    var buyA = document.createElement('a');
+    buyA.href = buyLink;
+    buyA.target = '_blank';
+    buyA.style.cssText = 'display:block;text-decoration:none;margin-bottom:12px';
+    var buyBtn = document.createElement('button');
+    buyBtn.className = 'opt-join-btn';
+    buyBtn.style.cssText = 'background:linear-gradient(135deg,#004488,#002266);color:#66aaff';
+    buyBtn.type = 'button';
+    buyBtn.textContent = '\ud83d\uded2 BUY ' + (task.tokenSymbol || 'TOKEN') + ' ON DEX';
+    buyA.appendChild(buyBtn);
+    area.appendChild(buyA);
+
+    var hint = document.createElement('div');
+    hint.style.cssText = 'font-size:11px;color:var(--text-dim);margin-bottom:10px';
+    hint.textContent = 'After purchasing, paste your wallet address and transaction hash below:';
+    area.appendChild(hint);
+
+    var walletInput = document.createElement('input');
+    walletInput.id = 'optWalletInput';
+    walletInput.className = 'opt-submit-input';
+    walletInput.placeholder = 'Your wallet address (0x...)';
+    area.appendChild(walletInput);
+
+    var txInput = document.createElement('input');
+    txInput.id = 'optTxInput';
+    txInput.className = 'opt-submit-input';
+    txInput.placeholder = 'Transaction hash (0x...)';
+    area.appendChild(txInput);
+
+    var submitBtn = document.createElement('button');
+    submitBtn.className = 'opt-join-btn';
+    submitBtn.textContent = '\ud83d\udce4 SUBMIT FOR REVIEW';
+    submitBtn.onclick = function() { submitOptAirdrop(id); };
+    area.appendChild(submitBtn);
+  }
+
+  function submitOptAirdrop(id) {
+    var walletEl = document.getElementById('optWalletInput');
+    var txEl = document.getElementById('optTxInput');
+    var msgEl = document.getElementById('optSheetMsg');
+    if (!walletEl || !txEl) return;
+    var wallet = walletEl.value.trim();
+    var tx = txEl.value.trim();
+    if (!wallet) { if (msgEl) msgEl.textContent = 'Please enter your wallet address.'; return; }
+    if (!tx) { if (msgEl) msgEl.textContent = 'Please enter the transaction hash.'; return; }
+    if (msgEl) msgEl.textContent = 'Submitting\u2026';
+    var uid = String(TG_USER.id);
+    var data = { wallet: wallet, txHash: tx, submittedAt: Date.now(), status: 'review', claimed: false };
+    fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).set(data).then(function() {
+      if (msgEl) msgEl.textContent = '';
+      if (_currentOptTask && _currentOptTask.id === id) {
+        _renderOptAction(_currentOptTask.task, id, data);
+      }
+      tgApp.HapticFeedback && tgApp.HapticFeedback.notificationOccurred('success');
+    }).catch(function() {
+      if (msgEl) msgEl.textContent = 'Error submitting. Try again.';
+    });
+  }
+
+  function claimOptAirdrop(id) {
+    var msgEl = document.getElementById('optSheetMsg');
+    var uid = String(TG_USER.id);
+    fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).once('value').then(function(snap) {
+      var sub = snap.val();
+      if (!sub) return;
+      var now = Date.now();
+      var elapsed = now - (sub.submittedAt || now);
+      if (sub.status !== 'approved' && sub.status !== 'review') return;
+      if (sub.status === 'review' && elapsed < 86400000) {
+        if (msgEl) msgEl.textContent = 'Still under review. Please wait.';
+        return;
+      }
+      if (sub.claimed) { if (msgEl) msgEl.textContent = 'Already claimed.'; return; }
+      fbDb.ref(OPT_DB_PATH + '/' + id).once('value').then(function(tSnap) {
+        var task = tSnap.val();
+        if (!task) return;
+        var reward = parseFloat(task.reward) || 0;
+        STATE.balance = (STATE.balance || 0) + reward;
+        STATE.totalMined = (STATE.totalMined || 0) + reward;
+        saveAccount();
+        fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).update({ status: 'claimed', claimed: true, claimedAt: now });
+        var area = document.getElementById('optSheetActionArea');
+        if (area) {
+          area.textContent = '';
+          var okDiv = document.createElement('div');
+          okDiv.style.cssText = 'text-align:center;padding:16px 0;color:#2ecc71;font-size:22px';
+          okDiv.textContent = '\u2713';
+          var okLbl = document.createElement('div');
+          okLbl.style.cssText = 'text-align:center;font-size:13px;color:#2ecc71;margin-bottom:8px';
+          okLbl.textContent = '+' + reward + ' $ANT claimed!';
+          area.appendChild(okDiv);
+          area.appendChild(okLbl);
+        }
+        if (msgEl) msgEl.textContent = '';
+        tgApp.HapticFeedback && tgApp.HapticFeedback.notificationOccurred('success');
+        loadOptAirdrops();
+        updateUI();
+      });
+    });
+  }
+
+  function closeOptOverlay() {
+    var sheet = document.getElementById('optAirdropSheet');
+    var overlay = document.getElementById('optAirdropOverlay');
+    if (sheet) sheet.style.transform = 'translateY(100%)';
+    setTimeout(function() {
+      if (overlay) { overlay.style.display = 'none'; overlay.style.pointerEvents = 'none'; }
+    }, 340);
+  }
+
+  // Piggyback on existing loadAirdrops nav trigger
+  var _origLoadAirdrops = window.loadAirdrops;
+  window.loadAirdrops = function() {
+    if (_origLoadAirdrops) _origLoadAirdrops();
+    loadOptAirdrops();
+  };
+
+  window.openOptSubmit = openOptSubmit;
+  window.submitOptAirdrop = submitOptAirdrop;
+  window.claimOptAirdrop = claimOptAirdrop;
+  window.closeOptOverlay = closeOptOverlay;
+  window.loadOptAirdrops = loadOptAirdrops;
 })();
 
 // ============================================================

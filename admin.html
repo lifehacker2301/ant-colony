@@ -218,6 +218,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="nav-item" onclick="showPanel('announce')"><span class="nav-icon">📢</span>Announce</div>
       <div class="nav-lbl" style="margin-top:8px">Content</div>
       <div class="nav-item" onclick="showPanel('airdrops')"><span class="nav-icon">🪂</span>Airdrops</div>
+      <div class="nav-item" onclick="showPanel('opttasks')"><span class="nav-icon">💰</span>Opt. Tasks</div>
       <div class="nav-lbl" style="margin-top:8px">Config</div>
       <div class="nav-item" onclick="showPanel('security')"><span class="nav-icon">🔐</span>Security</div>
     </nav>
@@ -606,6 +607,108 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         </div>
       </div>
 
+      <!-- OPTIONAL TASKS PANEL -->
+      <div class="panel" id="panel-opttasks">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
+          <div><h1 style="font-family:'Cinzel Decorative';font-size:15px;color:#44ee88">💰 Optional Tasks</h1><div style="font-size:11px;color:var(--text-dim);margin-top:2px">Manage token-purchase tasks &amp; review submissions</div></div>
+          <button class="btn btn-ghost" style="border-color:rgba(0,200,80,0.4);color:#44ee88" onclick="toggleOptForm()" id="newOptBtn">+ New Task</button>
+        </div>
+
+        <!-- CREATE / EDIT FORM -->
+        <div id="optFormWrap" style="display:none">
+          <div class="card" style="border-color:rgba(0,200,80,0.3)">
+            <div class="card-title" id="optFormTitle" style="color:#44ee88">💰 New Optional Task</div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex:2">
+                <div class="form-label">Project / Token Link (used for logo)</div>
+                <input class="form-input" id="optLink" placeholder="https://tokenproject.com" oninput="previewOptLogo()"/>
+              </div>
+              <div class="form-group" style="flex:1">
+                <div class="form-label">Logo Preview</div>
+                <img id="optLogoPreview" class="airdrop-logo-preview" src="" alt="logo" onerror="this.style.opacity='0.3'"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex:2">
+                <div class="form-label">DEX Buy Link (where players buy the token)</div>
+                <input class="form-input" id="optBuyLink" placeholder="https://app.uniswap.org/#/swap?outputCurrency=0x..."/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Task / Project Name</div>
+                <input class="form-input" id="optName" placeholder="Project name"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Token Symbol</div>
+                <input class="form-input" id="optTokenSymbol" placeholder="e.g. BNB"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Token Full Name</div>
+                <input class="form-input" id="optTokenName" placeholder="e.g. BNB Chain"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Min Purchase (USD)</div>
+                <input class="form-input" id="optMinUSD" type="number" min="1" placeholder="e.g. 10"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Reward ($ANT)</div>
+                <input class="form-input" id="optReward" type="number" min="0" placeholder="e.g. 100"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Duration (days)</div>
+                <input class="form-input" id="optDuration" type="number" min="1" max="365" placeholder="1 – 365"/>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Start Date</div>
+                <input class="form-input" id="optStartDate" type="datetime-local"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Description</div>
+                <textarea class="form-textarea" id="optDescription" placeholder="Describe what players need to do..." style="min-height:70px"></textarea>
+              </div>
+            </div>
+
+            <input type="hidden" id="optEditId"/>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-primary" style="background:#006633" onclick="saveOptTask()">💾 Save Task</button>
+              <button class="btn btn-ghost" onclick="cancelOptForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASK LIST -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title" style="color:#44ee88">Active Tasks</div>
+          <div id="optTaskAdminList">
+            <div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Loading tasks...</div>
+          </div>
+        </div>
+
+        <!-- SUBMISSIONS VIEWER -->
+        <div class="card" id="optSubsCard" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="card-title" style="color:#44ee88;margin-bottom:0">Submissions — <span id="optSubsTaskName"></span></div>
+            <button class="btn btn-ghost" onclick="closeOptSubmissions()">✕ Close</button>
+          </div>
+          <div id="optSubsList">
+            <div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">No submissions yet</div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -620,6 +723,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="mobile-nav-item" onclick="showPanel('referral')"><div class="mni">🔗</div><div class="mnl">Referral</div></div>
     <div class="mobile-nav-item" onclick="showPanel('announce')"><div class="mni">📢</div><div class="mnl">Announce</div></div>
     <div class="mobile-nav-item" onclick="showPanel('airdrops')"><div class="mni">🪂</div><div class="mnl">Airdrops</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('opttasks')"><div class="mni">💰</div><div class="mnl">Opt.Tasks</div></div>
     <div class="mobile-nav-item" onclick="showPanel('security')"><div class="mni">🔐</div><div class="mnl">Security</div></div>
   </div>
 </div>
@@ -1604,6 +1708,258 @@ function loadAirdropsAdmin() {
 
 // -- BOOT ------------------------------------------------------
 checkSession();
+
+// ============================================================
+//  OPTIONAL TASKS ADMIN
+// ============================================================
+var _optTaskData = {};
+
+function getDomainOpt(url) {
+  try { return new URL(url).hostname; } catch(e) { return ''; }
+}
+
+function previewOptLogo() {
+  var url = document.getElementById('optLink').value.trim();
+  var domain = getDomainOpt(url);
+  var preview = document.getElementById('optLogoPreview');
+  if (domain) {
+    preview.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+    preview.style.opacity = '1';
+  } else {
+    preview.src = '';
+    preview.style.opacity = '0.3';
+  }
+}
+
+function toggleOptForm() {
+  var wrap = document.getElementById('optFormWrap');
+  if (wrap.style.display === 'none') {
+    ['optLink','optBuyLink','optName','optTokenSymbol','optTokenName','optDescription','optEditId'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
+    ['optMinUSD','optReward','optDuration','optStartDate'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
+    document.getElementById('optFormTitle').textContent = '\ud83d\udcb0 New Optional Task';
+    document.getElementById('optLogoPreview').src = '';
+    wrap.style.display = 'block';
+    document.getElementById('newOptBtn').textContent = '\u2715 Cancel';
+  } else { cancelOptForm(); }
+}
+
+function cancelOptForm() {
+  document.getElementById('optFormWrap').style.display = 'none';
+  document.getElementById('newOptBtn').textContent = '+ New Task';
+}
+
+function saveOptTask() {
+  var link = document.getElementById('optLink').value.trim();
+  var buyLink = document.getElementById('optBuyLink').value.trim();
+  var name = document.getElementById('optName').value.trim();
+  var tokenSymbol = document.getElementById('optTokenSymbol').value.trim();
+  var tokenName = document.getElementById('optTokenName').value.trim();
+  var minUSD = parseFloat(document.getElementById('optMinUSD').value) || 10;
+  var reward = parseFloat(document.getElementById('optReward').value) || 0;
+  var duration = parseInt(document.getElementById('optDuration').value) || 30;
+  var startDate = document.getElementById('optStartDate').value;
+  var description = document.getElementById('optDescription').value.trim();
+  var editId = document.getElementById('optEditId').value;
+  if (!name) { showToast('Task name is required', 'error'); return; }
+  if (!link) { showToast('Project link is required', 'error'); return; }
+  if (!startDate) { showToast('Start date is required', 'error'); return; }
+  var data = { link: link, buyLink: buyLink, name: name, tokenSymbol: tokenSymbol, tokenName: tokenName, minUSD: minUSD, reward: reward, duration: duration, startDate: startDate, description: description };
+  if (editId) {
+    db.ref('optAirdrops/' + editId).set(data).then(function() { showToast('Task updated!', 'success'); cancelOptForm(); loadOptAdmin(); });
+  } else {
+    data.createdAt = Date.now();
+    db.ref('optAirdrops').push(data).then(function() { showToast('Task created!', 'success'); cancelOptForm(); loadOptAdmin(); });
+  }
+}
+
+function editOptTask(id) {
+  var t = _optTaskData[id];
+  if (!t) return;
+  document.getElementById('optFormTitle').textContent = '\u270f\ufe0f Edit: ' + (t.name || '');
+  document.getElementById('optLink').value = t.link || '';
+  document.getElementById('optBuyLink').value = t.buyLink || '';
+  document.getElementById('optName').value = t.name || '';
+  document.getElementById('optTokenSymbol').value = t.tokenSymbol || '';
+  document.getElementById('optTokenName').value = t.tokenName || '';
+  document.getElementById('optMinUSD').value = t.minUSD || 10;
+  document.getElementById('optReward').value = t.reward || 0;
+  document.getElementById('optDuration').value = t.duration || '';
+  document.getElementById('optStartDate').value = t.startDate || '';
+  document.getElementById('optDescription').value = t.description || '';
+  document.getElementById('optEditId').value = id;
+  previewOptLogo();
+  document.getElementById('optFormWrap').style.display = 'block';
+  document.getElementById('newOptBtn').textContent = '\u2715 Cancel';
+}
+
+function deleteOptTask(id) {
+  var t = _optTaskData[id];
+  var taskName = t ? t.name : id;
+  openModal('\ud83d\uddd1\ufe0f Delete Task', 'Delete "' + taskName + '"? This cannot be undone.', function() {
+    db.ref('optAirdrops/' + id).remove().then(function() { showToast('Task deleted', 'success'); loadOptAdmin(); });
+  }, 'danger');
+}
+
+function _makeOptTaskRow(id, t) {
+  var domain = getDomainOpt(t.link || '');
+  var logoUrl = domain ? 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64' : '';
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)';
+  var logoEl = document.createElement(logoUrl ? 'img' : 'div');
+  logoEl.style.cssText = 'width:32px;height:32px;border-radius:8px;object-fit:contain;flex-shrink:0';
+  if (logoUrl) { logoEl.src = logoUrl; logoEl.onerror = function(){ this.style.display='none'; }; }
+  else { logoEl.style.cssText += ';background:rgba(0,200,80,0.15);display:flex;align-items:center;justify-content:center;font-size:16px'; logoEl.textContent = '\ud83d\udcb0'; }
+  row.appendChild(logoEl);
+  var info = document.createElement('div');
+  info.style.cssText = 'flex:1;min-width:0';
+  var nameEl = document.createElement('div');
+  nameEl.style.cssText = 'font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+  nameEl.textContent = t.name || '';
+  var metaEl = document.createElement('div');
+  metaEl.style.cssText = 'font-size:10px;color:var(--text-dim)';
+  metaEl.textContent = (t.tokenSymbol||'') + ' \u2022 Min $' + (t.minUSD||10) + ' \u2022 ' + (t.reward||0) + ' $ANT';
+  info.appendChild(nameEl);
+  info.appendChild(metaEl);
+  row.appendChild(info);
+  var subsBtn = document.createElement('button');
+  subsBtn.className = 'airdrop-admin-edit';
+  subsBtn.style.cssText = 'background:rgba(0,180,255,0.15);color:#66ccff';
+  subsBtn.textContent = 'Submissions';
+  subsBtn.onclick = (function(tid){ return function(){ viewOptSubmissions(tid); }; })(id);
+  var editBtn = document.createElement('button');
+  editBtn.className = 'airdrop-admin-edit';
+  editBtn.textContent = 'Edit';
+  editBtn.onclick = (function(tid){ return function(){ editOptTask(tid); }; })(id);
+  var delBtn = document.createElement('button');
+  delBtn.className = 'airdrop-admin-del';
+  delBtn.textContent = 'Delete';
+  delBtn.onclick = (function(tid){ return function(){ deleteOptTask(tid); }; })(id);
+  row.appendChild(subsBtn);
+  row.appendChild(editBtn);
+  row.appendChild(delBtn);
+  return row;
+}
+
+function loadOptAdmin() {
+  var list = document.getElementById('optTaskAdminList');
+  if (!list) return;
+  list.textContent = 'Loading...';
+  db.ref('optAirdrops').once('value').then(function(snap) {
+    var tasks = snap.val() || {};
+    _optTaskData = tasks;
+    var ids = Object.keys(tasks);
+    list.textContent = '';
+    if (!ids.length) {
+      var empty = document.createElement('div');
+      empty.style.cssText = 'text-align:center;padding:24px;color:var(--text-dim);font-size:13px';
+      empty.textContent = 'No optional tasks yet';
+      list.appendChild(empty);
+      return;
+    }
+    ids.forEach(function(id) { list.appendChild(_makeOptTaskRow(id, tasks[id])); });
+  });
+}
+
+function _makeSubRow(uid, taskId, sub) {
+  var card = document.createElement('div');
+  card.style.cssText = 'border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;margin-bottom:8px';
+  var statusColor = sub.status === 'approved' ? '#44ee88' : sub.status === 'rejected' ? '#ff6655' : sub.status === 'claimed' ? '#2ecc71' : '#f5a623';
+  var topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px';
+  var uidEl = document.createElement('div');
+  uidEl.style.cssText = 'font-size:11px;color:var(--text-dim)';
+  uidEl.textContent = 'UID: ' + uid;
+  var statusEl = document.createElement('span');
+  statusEl.style.cssText = 'font-size:10px;font-weight:700;color:' + statusColor;
+  statusEl.textContent = (sub.status || 'review').toUpperCase();
+  topRow.appendChild(uidEl);
+  topRow.appendChild(statusEl);
+  card.appendChild(topRow);
+  var walletEl = document.createElement('div');
+  walletEl.style.cssText = 'font-size:11px;color:#ccc;margin-bottom:4px;word-break:break-all';
+  var walletStrong = document.createElement('strong');
+  walletStrong.textContent = 'Wallet: ';
+  walletEl.appendChild(walletStrong);
+  walletEl.appendChild(document.createTextNode(sub.wallet || '\u2014'));
+  card.appendChild(walletEl);
+  var txEl = document.createElement('div');
+  txEl.style.cssText = 'font-size:11px;color:#ccc;margin-bottom:6px;word-break:break-all';
+  var txStrong = document.createElement('strong');
+  txStrong.textContent = 'TX Hash: ';
+  txEl.appendChild(txStrong);
+  txEl.appendChild(document.createTextNode(sub.txHash || '\u2014'));
+  card.appendChild(txEl);
+  var dateEl = document.createElement('div');
+  dateEl.style.cssText = 'font-size:10px;color:var(--text-dim);margin-bottom:8px';
+  dateEl.textContent = 'Submitted: ' + (sub.submittedAt ? new Date(sub.submittedAt).toLocaleString() : '\u2014');
+  card.appendChild(dateEl);
+  if (sub.status !== 'claimed') {
+    var btnRow = document.createElement('div');
+    btnRow.style.display = 'flex';
+    btnRow.style.gap = '6px';
+    if (sub.status !== 'approved') {
+      var apprBtn = document.createElement('button');
+      apprBtn.className = 'airdrop-admin-edit';
+      apprBtn.style.cssText = 'font-size:10px;background:rgba(0,200,80,0.15);color:#44ee88';
+      apprBtn.textContent = '\u2713 Approve';
+      apprBtn.onclick = (function(u,t){ return function(){ approveOptSub(u,t); }; })(uid, taskId);
+      btnRow.appendChild(apprBtn);
+    }
+    if (sub.status !== 'rejected') {
+      var rejBtn = document.createElement('button');
+      rejBtn.className = 'airdrop-admin-del';
+      rejBtn.style.fontSize = '10px';
+      rejBtn.textContent = '\u2715 Reject';
+      rejBtn.onclick = (function(u,t){ return function(){ rejectOptSub(u,t); }; })(uid, taskId);
+      btnRow.appendChild(rejBtn);
+    }
+    card.appendChild(btnRow);
+  }
+  return card;
+}
+
+function viewOptSubmissions(taskId) {
+  var card = document.getElementById('optSubsCard');
+  var subsList = document.getElementById('optSubsList');
+  var taskNameEl = document.getElementById('optSubsTaskName');
+  var task = _optTaskData[taskId];
+  if (taskNameEl) taskNameEl.textContent = task ? task.name : taskId;
+  if (card) card.style.display = 'block';
+  if (subsList) { subsList.textContent = ''; var ld=document.createElement('div'); ld.style.cssText='text-align:center;padding:20px;color:var(--text-dim)'; ld.textContent='Loading...'; subsList.appendChild(ld); }
+  db.ref('optAirdropSubmits').once('value').then(function(snap) {
+    var allSubs = snap.val() || {};
+    subsList.textContent = '';
+    var found = false;
+    Object.keys(allSubs).forEach(function(uid) {
+      if (allSubs[uid][taskId]) { subsList.appendChild(_makeSubRow(uid, taskId, allSubs[uid][taskId])); found = true; }
+    });
+    if (!found) {
+      var empty = document.createElement('div');
+      empty.style.cssText = 'text-align:center;padding:20px;color:var(--text-dim);font-size:13px';
+      empty.textContent = 'No submissions yet';
+      subsList.appendChild(empty);
+    }
+  });
+}
+
+function approveOptSub(uid, taskId) {
+  db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'approved' }).then(function() { showToast('Submission approved', 'success'); viewOptSubmissions(taskId); });
+}
+
+function rejectOptSub(uid, taskId) {
+  db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'rejected' }).then(function() { showToast('Submission rejected', 'success'); viewOptSubmissions(taskId); });
+}
+
+function closeOptSubmissions() {
+  var card = document.getElementById('optSubsCard');
+  if (card) card.style.display = 'none';
+}
+
+var _origShowPanel = window.showPanel;
+window.showPanel = function(name) {
+  _origShowPanel(name);
+  if (name === 'opttasks') { loadOptAdmin(); closeOptSubmissions(); }
+};
 </script>
 </body>
 </html>
