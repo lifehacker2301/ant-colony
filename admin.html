@@ -608,94 +608,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
         <!-- ══ OPTIONAL AIRDROP TASKS SUBSECTION ══ -->
         <div style="border-top:1px solid rgba(0,200,80,0.2);margin:24px 0 18px"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-          <div>
-            <div style="font-family:'Cinzel Decorative';font-size:13px;color:#44ee88">💰 Optional Airdrop Tasks</div>
-            <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Token-buy tasks — players submit wallet + TX hash for review</div>
-          </div>
-          <button class="btn btn-ghost" style="border-color:rgba(0,200,80,0.4);color:#44ee88;font-size:11px" onclick="toggleOptForm()" id="newOptBtn">+ New Task</button>
-        </div>
-
-        <!-- OPTIONAL TASK CREATE / EDIT FORM -->
-        <div id="optFormWrap" style="display:none;margin-bottom:14px">
-          <div class="card" style="border-color:rgba(0,200,80,0.35)">
-            <div class="card-title" id="optFormTitle" style="color:#44ee88">💰 New Optional Task</div>
-
-            <div class="form-row">
-              <div class="form-group" style="flex:2">
-                <div class="form-label">Project Link (for logo &amp; reference)</div>
-                <input class="form-input" id="optLink" placeholder="https://tokenproject.com" oninput="previewOptLogo()"/>
-              </div>
-              <div class="form-group" style="flex:1">
-                <div class="form-label">Logo Preview</div>
-                <img id="optLogoPreview" class="airdrop-logo-preview" src="" alt="logo" onerror="this.style.opacity='0.3'"/>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <div class="form-label">DEX Buy Link <span style="color:#44ee88;font-size:10px">(redirects player to buy token)</span></div>
-                <input class="form-input" id="optBuyLink" placeholder="https://app.uniswap.org/#/swap?outputCurrency=0x..."/>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <div class="form-label">Task / Project Name</div>
-                <input class="form-input" id="optName" placeholder="e.g. BNB Token Task"/>
-              </div>
-              <div class="form-group">
-                <div class="form-label">Token Symbol</div>
-                <input class="form-input" id="optTokenSymbol" placeholder="e.g. BNB"/>
-              </div>
-              <div class="form-group">
-                <div class="form-label">Token Full Name</div>
-                <input class="form-input" id="optTokenName" placeholder="e.g. BNB Chain"/>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <div class="form-label">Minimum Purchase (USD) <span style="color:#44ee88;font-size:10px">(min buy amount)</span></div>
-                <input class="form-input" id="optMinUSD" type="number" min="1" placeholder="e.g. 10"/>
-              </div>
-              <div class="form-group">
-                <div class="form-label">Reward ($ANT)</div>
-                <input class="form-input" id="optReward" type="number" min="0" placeholder="e.g. 100"/>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <div class="form-label">TX Hash Requirements <span style="color:var(--text-dim);font-size:10px">(instructions shown to player)</span></div>
-                <textarea class="form-textarea" id="optTxReqs" placeholder="e.g. Submit the transaction hash from BNB Chain showing a minimum $10 purchase of BNB. Hash must be from your own wallet." style="min-height:60px"></textarea>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <div class="form-label">Duration (days)</div>
-                <input class="form-input" id="optDuration" type="number" min="1" max="365" placeholder="1 – 365"/>
-              </div>
-              <div class="form-group">
-                <div class="form-label">Start Date</div>
-                <input class="form-input" id="optStartDate" type="datetime-local"/>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <div class="form-label">Description</div>
-                <textarea class="form-textarea" id="optDescription" placeholder="Describe what players need to do..." style="min-height:60px"></textarea>
-              </div>
-            </div>
-
-            <input type="hidden" id="optEditId"/>
-            <div style="display:flex;gap:8px;margin-top:4px">
-              <button class="btn btn-primary" style="background:rgba(0,130,50,0.9)" onclick="saveOptTask()">💾 Save Task</button>
-              <button class="btn btn-ghost" onclick="cancelOptForm()">Cancel</button>
-            </div>
-          </div>
+        <div style="margin-bottom:14px">
+          <div style="font-family:'Cinzel Decorative';font-size:13px;color:#44ee88">💰 Optional Airdrop Tasks</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Preview only — go to <strong style="color:#44ee88">Opt.Tasks</strong> tab to create, edit, or review submissions</div>
         </div>
 
         <!-- OPTIONAL TASK LIST -->
@@ -782,6 +697,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
               <div class="form-group">
                 <div class="form-label">Start Date</div>
                 <input class="form-input" id="optStartDate" type="datetime-local"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">Participant Limit <span style="color:var(--text-dim);font-size:10px">(min 100 — leave empty for unlimited)</span></div>
+                <input class="form-input" id="optMaxParticipants" type="number" min="100" placeholder="e.g. 500"/>
               </div>
             </div>
 
@@ -1470,6 +1392,11 @@ async function sendAnnouncement() {
   let players = getPlayers();
   const target = document.getElementById('annTarget').value;
   if (target === 'top10') players = [...players].sort((a,b)=>(b.colonySize||0)-(a.colonySize||0)).slice(0,10);
+  else if (target === 'me') {
+    const adminId = localStorage.getItem('ant_admin_chatid') || currentAdminId;
+    if (!adminId) { toast('[X] Set your Admin Chat ID in Security tab first', 'error'); return; }
+    players = [{ chatId: adminId }];
+  }
   const chatIds = [...new Set(players.map(p => p.chatId||p.tgId).filter(id => id && String(id)!=='99999999'))];
   if (!chatIds.length) { toast('[X] No real players in database yet'); return; }
 
@@ -1846,7 +1773,7 @@ function toggleOptForm() {
   var wrap = document.getElementById('optFormWrap');
   if (wrap.style.display === 'none') {
     ['optLink','optBuyLink','optName','optTokenSymbol','optTokenName','optTxReqs','optDescription','optEditId'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
-    ['optMinUSD','optReward','optDuration','optStartDate'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
+    ['optMinUSD','optReward','optDuration','optStartDate','optMaxParticipants'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.value=''; });
     document.getElementById('optFormTitle').textContent = '\ud83d\udcb0 New Optional Task';
     document.getElementById('optLogoPreview').src = '';
     wrap.style.display = 'block';
@@ -1871,13 +1798,18 @@ function saveOptTask() {
   var startDate = document.getElementById('optStartDate').value;
   var txReqs = document.getElementById('optTxReqs').value.trim();
   var description = document.getElementById('optDescription').value.trim();
+  var maxPStr = document.getElementById('optMaxParticipants').value.trim();
+  var maxParticipants = maxPStr ? parseInt(maxPStr) : 0;
   var editId = document.getElementById('optEditId').value;
   if (!name) { toast('Task name is required', 'error'); return; }
   if (!link) { toast('Project link is required', 'error'); return; }
   if (!startDate) { toast('Start date is required', 'error'); return; }
-  var data = { link: link, buyLink: buyLink, name: name, tokenSymbol: tokenSymbol, tokenName: tokenName, minUSD: minUSD, reward: reward, duration: duration, startDate: startDate, txReqs: txReqs, description: description };
+  if (maxParticipants && maxParticipants < 100) { toast('Participant limit must be at least 100', 'error'); return; }
+  if (!db) { toast('Firebase not connected', 'error'); return; }
+  var data = { link: link, buyLink: buyLink, name: name, tokenSymbol: tokenSymbol, tokenName: tokenName, minUSD: minUSD, reward: reward, duration: duration, startDate: startDate, txReqs: txReqs, description: description, maxParticipants: maxParticipants || null };
   if (editId) {
-    db.ref('optAirdrops/' + editId).set(data).then(function() { toast('\u2713 Task updated!', 'success'); cancelOptForm(); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
+    // use update() so participantCount is never overwritten
+    db.ref('optAirdrops/' + editId).update(data).then(function() { toast('\u2713 Task updated!', 'success'); cancelOptForm(); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
   } else {
     data.createdAt = Date.now();
     db.ref('optAirdrops').push(data).then(function() { toast('\u2713 Task created!', 'success'); cancelOptForm(); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
@@ -1899,6 +1831,7 @@ function editOptTask(id) {
   document.getElementById('optStartDate').value = t.startDate || '';
   document.getElementById('optTxReqs').value = t.txReqs || '';
   document.getElementById('optDescription').value = t.description || '';
+  document.getElementById('optMaxParticipants').value = t.maxParticipants || '';
   document.getElementById('optEditId').value = id;
   previewOptLogo();
   document.getElementById('optFormWrap').style.display = 'block';
@@ -1933,7 +1866,8 @@ function _makeOptTaskRow(id, t) {
   nameEl.textContent = t.name || '';
   var metaEl = document.createElement('div');
   metaEl.style.cssText = 'font-size:10px;color:var(--text-dim)';
-  metaEl.textContent = (t.tokenSymbol||'') + ' \u2022 Min $' + (t.minUSD||10) + ' \u2022 ' + (t.reward||0) + ' $ANT';
+  var partText = t.maxParticipants ? ' \u2022 ' + (t.participantCount || 0) + '/' + t.maxParticipants + ' joined' : '';
+  metaEl.textContent = (t.tokenSymbol||'') + ' \u2022 Min $' + (t.minUSD||10) + ' \u2022 ' + (t.reward||0) + ' $ANT' + partText;
   info.appendChild(nameEl);
   info.appendChild(metaEl);
   if (t.buyLink) {
@@ -1975,6 +1909,7 @@ function loadOptAdmin() {
   var list = document.getElementById('optTaskAdminList');
   var listB = document.getElementById('optTaskAdminListB');
   if (!list && !listB) return;
+  if (!db) return;
   function setLoading(el) { if (el) el.textContent = 'Loading...'; }
   setLoading(list); setLoading(listB);
   db.ref('optAirdrops').once('value').then(function(snap) {
@@ -2083,11 +2018,12 @@ function viewOptSubmissions(taskId) {
       minBox.textContent = 'Min purchase: $' + task.minUSD + ' USD of ' + (task.tokenSymbol || 'token');
       subsList.appendChild(minBox);
     }
-    var ld = document.createElement('div'); ld.style.cssText='text-align:center;padding:20px;color:var(--text-dim)'; ld.textContent='Loading...'; subsList.appendChild(ld);
+    var ld = document.createElement('div'); ld.setAttribute('data-loading','1'); ld.style.cssText='text-align:center;padding:20px;color:var(--text-dim)'; ld.textContent='Loading...'; subsList.appendChild(ld);
   }
   db.ref('optAirdropSubmits').once('value').then(function(snap) {
     var allSubs = snap.val() || {};
-    subsList.textContent = '';
+    var ldEl = subsList ? subsList.querySelector('[data-loading]') : null;
+    if (ldEl) ldEl.remove();
     var found = false;
     Object.keys(allSubs).forEach(function(uid) {
       if (allSubs[uid][taskId]) { subsList.appendChild(_makeSubRow(uid, taskId, allSubs[uid][taskId])); found = true; }

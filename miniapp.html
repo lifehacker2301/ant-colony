@@ -1150,9 +1150,9 @@ body::before {
 
   <!-- OPT AIRDROP OVERLAY -->
   <div id="optAirdropOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:999;align-items:flex-end;justify-content:center;pointer-events:none">
-    <div id="optAirdropSheet" style="background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:20px 18px 32px;pointer-events:all;transform:translateY(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1)">
+    <div id="optAirdropSheet" style="background:var(--bg-mid,#1a1a2e);border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:20px 18px 32px;pointer-events:all;transform:translateY(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1)">
       <div style="display:flex;align-items:center;margin-bottom:14px">
-        <div id="optSheetLogo" style="width:42px;height:42px;border-radius:10px;background:var(--bg2);margin-right:12px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px"></div>
+        <div id="optSheetLogo" style="width:42px;height:42px;border-radius:10px;background:var(--bg-card,#0d0d1a);margin-right:12px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px"></div>
         <div>
           <div id="optSheetName" style="font-weight:700;font-size:15px"></div>
           <div id="optSheetToken" style="font-size:11px;color:var(--text-dim)"></div>
@@ -2022,13 +2022,7 @@ function initUI() {
   setTimeout(checkOfflineEarnings, 1500);
 
   // Daily claim banner — reset check
-  const today = new Date().toDateString();
-  if (STATE.dailyClaimed && STATE.dailyClaimedDate === today) {
-    document.getElementById('dailyBanner').style.opacity = '0.4';
-    document.getElementById('dailyBanner').style.pointerEvents = 'none';
-    document.querySelector('.daily-title').textContent = 'Daily Reward Claimed';
-    document.querySelector('.daily-sub').textContent = 'Come back tomorrow!';
-  }
+  updateDailyBanner();
 
   // Process any eggs that should have been laid while offline
   processQueenEggs();
@@ -2093,13 +2087,45 @@ function initUI() {
 }
 
 // ── DAILY CLAIM ──
+function getDailyReward(streak) {
+  var day = Math.max(1, Math.min(streak, 365));
+  return 0.5 * Math.pow(1.5, day - 1);
+}
+
+function updateDailyBanner() {
+  const banner = document.getElementById('dailyBanner');
+  const title = document.querySelector('.daily-title');
+  const sub = document.querySelector('.daily-sub');
+  if (!banner) return;
+  const today = new Date().toDateString();
+  if (STATE.dailyClaimed && STATE.dailyClaimedDate === today) {
+    banner.style.opacity = '0.4';
+    banner.style.pointerEvents = 'none';
+    if (title) title.textContent = 'Daily Reward Claimed ✅';
+    if (sub) sub.textContent = `Day ${STATE.dailyStreak || 1} streak 🔥 — Come back tomorrow!`;
+  } else {
+    banner.style.opacity = '';
+    banner.style.pointerEvents = '';
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const nextStreak = Math.min(
+      STATE.dailyClaimedDate === yesterday ? (STATE.dailyStreak || 0) + 1 : 1,
+      365
+    );
+    const reward = getDailyReward(nextStreak);
+    if (title) title.textContent = 'Daily Reward Ready! 🎁';
+    if (sub) sub.textContent = nextStreak > 1
+      ? `Day ${nextStreak} streak 🔥 — +${fmt(reward, 2)} $ANT`
+      : `+${fmt(reward, 2)} $ANT — Start your streak!`;
+  }
+}
+
 function claimDaily() {
   const today = new Date().toDateString();
   if (STATE.dailyClaimed && STATE.dailyClaimedDate === today) {
     showToast('⏳ Come back tomorrow for your next reward!');
     return;
   }
-  // Streak: increment if claimed yesterday, reset otherwise
+  // Streak: increment if claimed yesterday, reset to 1 otherwise
   const yesterday = new Date(Date.now() - 86400000).toDateString();
   if (!STATE.dailyStreak) STATE.dailyStreak = 0;
   if (STATE.dailyClaimedDate === yesterday) {
@@ -2107,26 +2133,22 @@ function claimDaily() {
   } else if (STATE.dailyClaimedDate !== today) {
     STATE.dailyStreak = 1;
   }
-  const streakBonus = Math.min((STATE.dailyStreak - 1) * 0.1, 1.0); // up to +1.0 for 10 day streak
-  const base = 0.5;
+  STATE.dailyStreak = Math.min(STATE.dailyStreak, 365);
+  const streakReward = getDailyReward(STATE.dailyStreak);
   const referralBonus = STATE.referrals * 0.05;
-  const total = base + referralBonus + streakBonus;
+  const total = streakReward + referralBonus;
   STATE.balance += total;
   STATE.totalMined += total;
   STATE.dailyClaimed = true;
   STATE.dailyClaimedDate = today;
-  const banner = document.getElementById('dailyBanner');
-  if (banner) { banner.style.opacity = '0.4'; banner.style.pointerEvents = 'none'; }
-  const title = document.querySelector('.daily-title');
-  const sub = document.querySelector('.daily-sub');
-  if (title) title.textContent = 'Daily Reward Claimed ✅';
-  if (sub) sub.textContent = `Day ${STATE.dailyStreak} streak 🔥`;
+  const multiplier = fmt(Math.pow(1.5, STATE.dailyStreak - 1), 2);
   const msg = STATE.dailyStreak > 1
-    ? `🔥 Day ${STATE.dailyStreak} streak! +${fmt(total,2)} $ANT!`
-    : `🎉 +${fmt(total,2)} $ANT Daily Reward!`;
+    ? `🔥 Day ${STATE.dailyStreak} streak! ×${multiplier} → +${fmt(total, 2)} $ANT!`
+    : `🎉 +${fmt(total, 2)} $ANT — Day 1! Keep the streak going!`;
   showToast(msg);
   if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
   saveAccount();
+  updateDailyBanner();
 }
 
 // ── SHARE VIA TELEGRAM ──
@@ -3217,7 +3239,7 @@ function renderLeaderboard() {
           isUser: TG_USER && String(p.tgId) === String(TG_USER.id) && !myEntry.isUser,
         }))
         // exclude current user (already in myEntry)
-        .filter(p => !(TG_USER && p.name === myEntry.name));
+        .filter(p => !(TG_USER && String(p.tgId) === String(TG_USER.id)));
       buildAndRenderLb(realPlayers);
     }).catch(() => buildAndRenderLb([]));
   } else {
@@ -4929,6 +4951,8 @@ function renderAirdrops() {
   el.innerHTML = html;
 }
 
+function _escH(s) { var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
 function renderAirdropCard(a, joinData, now) {
   var id = a._id;
   var logoUrl = getLogoUrl(a.link || '');
@@ -4965,11 +4989,11 @@ function renderAirdropCard(a, joinData, now) {
     '<div class="airdrop-card-head">'+
       '<img class="airdrop-logo" src="'+logoUrl+'" onerror="this.style.background=\'#330066\'" alt="logo">'+
       '<div>'+
-        '<div class="airdrop-title">'+(a.name||'Airdrop')+'</div>'+
-        '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">'+(a.link||'')+'</div>'+
+        '<div class="airdrop-title">'+_escH(a.name||'Airdrop')+'</div>'+
+        '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">'+_escH(a.link||'')+'</div>'+
       '</div>'+
     '</div>'+
-    '<div class="airdrop-desc">'+(a.description||'')+'</div>'+
+    '<div class="airdrop-desc">'+_escH(a.description||'')+'</div>'+
     '<div class="airdrop-meta">'+
       '<div class="airdrop-reward-pill">\uD83E\uDE99 '+(a.reward||0)+' $ANT</div>'+
       '<div class="airdrop-time-pill">\u23F0 '+timePill+'</div>'+
@@ -5118,9 +5142,13 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     var endMs = task.startDate ? new Date(task.startDate).getTime() + (task.duration || 30) * 86400000 : Infinity;
     var expired = now > endMs;
     var status = sub ? sub.status : null;
+    var participantCount = task.participantCount || 0;
+    var maxParticipants = task.maxParticipants || 0;
+    var isFull = maxParticipants > 0 && participantCount >= maxParticipants && !sub;
     var btnLabel = 'JOIN TASK';
     var btnClass = '';
-    if (expired && status !== 'claimed') { btnLabel = 'EXPIRED'; btnClass = 'expired'; }
+    if (isFull) { btnLabel = 'PARTICIPANTS REACHED'; btnClass = 'expired'; }
+    else if (expired && status !== 'claimed') { btnLabel = 'EXPIRED'; btnClass = 'expired'; }
     else if (status === 'claimed') { btnLabel = '\u2713 CLAIMED'; btnClass = 'claimed'; }
     else if (status === 'approved') { btnLabel = '\u2b50 CLAIM REWARD'; btnClass = 'claim'; }
     else if (status === 'review') {
@@ -5191,12 +5219,21 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     }
     card.appendChild(meta);
 
+    // participant counter pill
+    if (maxParticipants > 0) {
+      var partPill = document.createElement('div');
+      partPill.style.cssText = 'font-size:10px;margin-bottom:8px;' + (isFull ? 'color:#ff6655;font-weight:600' : 'color:var(--text-dim)');
+      partPill.textContent = (isFull ? '🔴' : '🟢') + ' ' + participantCount + ' / ' + maxParticipants + ' participants';
+      card.appendChild(partPill);
+    }
+
     // action button
     var btn = document.createElement('button');
     btn.className = 'opt-join-btn ' + btnClass;
     btn.textContent = btnLabel;
     btn.setAttribute('data-optid', id);
-    btn.onclick = function() { openOptSubmit(id); };
+    if (isFull) { btn.disabled = true; }
+    else { btn.onclick = function() { openOptSubmit(id); }; }
     card.appendChild(btn);
 
     // review bar
@@ -5222,7 +5259,7 @@ window.closeAirdropOverlay = closeAirdropOverlay;
       if (!task) return;
       fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).once('value').then(function(subSnap) {
         var sub = subSnap.val();
-        _currentOptTask = { id: id, task: task };
+        _currentOptTask = { id: id, task: task, sub: sub };
         _showOptOverlay(task, id, sub);
       });
     });
@@ -5383,15 +5420,38 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     if (msgEl) msgEl.textContent = 'Submitting\u2026';
     var uid = String(TG_USER.id);
     var data = { wallet: wallet, txHash: tx, submittedAt: Date.now(), status: 'review', claimed: false, tgUsername: TG_USER.username || '', tgName: (TG_USER.first_name || '') + (TG_USER.last_name ? ' ' + TG_USER.last_name : '') };
-    fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).set(data).then(function() {
-      if (msgEl) msgEl.textContent = '';
-      if (_currentOptTask && _currentOptTask.id === id) {
-        _renderOptAction(_currentOptTask.task, id, data);
-      }
-      tgApp.HapticFeedback && tgApp.HapticFeedback.notificationOccurred('success');
-    }).catch(function() {
-      if (msgEl) msgEl.textContent = 'Error submitting. Try again.';
-    });
+
+    function doSave() {
+      fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).set(data).then(function() {
+        if (msgEl) msgEl.textContent = '';
+        if (_currentOptTask && _currentOptTask.id === id) {
+          _currentOptTask.sub = data;
+          _renderOptAction(_currentOptTask.task, id, data);
+        }
+        tgApp.HapticFeedback && tgApp.HapticFeedback.notificationOccurred('success');
+      }).catch(function() {
+        if (msgEl) msgEl.textContent = 'Error submitting. Try again.';
+      });
+    }
+
+    var task = _currentOptTask ? _currentOptTask.task : null;
+    var maxP = task ? (task.maxParticipants || 0) : 0;
+    // Re-submissions (rejected status) skip the count — user was already counted
+    var isResubmit = _currentOptTask && _currentOptTask.sub && _currentOptTask.sub.status === 'rejected';
+
+    if (maxP >= 100 && !isResubmit) {
+      fbDb.ref(OPT_DB_PATH + '/' + id + '/participantCount').transaction(function(current) {
+        var count = current || 0;
+        if (count >= maxP) return; // abort — full
+        return count + 1;
+      }, function(err, committed) {
+        if (err) { if (msgEl) msgEl.textContent = 'Error submitting. Try again.'; return; }
+        if (!committed) { if (msgEl) msgEl.textContent = '\uD83D\uDD34 Participant limit reached. Task is full.'; return; }
+        doSave();
+      });
+    } else {
+      doSave();
+    }
   }
 
   function claimOptAirdrop(id) {
