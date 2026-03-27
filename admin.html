@@ -608,9 +608,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
         <!-- ══ OPTIONAL AIRDROP TASKS SUBSECTION ══ -->
         <div style="border-top:1px solid rgba(0,200,80,0.2);margin:24px 0 18px"></div>
-        <div style="margin-bottom:14px">
-          <div style="font-family:'Cinzel Decorative';font-size:13px;color:#44ee88">💰 Optional Airdrop Tasks</div>
-          <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Preview only — go to <strong style="color:#44ee88">Opt.Tasks</strong> tab to create, edit, or review submissions</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-family:'Cinzel Decorative';font-size:13px;color:#44ee88">💰 Optional Airdrop Tasks</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Token-buy tasks — players submit wallet + TX hash for review</div>
+          </div>
+          <button class="btn btn-ghost" style="border-color:rgba(0,200,80,0.4);color:#44ee88;font-size:11px" onclick="showPanel('opttasks');toggleOptForm()">+ New Task</button>
         </div>
 
         <!-- OPTIONAL TASK LIST -->
@@ -704,6 +707,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
               <div class="form-group">
                 <div class="form-label">Participant Limit <span style="color:var(--text-dim);font-size:10px">(min 100 — leave empty for unlimited)</span></div>
                 <input class="form-input" id="optMaxParticipants" type="number" min="100" placeholder="e.g. 500"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="form-label">TX Hash Requirements <span style="color:var(--text-dim);font-size:10px">(instructions shown to player)</span></div>
+                <textarea class="form-textarea" id="optTxReqs" placeholder="e.g. Submit the transaction hash from BNB Chain showing a minimum $10 purchase of BNB. Hash must be from your own wallet." style="min-height:60px"></textarea>
               </div>
             </div>
 
