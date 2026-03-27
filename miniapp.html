@@ -5215,7 +5215,7 @@ window.closeAirdropOverlay = closeAirdropOverlay;
   }
 
   function openOptSubmit(id) {
-    if (!window.fbDb) return;
+    if (!fbDb) return;
     var uid = String(TG_USER.id);
     fbDb.ref(OPT_DB_PATH + '/' + id).once('value').then(function(snap) {
       var task = snap.val();
