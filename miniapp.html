@@ -5072,7 +5072,7 @@ window.closeAirdropOverlay = closeAirdropOverlay;
   function loadOptAirdrops() {
     var list = document.getElementById('optAirdropList');
     if (!list) return;
-    if (!window.fbDb) { setTimeout(loadOptAirdrops, 1500); return; }
+    if (!fbDb) { setTimeout(loadOptAirdrops, 1500); return; }
     var uid = String(TG_USER.id);
     fbDb.ref(OPT_DB_PATH).once('value').then(function(snap) {
       var tasks = snap.val() || {};

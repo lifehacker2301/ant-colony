@@ -701,7 +701,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <!-- OPTIONAL TASK LIST -->
         <div class="card" style="border-color:rgba(0,200,80,0.18)">
           <div class="card-title" style="color:#44ee88">Active Optional Tasks</div>
-          <div id="optTaskAdminList">
+          <div id="optTaskAdminListB">
             <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px">Loading tasks...</div>
           </div>
         </div>
@@ -1967,21 +1967,28 @@ function _makeOptTaskRow(id, t) {
 
 function loadOptAdmin() {
   var list = document.getElementById('optTaskAdminList');
-  if (!list) return;
-  list.textContent = 'Loading...';
+  var listB = document.getElementById('optTaskAdminListB');
+  if (!list && !listB) return;
+  function setLoading(el) { if (el) el.textContent = 'Loading...'; }
+  setLoading(list); setLoading(listB);
   db.ref('optAirdrops').once('value').then(function(snap) {
     var tasks = snap.val() || {};
     _optTaskData = tasks;
     var ids = Object.keys(tasks);
-    list.textContent = '';
-    if (!ids.length) {
-      var empty = document.createElement('div');
-      empty.style.cssText = 'text-align:center;padding:24px;color:var(--text-dim);font-size:13px';
-      empty.textContent = 'No optional tasks yet';
-      list.appendChild(empty);
-      return;
+    function populate(el) {
+      if (!el) return;
+      el.textContent = '';
+      if (!ids.length) {
+        var empty = document.createElement('div');
+        empty.style.cssText = 'text-align:center;padding:24px;color:var(--text-dim);font-size:13px';
+        empty.textContent = 'No optional tasks yet';
+        el.appendChild(empty);
+        return;
+      }
+      ids.forEach(function(id) { el.appendChild(_makeOptTaskRow(id, tasks[id])); });
     }
-    ids.forEach(function(id) { list.appendChild(_makeOptTaskRow(id, tasks[id])); });
+    populate(list);
+    populate(listB);
   });
 }
 
@@ -2103,6 +2110,7 @@ var _origShowPanel = window.showPanel;
 window.showPanel = function(name) {
   _origShowPanel(name);
   if (name === 'opttasks') { loadOptAdmin(); closeOptSubmissions(); }
+  if (name === 'airdrops') { loadOptAdmin(); }
 };
 </script>
 </body>
