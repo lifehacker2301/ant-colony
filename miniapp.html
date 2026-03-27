@@ -5382,7 +5382,7 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     if (!tx) { if (msgEl) msgEl.textContent = 'Please enter the transaction hash.'; return; }
     if (msgEl) msgEl.textContent = 'Submitting\u2026';
     var uid = String(TG_USER.id);
-    var data = { wallet: wallet, txHash: tx, submittedAt: Date.now(), status: 'review', claimed: false };
+    var data = { wallet: wallet, txHash: tx, submittedAt: Date.now(), status: 'review', claimed: false, tgUsername: TG_USER.username || '', tgName: (TG_USER.first_name || '') + (TG_USER.last_name ? ' ' + TG_USER.last_name : '') };
     fbDb.ref(OPT_SUB_PATH + '/' + uid + '/' + id).set(data).then(function() {
       if (msgEl) msgEl.textContent = '';
       if (_currentOptTask && _currentOptTask.id === id) {

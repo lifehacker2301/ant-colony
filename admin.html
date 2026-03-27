@@ -1908,9 +1908,12 @@ function editOptTask(id) {
 function deleteOptTask(id) {
   var t = _optTaskData[id];
   var taskName = t ? t.name : id;
-  openModal('\ud83d\uddd1\ufe0f Delete Task', 'Delete "' + taskName + '"? This cannot be undone.', function() {
-    db.ref('optAirdrops/' + id).remove().then(function() { toast('\ud83d\uddd1 Task deleted', 'success'); loadOptAdmin(); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
-  }, 'danger');
+  confirmAction('🗑️', 'Delete Task', 'Delete "' + taskName + '"? This cannot be undone.', function() {
+    db.ref('optAirdrops/' + id).remove(function(err) {
+      if (err) { toast('Error: ' + err.message, 'error'); return; }
+      toast('🗑 Task deleted', 'success'); loadOptAdmin();
+    });
+  }, true);
 }
 
 function _makeOptTaskRow(id, t) {
@@ -1934,8 +1937,11 @@ function _makeOptTaskRow(id, t) {
   info.appendChild(nameEl);
   info.appendChild(metaEl);
   if (t.buyLink) {
-    var dexEl = document.createElement('div');
-    dexEl.style.cssText = 'font-size:10px;color:#66aaff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    var dexEl = document.createElement('a');
+    dexEl.href = t.buyLink;
+    dexEl.target = '_blank';
+    dexEl.rel = 'noopener';
+    dexEl.style.cssText = 'font-size:10px;color:#66aaff;margin-top:2px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none';
     dexEl.textContent = '\ud83d\uded2 ' + t.buyLink;
     info.appendChild(dexEl);
   }
@@ -2000,7 +2006,8 @@ function _makeSubRow(uid, taskId, sub) {
   topRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px';
   var uidEl = document.createElement('div');
   uidEl.style.cssText = 'font-size:11px;color:var(--text-dim)';
-  uidEl.textContent = 'UID: ' + uid;
+  var displayName = sub.tgUsername ? '@' + sub.tgUsername : (sub.tgName || '');
+  uidEl.textContent = (displayName ? displayName + ' · ' : '') + 'ID: ' + uid;
   var statusEl = document.createElement('span');
   statusEl.style.cssText = 'font-size:10px;font-weight:700;color:' + statusColor;
   statusEl.textContent = (sub.status || 'review').toUpperCase();
@@ -2051,9 +2058,10 @@ function _makeSubRow(uid, taskId, sub) {
 }
 
 function viewOptSubmissions(taskId) {
-  var card = document.getElementById('optSubsCard');
-  var subsList = document.getElementById('optSubsList');
-  var taskNameEl = document.getElementById('optSubsTaskName');
+  var activePanel = document.querySelector('.panel.active');
+  var card = (activePanel && activePanel.querySelector('#optSubsCard')) || document.getElementById('optSubsCard');
+  var subsList = (activePanel && activePanel.querySelector('#optSubsList')) || document.getElementById('optSubsList');
+  var taskNameEl = (activePanel && activePanel.querySelector('#optSubsTaskName')) || document.getElementById('optSubsTaskName');
   var task = _optTaskData[taskId];
   if (taskNameEl) taskNameEl.textContent = task ? task.name : taskId;
   if (card) card.style.display = 'block';
@@ -2102,8 +2110,7 @@ function rejectOptSub(uid, taskId) {
 }
 
 function closeOptSubmissions() {
-  var card = document.getElementById('optSubsCard');
-  if (card) card.style.display = 'none';
+  document.querySelectorAll('#optSubsCard').forEach(function(el) { el.style.display = 'none'; });
 }
 
 var _origShowPanel = window.showPanel;
