@@ -1924,7 +1924,7 @@ function restoreAccount(saved) {
   const today = new Date().toDateString();
   if (STATE.dailyClaimedDate !== today) {
     STATE.dailyClaimed = false;
-    STATE.dailyClaimedDate = null;
+    // Keep dailyClaimedDate — claimDaily() needs it to check if yesterday was claimed (streak)
     STATE.todayMined = 0;
   }
 }
