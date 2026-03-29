@@ -900,6 +900,58 @@ body::before {
 .lb-your-rank { background:rgba(245,166,35,0.08); border:1px solid rgba(245,166,35,0.3); border-radius:12px; padding:12px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
 .lb-your-rank-num { font-family:'Orbitron'; font-size:18px; color:var(--amber-bright); min-width:40px; }
 
+/* ── ALLIANCE ── */
+.alliance-empty-card { background:linear-gradient(135deg,rgba(108,63,196,0.08),rgba(74,40,160,0.04)); border:1px solid rgba(108,63,196,0.25); border-radius:16px; padding:20px; text-align:center; }
+.alliance-empty-icon { font-size:40px; margin-bottom:8px; }
+.alliance-empty-title { font-family:'Cinzel Decorative'; font-size:12px; color:var(--amber-bright); margin-bottom:6px; }
+.alliance-empty-desc { font-size:11px; color:var(--text-dim); margin-bottom:16px; line-height:1.55; }
+.alliance-action-btns { display:flex; gap:10px; }
+.alliance-btn-create { flex:1; background:linear-gradient(135deg,#6c3fc4,#4a28a0); border:none; border-radius:12px; padding:12px; font-family:'Orbitron'; font-size:11px; color:#fff; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:all 0.15s; }
+.alliance-btn-create:active { transform:scale(0.96); }
+.alliance-btn-join { flex:1; background:transparent; border:1px solid rgba(108,63,196,0.5); border-radius:12px; padding:12px; font-family:'Orbitron'; font-size:11px; color:#a080e0; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:all 0.15s; }
+.alliance-btn-join:active { transform:scale(0.96); }
+.alliance-card { background:linear-gradient(135deg,rgba(80,40,160,0.14),rgba(40,20,80,0.07)); border:1px solid rgba(108,63,196,0.35); border-radius:16px; padding:16px; }
+.alliance-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.alliance-shield-icon { width:46px; height:46px; border-radius:12px; background:linear-gradient(135deg,#6c3fc4,#4a28a0); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 0 14px rgba(108,63,196,0.4); flex-shrink:0; }
+.alliance-card-name { font-family:'Cinzel Decorative'; font-size:12px; color:var(--amber-bright); }
+.alliance-card-role { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#a080e0; margin-top:2px; }
+.alliance-vault-row { display:flex; justify-content:space-between; align-items:center; background:rgba(108,63,196,0.1); border:1px solid rgba(108,63,196,0.2); border-radius:10px; padding:10px 14px; margin-bottom:10px; }
+.alliance-vault-lbl { font-size:11px; color:var(--text-dim); }
+.alliance-vault-val { font-family:'Orbitron'; font-size:13px; color:#c0a0ff; }
+.alliance-income-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.alliance-income-stat { background:rgba(0,0,0,0.22); border:1px solid rgba(108,63,196,0.15); border-radius:10px; padding:10px; text-align:center; }
+.alliance-income-val { font-family:'Orbitron'; font-size:13px; color:var(--amber-bright); }
+.alliance-income-lbl { font-size:10px; color:var(--text-dim); margin-top:2px; }
+.alliance-claim-btn { width:100%; background:linear-gradient(135deg,#6c3fc4,#4a28a0); border:none; border-radius:12px; padding:13px; font-family:'Orbitron'; font-size:12px; color:#fff; font-weight:700; cursor:pointer; transition:all 0.15s; margin-bottom:6px; }
+.alliance-claim-btn:active { transform:scale(0.97); }
+.alliance-claim-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+.alliance-leave-btn { width:100%; background:transparent; border:1px solid rgba(231,76,60,0.35); border-radius:12px; padding:10px; font-size:12px; color:#e74c3c; cursor:pointer; transition:all 0.15s; margin-top:6px; }
+.alliance-leave-btn:active { transform:scale(0.97); }
+.alliance-members-list { margin-top:8px; }
+.alliance-member-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(108,63,196,0.1); }
+.alliance-member-row:last-child { border-bottom:none; }
+.alliance-member-avatar { font-size:18px; flex-shrink:0; }
+.alliance-member-name { flex:1; font-size:13px; color:var(--text-primary); }
+.alliance-member-role-badge { font-size:10px; padding:2px 8px; border-radius:8px; }
+.alliance-member-role-badge.founder { background:rgba(212,160,23,0.18); color:var(--gold); }
+.alliance-member-role-badge.member { background:rgba(108,63,196,0.18); color:#a080e0; }
+.alliance-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999; align-items:flex-end; justify-content:center; }
+.alliance-sheet { background:var(--bg-mid,#1a1a2e); border-radius:18px 18px 0 0; width:100%; max-width:480px; padding:20px 18px 32px; transform:translateY(100%); transition:transform 0.32s cubic-bezier(.4,0,.2,1); max-height:80vh; overflow-y:auto; }
+.alliance-sheet-title { font-family:'Cinzel Decorative'; font-size:14px; color:var(--amber-bright); text-align:center; margin-bottom:16px; }
+.alliance-form-label { font-size:11px; color:var(--text-dim); margin-bottom:6px; letter-spacing:1px; text-transform:uppercase; display:block; }
+.alliance-form-input { width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(108,63,196,0.35); border-radius:10px; padding:12px 14px; font-family:'Rajdhani'; font-size:14px; color:var(--text-primary); outline:none; box-sizing:border-box; }
+.alliance-form-input:focus { border-color:rgba(108,63,196,0.7); }
+.alliance-cost-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(245,166,35,0.1); border:1px solid rgba(245,166,35,0.25); border-radius:20px; padding:6px 14px; font-size:12px; color:var(--amber-bright); font-family:'Orbitron'; }
+.alliance-submit-btn { width:100%; background:linear-gradient(135deg,#6c3fc4,#4a28a0); border:none; border-radius:12px; padding:14px; font-family:'Orbitron'; font-size:12px; color:#fff; font-weight:700; cursor:pointer; transition:all 0.15s; letter-spacing:0.5px; }
+.alliance-submit-btn:active { transform:scale(0.97); }
+.alliance-submit-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.alliance-cancel-btn { width:100%; background:transparent; border:none; padding:12px; font-size:13px; color:var(--text-dim); cursor:pointer; }
+.alliance-browse-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; border:1px solid rgba(108,63,196,0.2); margin-bottom:8px; background:rgba(108,63,196,0.04); }
+.alliance-browse-name { font-size:13px; color:var(--text-primary); font-weight:600; }
+.alliance-browse-stats { font-size:10px; color:var(--text-dim); margin-top:2px; }
+.alliance-browse-vault-lbl { font-family:'Orbitron'; font-size:11px; color:#a080e0; }
+.alliance-confirm-box { background:rgba(108,63,196,0.1); border:1px solid rgba(108,63,196,0.3); border-radius:14px; padding:16px; text-align:center; }
+
 </style>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1214,12 +1266,23 @@ body::before {
         <div class="lb-tab active" onclick="switchLbTab('workers',this)">🐜 Workers</div>
         <div class="lb-tab" onclick="switchLbTab('mined',this)">⛏️ $ANT Mined</div>
         <div class="lb-tab" onclick="switchLbTab('recruits',this)">👥 Recruits</div>
+        <div class="lb-tab" onclick="switchLbTab('alliances',this)">🛡️ Alliances</div>
       </div>
       <div class="lb-your-rank" id="lbYourRank">
         <div class="lb-your-rank-num" id="lbYourRankNum">#—</div>
         <div><div style="font-size:12px;color:var(--amber-bright);font-weight:600">Your Position</div><div style="font-size:11px;color:var(--text-dim)" id="lbYourStats">Loading...</div></div>
       </div>
+      <!-- Player leaderboard list -->
       <div style="display:flex;flex-direction:column;gap:6px;" id="lbList"></div>
+      <!-- Alliance leaderboard list (shown when alliances tab is active) -->
+      <div id="lbAllianceSection" style="display:none">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">
+          Alliances ranked by vault size. Join or browse alliances below.
+        </div>
+        <div id="lbAllianceList" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">⏳ Loading alliances...</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1418,12 +1481,67 @@ body::before {
       </div>
     </div>
 
+    <!-- Alliance -->
+    <div class="section">
+      <div class="section-title">🛡️ Alliance</div>
+      <div id="allianceContent">
+        <div style="text-align:center;padding:20px 0;color:var(--text-dim);font-size:12px">Loading...</div>
+      </div>
+    </div>
+
     <!-- Achievements -->
     <div class="section">
       <div class="section-title">🏅 Achievements</div>
       <div class="achieve-grid" id="achieveGrid"></div>
     </div>
   </div>
+
+  <!-- ALLIANCE CREATE OVERLAY -->
+  <div id="allianceCreateOverlay" class="alliance-overlay" onclick="closeCreateAlliance()">
+    <div id="allianceCreateSheet" class="alliance-sheet" onclick="event.stopPropagation()">
+      <div class="alliance-sheet-title">🏰 Create Alliance</div>
+      <div style="background:rgba(108,63,196,0.08);border:1px solid rgba(108,63,196,0.2);border-radius:12px;padding:12px;margin-bottom:14px;font-size:11px;color:var(--text-dim);line-height:1.6;">
+        <strong style="color:var(--amber-bright)">How it works:</strong><br>
+        1. Create a Telegram group or channel &amp; add @AntColony_miningBot as admin<br>
+        2. Name your alliance to match the group/channel name<br>
+        3. Members join the group/channel first, then join here for <strong style="color:var(--amber-bright)">5,000 $ANT</strong>
+      </div>
+      <label class="alliance-form-label" for="allianceNameInput">Alliance Name</label>
+      <input class="alliance-form-input" id="allianceNameInput" maxlength="30" placeholder="e.g. Shadow Alliance" autocomplete="off"/>
+      <div style="margin:10px 0 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="alliance-cost-pill">💰 Cost: 10,000 $ANT</div>
+        <div style="font-size:11px;color:var(--text-dim)">goes into vault</div>
+      </div>
+      <button class="alliance-submit-btn" id="allianceCreateBtn" onclick="submitCreateAlliance()">🏰 Create Alliance</button>
+      <button class="alliance-cancel-btn" onclick="closeCreateAlliance()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ALLIANCE JOIN OVERLAY -->
+  <div id="allianceJoinOverlay" class="alliance-overlay" onclick="closeJoinAlliance()">
+    <div id="allianceJoinSheet" class="alliance-sheet" onclick="event.stopPropagation()">
+      <div class="alliance-sheet-title">🤝 Join an Alliance</div>
+      <div style="background:rgba(108,63,196,0.06);border:1px solid rgba(108,63,196,0.15);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text-dim);line-height:1.55;">
+        ⚠️ Join the alliance's Telegram group or channel first, then pay <strong style="color:var(--amber-bright)">5,000 $ANT</strong> to enter the vault.
+      </div>
+      <div id="allianceBrowseArea">
+        <div id="allianceBrowseList">
+          <div style="text-align:center;padding:16px;color:var(--text-dim);font-size:12px">⏳ Loading...</div>
+        </div>
+      </div>
+      <div id="allianceJoinConfirm" style="display:none">
+        <div class="alliance-confirm-box">
+          <div style="font-size:32px;margin-bottom:8px">🤝</div>
+          <div style="font-size:14px;font-weight:700;color:var(--amber-bright);margin-bottom:6px" id="joinConfirmName">Alliance</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Costs <strong style="color:var(--amber-bright)" id="joinConfirmCost">5,000</strong> $ANT — added to vault</div>
+          <button class="alliance-submit-btn" onclick="proceedJoinAlliance()" style="margin-bottom:8px">✅ Confirm Join</button>
+          <button class="alliance-cancel-btn" onclick="cancelJoinConfirm()">← Back to List</button>
+        </div>
+      </div>
+      <button class="alliance-cancel-btn" onclick="closeJoinAlliance()" style="margin-top:8px">Close</button>
+    </div>
+  </div>
+
   <!-- AIRDROP DETAIL OVERLAY -->
   <div id="airdropOverlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
     <div id="airdropOverlayContent" style="background:linear-gradient(145deg,#06020f,#100520);border:1px solid rgba(120,0,255,0.4);border-radius:20px;padding:24px;max-width:320px;width:90%;position:relative;max-height:90vh;overflow-y:auto;">
@@ -5517,6 +5635,481 @@ window.closeAirdropOverlay = closeAirdropOverlay;
   window.claimOptAirdrop = claimOptAirdrop;
   window.closeOptOverlay = closeOptOverlay;
   window.loadOptAirdrops = loadOptAirdrops;
+})();
+
+// ============================================================
+//  ALLIANCE SYSTEM
+// ============================================================
+(function() {
+  'use strict';
+
+  var ALLIANCE_DB = 'alliances';
+  var MEMBERS_DB  = 'allianceMembers';
+  var PLAYER_DB   = 'playerAlliance';
+  var INCOME_DB   = 'allianceIncome';
+
+  // Vault yields 50% per 7 days, computed per millisecond
+  var VAULT_RATE   = 0.5 / (7 * 24 * 3600 * 1000);
+  var CREATE_COST  = 10000;
+  var JOIN_COST    = 5000;
+
+  // Module state
+  var _allianceId   = null;
+  var _alliance     = null;
+  var _members      = null;
+  var _myRole       = null;
+  var _myIncome     = null;
+  var _pendingJoin  = null;
+  var _leavePending = false;
+  var _disbandPending = false;
+
+  // ── DOM helpers ───────────────────────────────────────────
+  function _el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function _tx(tag, text, cls) { var e = _el(tag, cls); e.textContent = text; return e; }
+  function _ap(p, c) { p.appendChild(c); return p; }
+
+  // ── Load section when profile page opens ─────────────────
+  function loadAllianceProfile() {
+    if (!TG_USER) return;
+    var uid = String(TG_USER.id);
+    var el  = document.getElementById('allianceContent');
+    if (!el) return;
+
+    el.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--text-dim);font-size:12px">⏳ Loading...</div>';
+
+    if (!fbDb) { renderAllianceEmpty(el); return; }
+
+    fbDb.ref(PLAYER_DB + '/' + uid).once('value').then(function(snap) {
+      var pa = snap.val();
+      if (!pa || !pa.allianceId) { renderAllianceEmpty(el); return; }
+      _allianceId = pa.allianceId;
+      _myRole     = pa.role;
+
+      return Promise.all([
+        fbDb.ref(ALLIANCE_DB + '/' + _allianceId).once('value'),
+        fbDb.ref(MEMBERS_DB  + '/' + _allianceId).once('value'),
+        fbDb.ref(INCOME_DB   + '/' + _allianceId + '/' + uid).once('value')
+      ]);
+    }).then(function(results) {
+      if (!results) return;
+      var alliance  = results[0].val();
+      var members   = results[1].val() || {};
+      var incomeRec = results[2].val() || { lastClaimedAt: 0, claimedTotal: 0 };
+
+      if (!alliance) {
+        fbDb.ref(PLAYER_DB + '/' + String(TG_USER.id)).remove();
+        _allianceId = null; _myRole = null;
+        renderAllianceEmpty(document.getElementById('allianceContent') || el);
+        return;
+      }
+      _alliance = alliance; _members = members; _myIncome = incomeRec;
+      renderAllianceCard(document.getElementById('allianceContent') || el, alliance, members, incomeRec);
+    }).catch(function() {
+      var c = document.getElementById('allianceContent');
+      if (c) renderAllianceEmpty(c);
+    });
+  }
+
+  // ── No-alliance state ─────────────────────────────────────
+  function renderAllianceEmpty(container) {
+    while (container.firstChild) container.removeChild(container.firstChild);
+    var card = _el('div', 'alliance-empty-card');
+    _ap(card, _tx('div', '🛡️', 'alliance-empty-icon'));
+    _ap(card, _tx('div', 'No Alliance Yet', 'alliance-empty-title'));
+    _ap(card, _tx('div', 'Create or join an alliance to pool ANT into a shared vault and earn passive income together.', 'alliance-empty-desc'));
+    var btns = _el('div', 'alliance-action-btns');
+    var cb = _el('button', 'alliance-btn-create'); cb.textContent = '🏰 Create'; cb.onclick = openCreateAlliance;
+    var jb = _el('button', 'alliance-btn-join');   jb.textContent = '🤝 Join';   jb.onclick = openJoinAlliance;
+    _ap(btns, cb); _ap(btns, jb); _ap(card, btns); _ap(container, card);
+  }
+
+  // ── Alliance card (member already in an alliance) ─────────
+  function renderAllianceCard(container, alliance, members, incomeRec) {
+    while (container.firstChild) container.removeChild(container.firstChild);
+    var uid         = String(TG_USER.id);
+    var memberList  = Object.values(members);
+    var memberCount = memberList.length;
+    var now         = Date.now();
+
+    // Income calculation
+    var myMember     = members[uid];
+    var lastClaimed  = (incomeRec && incomeRec.lastClaimedAt) || (myMember && myMember.joinedAt) || alliance.createdAt || now;
+    var elapsed      = Math.max(0, now - lastClaimed);
+    var totalIncome  = (alliance.vault || 0) * VAULT_RATE * elapsed;
+    var nonFounders  = memberList.filter(function(m) { return m.role !== 'founder'; }).length;
+    var myShare;
+    if (_myRole === 'founder') {
+      myShare = nonFounders > 0 ? totalIncome * 0.10 : totalIncome * 0.50;
+    } else {
+      myShare = nonFounders > 0 ? totalIncome * 0.40 / nonFounders : 0;
+    }
+
+    var card = _el('div', 'alliance-card');
+
+    // Header
+    var hdr = _el('div', 'alliance-card-header');
+    var sh  = _el('div', 'alliance-shield-icon'); sh.textContent = '🛡️';
+    var inf = _el('div');
+    _ap(inf, _tx('div', alliance.name,                                          'alliance-card-name'));
+    _ap(inf, _tx('div', _myRole === 'founder' ? '⚜️ Founder' : '🤝 Member',    'alliance-card-role'));
+    _ap(hdr, sh); _ap(hdr, inf);
+
+    // Vault row
+    var vr = _el('div', 'alliance-vault-row');
+    _ap(vr, _tx('div', '🏦 Alliance Vault', 'alliance-vault-lbl'));
+    _ap(vr, _tx('div', fmtBig(alliance.vault || 0) + ' $ANT', 'alliance-vault-val'));
+
+    // Income stats
+    var ir = _el('div', 'alliance-income-row');
+    var ms = _el('div', 'alliance-income-stat');
+    _ap(ms, _tx('div', String(memberCount), 'alliance-income-val'));
+    _ap(ms, _tx('div', 'Members', 'alliance-income-lbl'));
+    var es = _el('div', 'alliance-income-stat');
+    var pv = _el('div', 'alliance-income-val'); pv.id = 'alliancePendingIncome'; pv.textContent = myShare.toFixed(4);
+    _ap(es, pv); _ap(es, _tx('div', 'Pending $ANT', 'alliance-income-lbl'));
+    _ap(ir, ms); _ap(ir, es);
+
+    // Claim button
+    var claimBtn = _el('button', 'alliance-claim-btn');
+    claimBtn.disabled   = myShare < 0.0001;
+    claimBtn.textContent = myShare >= 0.0001 ? '💰 Claim ' + myShare.toFixed(4) + ' $ANT' : '⏳ Income accumulating...';
+    (function(amt) { claimBtn.onclick = function() { doClaimIncome(amt); }; })(myShare);
+
+    // Rate info
+    var ri = _el('div');
+    ri.style.cssText = 'font-size:10px;color:var(--text-dim);text-align:center;margin-bottom:12px;line-height:1.5;';
+    var shareStr = _myRole === 'founder'
+      ? '10% of vault yield (founder)'
+      : '40% ÷ ' + nonFounders + ' member' + (nonFounders !== 1 ? 's' : '');
+    ri.textContent = 'Vault: 50% weekly yield · Your share: ' + shareStr;
+
+    // Members list
+    var mlTitle = _el('div');
+    mlTitle.style.cssText = 'font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;';
+    mlTitle.textContent = 'Members (' + memberCount + ')';
+    var mlList = _el('div', 'alliance-members-list');
+    memberList.forEach(function(m) {
+      var row = _el('div', 'alliance-member-row');
+      var av  = _el('div', 'alliance-member-avatar');
+      av.textContent = AVATAR_EMOJIS[(parseInt(m.tgId) || 0) % AVATAR_EMOJIS.length] || '🐜';
+      var nm  = _el('div', 'alliance-member-name'); nm.textContent = m.name || 'Unknown';
+      var rb  = _el('div', 'alliance-member-role-badge ' + (m.role === 'founder' ? 'founder' : 'member'));
+      rb.textContent = m.role === 'founder' ? '⚜️ Founder' : '🐜 Member';
+      _ap(row, av); _ap(row, nm); _ap(row, rb); _ap(mlList, row);
+    });
+
+    // Leave/Disband
+    var leaveBtn = _el('button', 'alliance-leave-btn');
+    leaveBtn.textContent = _myRole === 'founder' ? '💥 Disband Alliance' : '🚪 Leave Alliance';
+    leaveBtn.onclick     = _myRole === 'founder' ? confirmDisband : confirmLeave;
+
+    _ap(card, hdr); _ap(card, vr); _ap(card, ir); _ap(card, claimBtn);
+    _ap(card, ri); _ap(card, mlTitle); _ap(card, mlList); _ap(card, leaveBtn);
+    _ap(container, card);
+  }
+
+  // ── Claim income ──────────────────────────────────────────
+  function doClaimIncome(amount) {
+    if (!fbDb || !_allianceId || amount < 0.0001) return;
+    var uid = String(TG_USER.id);
+    var now = Date.now();
+    STATE.balance    += amount;
+    STATE.totalMined += amount;
+    saveAccount();
+    updateBalanceDisplay();
+    fbDb.ref(INCOME_DB + '/' + _allianceId + '/' + uid).update({
+      lastClaimedAt: now,
+      claimedTotal: ((_myIncome && _myIncome.claimedTotal) || 0) + amount
+    });
+    showToast('💰 Claimed ' + amount.toFixed(4) + ' $ANT from alliance vault!');
+    if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+    loadAllianceProfile();
+  }
+
+  // ── Create Alliance ───────────────────────────────────────
+  function openCreateAlliance() {
+    var ov = document.getElementById('allianceCreateOverlay');
+    var sh = document.getElementById('allianceCreateSheet');
+    if (!ov || !sh) return;
+    var inp = document.getElementById('allianceNameInput');
+    if (inp) inp.value = '';
+    ov.style.display = 'flex';
+    setTimeout(function() { sh.style.transform = 'translateY(0)'; }, 10);
+  }
+
+  function closeCreateAlliance() {
+    var sh = document.getElementById('allianceCreateSheet');
+    if (sh) sh.style.transform = 'translateY(100%)';
+    setTimeout(function() {
+      var ov = document.getElementById('allianceCreateOverlay');
+      if (ov) ov.style.display = 'none';
+    }, 340);
+  }
+
+  function submitCreateAlliance() {
+    if (!fbDb) { showToast('❌ No connection'); return; }
+    var inp  = document.getElementById('allianceNameInput');
+    var name = inp ? inp.value.trim() : '';
+    if (!name) { showToast('⚠️ Enter an alliance name!'); return; }
+    if (name.length < 3) { showToast('⚠️ Name too short (min 3 chars)!'); return; }
+    if (STATE.balance < CREATE_COST) { showToast('❌ Need ' + fmtBig(CREATE_COST) + ' $ANT to create!'); return; }
+    var btn = document.getElementById('allianceCreateBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Creating...'; }
+    var uid = String(TG_USER.id), now = Date.now();
+
+    fbDb.ref(ALLIANCE_DB).orderByChild('name').equalTo(name).once('value').then(function(snap) {
+      if (snap.exists()) {
+        showToast('❌ Alliance name taken! Choose another.');
+        if (btn) { btn.disabled = false; btn.textContent = '🏰 Create Alliance'; }
+        return;
+      }
+      STATE.balance -= CREATE_COST;
+      saveAccount(); updateBalanceDisplay();
+      var ref = fbDb.ref(ALLIANCE_DB).push();
+      var aid = ref.key;
+      var upd = {};
+      upd[ALLIANCE_DB + '/' + aid] = { name: name, founderId: uid, founderName: TG_USER.first_name || 'Unknown', vault: CREATE_COST, memberCount: 1, createdAt: now };
+      upd[MEMBERS_DB  + '/' + aid + '/' + uid] = { tgId: uid, name: TG_USER.first_name || 'Unknown', username: TG_USER.username || '', contribution: CREATE_COST, role: 'founder', joinedAt: now };
+      upd[PLAYER_DB   + '/' + uid] = { allianceId: aid, role: 'founder' };
+      upd[INCOME_DB   + '/' + aid + '/' + uid] = { lastClaimedAt: now, claimedTotal: 0 };
+      fbDb.ref().update(upd).then(function() {
+        closeCreateAlliance();
+        showToast('🛡️ Alliance "' + name + '" created! Vault: ' + fmtBig(CREATE_COST) + ' $ANT');
+        if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+        loadAllianceProfile();
+      }).catch(function() {
+        STATE.balance += CREATE_COST; saveAccount(); updateBalanceDisplay();
+        showToast('❌ Error creating alliance. Try again.');
+        if (btn) { btn.disabled = false; btn.textContent = '🏰 Create Alliance'; }
+      });
+    }).catch(function() {
+      showToast('❌ Connection error.');
+      if (btn) { btn.disabled = false; btn.textContent = '🏰 Create Alliance'; }
+    });
+  }
+
+  // ── Join Alliance ─────────────────────────────────────────
+  function openJoinAlliance() {
+    var ov = document.getElementById('allianceJoinOverlay');
+    var sh = document.getElementById('allianceJoinSheet');
+    if (!ov || !sh) return;
+    _pendingJoin = null;
+    var ba = document.getElementById('allianceBrowseArea');
+    var ca = document.getElementById('allianceJoinConfirm');
+    if (ba) ba.style.display = 'block';
+    if (ca) ca.style.display = 'none';
+    ov.style.display = 'flex';
+    setTimeout(function() { sh.style.transform = 'translateY(0)'; }, 10);
+    loadAllianceBrowse('allianceBrowseList');
+  }
+
+  function closeJoinAlliance() {
+    var sh = document.getElementById('allianceJoinSheet');
+    if (sh) sh.style.transform = 'translateY(100%)';
+    setTimeout(function() {
+      var ov = document.getElementById('allianceJoinOverlay');
+      if (ov) ov.style.display = 'none';
+    }, 340);
+    _pendingJoin = null;
+  }
+
+  // ── Shared browse loader (used in both overlay + leaderboard) ──
+  function loadAllianceBrowse(listId) {
+    var list = document.getElementById(listId || 'allianceBrowseList');
+    if (!list) return;
+    list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:12px">⏳ Loading alliances...</div>';
+    if (!fbDb) { list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:12px">No connection.</div>'; return; }
+
+    fbDb.ref(ALLIANCE_DB).orderByChild('vault').limitToLast(30).once('value').then(function(snap) {
+      var items = [];
+      snap.forEach(function(c) { var v = c.val(); v._id = c.key; items.push(v); });
+      items.reverse();
+      list.innerHTML = '';
+      if (!items.length) {
+        list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:12px">No alliances yet. Be the first to create one!</div>';
+        return;
+      }
+      items.forEach(function(a, idx) {
+        var row = _el('div', 'alliance-browse-item');
+        var rankBadge = _el('div'); rankBadge.style.cssText = 'font-size:11px;font-family:Orbitron;color:var(--amber-bright);min-width:24px;text-align:center;flex-shrink:0;';
+        rankBadge.textContent = idx < 3 ? ['🥇','🥈','🥉'][idx] : '#' + (idx + 1);
+        var icon = _el('div'); icon.textContent = '🛡️'; icon.style.cssText = 'font-size:24px;flex-shrink:0;';
+        var info = _el('div'); info.style.flex = '1';
+        _ap(info, _tx('div', a.name, 'alliance-browse-name'));
+        var stats = _el('div', 'alliance-browse-stats');
+        stats.textContent = (a.memberCount || 1) + ' members · Founded by ' + (a.founderName || '?');
+        var vault = _el('div', 'alliance-browse-vault-lbl');
+        vault.textContent = fmtBig(a.vault || 0) + ' $ANT vault';
+        _ap(info, stats); _ap(info, vault);
+        var jBtn = document.createElement('button');
+        jBtn.style.cssText = 'background:linear-gradient(135deg,#6c3fc4,#4a28a0);border:none;border-radius:8px;padding:8px 12px;font-size:11px;color:#fff;cursor:pointer;font-family:Orbitron;font-weight:700;flex-shrink:0;';
+        jBtn.textContent = 'JOIN';
+        (function(alliance) { jBtn.onclick = function() { confirmJoinAlliance(alliance); }; })(a);
+        _ap(row, rankBadge); _ap(row, icon); _ap(row, info); _ap(row, jBtn);
+        list.appendChild(row);
+      });
+    }).catch(function() {
+      list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:12px">❌ Failed to load.</div>';
+    });
+  }
+
+  function confirmJoinAlliance(alliance) {
+    if (STATE.balance < JOIN_COST) { showToast('❌ Need ' + fmtBig(JOIN_COST) + ' $ANT to join!'); return; }
+    _pendingJoin = alliance;
+    var ba = document.getElementById('allianceBrowseArea');
+    var ca = document.getElementById('allianceJoinConfirm');
+    var nm = document.getElementById('joinConfirmName');
+    var co = document.getElementById('joinConfirmCost');
+    if (ba) ba.style.display = 'none';
+    if (ca) ca.style.display = 'block';
+    if (nm) nm.textContent = alliance.name;
+    if (co) co.textContent = fmtBig(JOIN_COST);
+  }
+
+  function cancelJoinConfirm() {
+    _pendingJoin = null;
+    var ba = document.getElementById('allianceBrowseArea');
+    var ca = document.getElementById('allianceJoinConfirm');
+    if (ba) ba.style.display = 'block';
+    if (ca) ca.style.display = 'none';
+  }
+
+  function proceedJoinAlliance() {
+    if (!_pendingJoin) return;
+    var alliance = _pendingJoin; _pendingJoin = null;
+    if (!fbDb) { showToast('❌ No connection'); return; }
+    if (STATE.balance < JOIN_COST) { showToast('❌ Insufficient $ANT!'); return; }
+    var uid = String(TG_USER.id), now = Date.now();
+
+    fbDb.ref(PLAYER_DB + '/' + uid).once('value').then(function(snap) {
+      if (snap.exists()) { showToast('❌ Already in an alliance!'); closeJoinAlliance(); return; }
+      STATE.balance -= JOIN_COST; saveAccount(); updateBalanceDisplay();
+      var upd = {};
+      upd[ALLIANCE_DB + '/' + alliance._id + '/vault']       = (alliance.vault || 0) + JOIN_COST;
+      upd[ALLIANCE_DB + '/' + alliance._id + '/memberCount'] = (alliance.memberCount || 1) + 1;
+      upd[MEMBERS_DB  + '/' + alliance._id + '/' + uid] = { tgId: uid, name: TG_USER.first_name || 'Unknown', username: TG_USER.username || '', contribution: JOIN_COST, role: 'member', joinedAt: now };
+      upd[PLAYER_DB   + '/' + uid] = { allianceId: alliance._id, role: 'member' };
+      upd[INCOME_DB   + '/' + alliance._id + '/' + uid] = { lastClaimedAt: now, claimedTotal: 0 };
+      fbDb.ref().update(upd).then(function() {
+        closeJoinAlliance();
+        showToast('🤝 Joined "' + alliance.name + '"! +' + fmtBig(JOIN_COST) + ' $ANT in vault!');
+        if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+        loadAllianceProfile();
+        // Refresh leaderboard alliance tab if visible
+        var lbAllianceList = document.getElementById('lbAllianceList');
+        if (lbAllianceList) loadAllianceBrowse('lbAllianceList');
+      }).catch(function() {
+        STATE.balance += JOIN_COST; saveAccount(); updateBalanceDisplay();
+        showToast('❌ Error joining. Try again.');
+      });
+    });
+  }
+
+  // ── Leave Alliance ────────────────────────────────────────
+  function confirmLeave() {
+    if (_leavePending) { doLeaveAlliance(); return; }
+    _leavePending = true;
+    showToast('⚠️ Tap Leave again to confirm');
+    var btn = document.querySelector('.alliance-leave-btn');
+    if (btn) btn.textContent = '⚠️ Confirm Leave?';
+    setTimeout(function() {
+      _leavePending = false;
+      var b = document.querySelector('.alliance-leave-btn');
+      if (b && b.textContent.indexOf('Confirm') !== -1) b.textContent = '🚪 Leave Alliance';
+    }, 4000);
+  }
+
+  function doLeaveAlliance() {
+    if (!fbDb || !_allianceId) return; _leavePending = false;
+    var uid = String(TG_USER.id);
+    var upd = {};
+    upd[PLAYER_DB  + '/' + uid] = null;
+    upd[MEMBERS_DB + '/' + _allianceId + '/' + uid] = null;
+    upd[ALLIANCE_DB + '/' + _allianceId + '/memberCount'] = Math.max(0, (_alliance.memberCount || 1) - 1);
+    fbDb.ref().update(upd).then(function() {
+      _allianceId = null; _alliance = null; _members = null; _myRole = null;
+      showToast('🚪 You left the alliance.'); loadAllianceProfile();
+    }).catch(function() { showToast('❌ Error leaving.'); });
+  }
+
+  // ── Disband Alliance ──────────────────────────────────────
+  function confirmDisband() {
+    if (_disbandPending) { doDisbandAlliance(); return; }
+    _disbandPending = true;
+    showToast('⚠️ Tap Disband again — this is permanent!');
+    var btn = document.querySelector('.alliance-leave-btn');
+    if (btn) btn.textContent = '⚠️ Confirm Disband?';
+    setTimeout(function() {
+      _disbandPending = false;
+      var b = document.querySelector('.alliance-leave-btn');
+      if (b && b.textContent.indexOf('Confirm') !== -1) b.textContent = '💥 Disband Alliance';
+    }, 4000);
+  }
+
+  function doDisbandAlliance() {
+    if (!fbDb || !_allianceId || _myRole !== 'founder') return; _disbandPending = false;
+    var aid = _allianceId, mems = _members || {};
+    var promises = Object.keys(mems).map(function(mid) {
+      return fbDb.ref(PLAYER_DB + '/' + mid).remove();
+    });
+    promises.push(fbDb.ref(ALLIANCE_DB + '/' + aid).remove());
+    promises.push(fbDb.ref(MEMBERS_DB  + '/' + aid).remove());
+    promises.push(fbDb.ref(INCOME_DB   + '/' + aid).remove());
+    Promise.all(promises).then(function() {
+      _allianceId = null; _alliance = null; _members = null; _myRole = null;
+      showToast('💥 Alliance disbanded.'); loadAllianceProfile();
+    }).catch(function() { showToast('❌ Error disbanding.'); });
+  }
+
+  // ── Alliance Leaderboard tab ──────────────────────────────
+  function renderAllianceLeaderboard() {
+    var section = document.getElementById('lbAllianceSection');
+    var list    = document.getElementById('lbAllianceList');
+    if (section) section.style.display = 'block';
+    if (list) loadAllianceBrowse('lbAllianceList');
+  }
+
+  function hideAllianceLeaderboard() {
+    var section = document.getElementById('lbAllianceSection');
+    if (section) section.style.display = 'none';
+  }
+
+  // ── Hook into renderProfilePage ───────────────────────────
+  var _origRenderProfile = window.renderProfilePage;
+  window.renderProfilePage = function() {
+    if (_origRenderProfile) _origRenderProfile();
+    loadAllianceProfile();
+  };
+
+  // ── Hook into switchLbTab for alliance tab ────────────────
+  var _origSwitchLbTab = window.switchLbTab;
+  window.switchLbTab = function(tab, el) {
+    var lbList      = document.getElementById('lbList');
+    var lbYourRank  = document.getElementById('lbYourRank');
+    if (tab === 'alliances') {
+      document.querySelectorAll('.lb-tab').forEach(function(t) { t.classList.remove('active'); });
+      if (el) el.classList.add('active');
+      if (lbList)     lbList.style.display     = 'none';
+      if (lbYourRank) lbYourRank.style.display = 'none';
+      renderAllianceLeaderboard();
+    } else {
+      hideAllianceLeaderboard();
+      if (lbList)     lbList.style.display     = '';
+      if (lbYourRank) lbYourRank.style.display = '';
+      if (_origSwitchLbTab) _origSwitchLbTab(tab, el);
+    }
+  };
+
+  // ── Expose public API ─────────────────────────────────────
+  window.openCreateAlliance   = openCreateAlliance;
+  window.closeCreateAlliance  = closeCreateAlliance;
+  window.submitCreateAlliance = submitCreateAlliance;
+  window.openJoinAlliance     = openJoinAlliance;
+  window.closeJoinAlliance    = closeJoinAlliance;
+  window.loadAllianceBrowse   = loadAllianceBrowse;
+  window.cancelJoinConfirm    = cancelJoinConfirm;
+  window.proceedJoinAlliance  = proceedJoinAlliance;
+  window.loadAllianceProfile  = loadAllianceProfile;
 })();
 
 // ============================================================
