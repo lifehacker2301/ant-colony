@@ -192,9 +192,24 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="login-logo">🐜</div>
     <div class="login-title">Admin Control</div>
     <div class="login-sub">Ant Colony • Restricted Access</div>
-    <input class="login-input" id="secretInput" type="password" placeholder="Enter secret code" onkeydown="if(event.key==='Enter')attemptLogin()"/>
-    <button class="login-btn" onclick="attemptLogin()">🔐 ACCESS PANEL</button>
-    <div class="login-err" id="loginErr">❌ Wrong secret code</div>
+
+    <!-- Step 1: Secret key -->
+    <div id="loginStep1">
+      <input class="login-input" id="secretInput" type="password" placeholder="Enter secret code" onkeydown="if(event.key==='Enter')attemptLogin()"/>
+      <button class="login-btn" id="loginStep1Btn" onclick="attemptLogin()">🔐 ACCESS PANEL</button>
+      <div class="login-err" id="loginErr">❌ Wrong secret code</div>
+    </div>
+
+    <!-- Step 2: Telegram ID verification -->
+    <div id="loginStep2" style="display:none">
+      <div id="loginTgPrompt" style="font-size:13px;color:var(--amber);margin-bottom:16px;line-height:1.7;text-align:center;padding:0 4px"></div>
+      <input class="login-input" id="tgIdInput" type="number" placeholder="Your Telegram User ID" onkeydown="if(event.key==='Enter')verifyTgId()"/>
+      <button class="login-btn" id="tgVerifyBtn" onclick="verifyTgId()">✅ VERIFY & ENTER</button>
+      <div class="login-err" id="loginTgErr" style="display:none">❌ Access denied</div>
+      <div style="margin-top:10px;text-align:center">
+        <span style="font-size:11px;color:var(--text-dim);cursor:pointer;text-decoration:underline" onclick="document.getElementById('loginStep2').style.display='none';document.getElementById('loginStep1').style.display='block';document.getElementById('loginStep1Btn').disabled=false;document.getElementById('loginStep1Btn').textContent='🔐 ACCESS PANEL'">← Back</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -966,11 +981,79 @@ function updateTokenStatus() {
 }
 
 // -- AUTH ------------------------------------------------------
+let _pendingOwnerId = undefined; // null = first-time setup, string = registered ID
+
 function attemptLogin() {
   const secret = document.getElementById('secretInput').value.trim();
-  const err = document.getElementById('loginErr');
+  const err    = document.getElementById('loginErr');
   err.style.display = 'none';
   if (secret !== ADMIN_SECRET) { err.style.display = 'block'; return; }
+  // Secret correct — init Firebase then check owner ID
+  const btn = document.getElementById('loginStep1Btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Checking...'; }
+  initFirebase();
+  if (!db) {
+    // No Firebase — fall back to localStorage
+    try { const s = JSON.parse(localStorage.getItem(ADMIN_STORE)||'{}'); _pendingOwnerId = s.adminId || null; } catch(e) { _pendingOwnerId = null; }
+    _showLoginStep2();
+    return;
+  }
+  db.ref('adminConfig/ownerId').once('value').then(snap => {
+    _pendingOwnerId = snap.exists() ? String(snap.val()) : null;
+    _showLoginStep2();
+  }).catch(() => {
+    try { const s = JSON.parse(localStorage.getItem(ADMIN_STORE)||'{}'); _pendingOwnerId = s.adminId || null; } catch(e) { _pendingOwnerId = null; }
+    _showLoginStep2();
+  });
+}
+
+function _showLoginStep2() {
+  document.getElementById('loginStep1').style.display = 'none';
+  document.getElementById('loginStep2').style.display = 'block';
+  document.getElementById('loginTgErr').style.display = 'none';
+  document.getElementById('tgIdInput').value = '';
+  const prompt = document.getElementById('loginTgPrompt');
+  if (!_pendingOwnerId) {
+    prompt.innerHTML = '👑 <b>First-time setup</b><br>Enter your Telegram User ID to lock this panel.<br><span style="font-size:11px;color:var(--text-dim)">No other user will be able to access it.</span>';
+    document.getElementById('tgVerifyBtn').textContent = '🔒 REGISTER & ENTER';
+  } else {
+    prompt.innerHTML = '🔐 <b>Identity Check</b><br>Enter your Telegram User ID to verify access.';
+    document.getElementById('tgVerifyBtn').textContent = '✅ VERIFY & ENTER';
+  }
+  setTimeout(() => document.getElementById('tgIdInput').focus(), 100);
+}
+
+function verifyTgId() {
+  const tid = document.getElementById('tgIdInput').value.trim();
+  const err = document.getElementById('loginTgErr');
+  err.style.display = 'none';
+  if (!tid || !/^\d+$/.test(tid)) {
+    err.textContent = '❌ Enter a valid Telegram ID (numbers only)';
+    err.style.display = 'block'; return;
+  }
+  const btn = document.getElementById('tgVerifyBtn');
+  if (!_pendingOwnerId) {
+    // First time — register this Telegram ID as the owner
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Registering...'; }
+    const _save = () => {
+      try { const s = JSON.parse(localStorage.getItem(ADMIN_STORE)||'{}'); s.adminId = tid; localStorage.setItem(ADMIN_STORE, JSON.stringify(s)); } catch(e) {}
+      currentAdminId = tid;
+      _finalizeLogin();
+    };
+    if (db) { db.ref('adminConfig/ownerId').set(tid).then(_save).catch(_save); }
+    else { _save(); }
+  } else {
+    // Verify against stored owner
+    if (tid !== _pendingOwnerId) {
+      err.textContent = '❌ Access denied — Telegram ID does not match';
+      err.style.display = 'block'; return;
+    }
+    currentAdminId = tid;
+    _finalizeLogin();
+  }
+}
+
+function _finalizeLogin() {
   sessionStorage.setItem('ac_sess', JSON.stringify({ t: Date.now() }));
   showApp();
 }
@@ -988,11 +1071,9 @@ function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminApp').style.display = 'block';
   initFirebase();
-  // Load saved admin ID into currentAdminId
-  try {
-    const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
-    if (stored.adminId) currentAdminId = stored.adminId;
-  } catch(e) {}
+  // Load admin ID — localStorage first, then sync from Firebase
+  try { const s = JSON.parse(localStorage.getItem(ADMIN_STORE)||'{}'); if (s.adminId) currentAdminId = s.adminId; } catch(e) {}
+  if (db) db.ref('adminConfig/ownerId').once('value').then(snap => { if (snap.exists()) { currentAdminId = String(snap.val()); updateSecurityPanel(); } }).catch(()=>{});
   refreshData();
   loadSettingsIntoForms();
   updateTokenStatus();
@@ -1560,13 +1641,19 @@ function updateSecurityPanel() {
 function updateAdminId() {
   const newId  = document.getElementById('newAdminId').value.trim();
   const secret = document.getElementById('confirmSecret').value.trim();
-  if (secret !== ADMIN_SECRET) { toast('[X] Wrong secret code'); return; }
-  if (!newId || !/^\d+$/.test(newId)) { toast('[X] Invalid Telegram ID (numbers only)'); return; }
+  if (secret !== ADMIN_SECRET) { toast('❌ Wrong secret code', 'error'); return; }
+  if (!newId || !/^\d+$/.test(newId)) { toast('❌ Invalid Telegram ID (numbers only)', 'error'); return; }
   const stored = JSON.parse(localStorage.getItem(ADMIN_STORE) || '{}');
   stored.adminId = newId;
   localStorage.setItem(ADMIN_STORE, JSON.stringify(stored));
   currentAdminId = newId;
-  toast('✅ Admin ID updated to ' + newId + '!');
+  if (db) {
+    db.ref('adminConfig/ownerId').set(newId)
+      .then(() => toast('✅ Admin ID locked to ' + newId + ' (Firebase + local)', 'success'))
+      .catch(() => toast('✅ Admin ID updated locally (Firebase write failed)', 'success'));
+  } else {
+    toast('✅ Admin ID updated to ' + newId, 'success');
+  }
   updateSecurityPanel();
 }
 
