@@ -1087,7 +1087,14 @@ function logout() {
   sessionStorage.removeItem('ac_sess');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminApp').style.display = 'none';
+  // Reset login back to step 1
+  document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('loginStep1Btn').disabled = false;
+  document.getElementById('loginStep1Btn').textContent = '🔐 ACCESS PANEL';
   document.getElementById('secretInput').value = '';
+  document.getElementById('loginErr').style.display = 'none';
+  _pendingOwnerId = undefined;
   currentAdminId = null;
   allPlayers = {};
   toast('🔒 Logged out.');
@@ -1181,7 +1188,7 @@ function filterLeaderboard(query) {
 
 function exportPlayersCSV() {
   const pl = getPlayers();
-  if (!pl.length) { toast('❌ No players to export'); return; }
+  if (!pl.length) { toast('❌ No players to export', 'error'); return; }
   const header = 'Name,Username,TelegramID,Balance,Workers,TotalMined,Referrals';
   const rows = pl.map(p =>
     [p.tgName||'', p.tgUsername||'', p.tgId||'', (p.balance||0).toFixed(4),
@@ -1195,7 +1202,7 @@ function exportPlayersCSV() {
   a.download = 'ant_colony_players_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
   URL.revokeObjectURL(url);
-  toast('📥 Exported ' + pl.length + ' players to CSV!');
+  toast('📥 Exported ' + pl.length + ' players to CSV!', 'success');
 }
 
 // Event delegation for leaderboard action buttons (avoids onclick XSS)
@@ -1214,7 +1221,7 @@ let foundPlayerId = null;
 function findPlayer() {
   const q = document.getElementById('balUsername').value.trim().replace('@','');
   const p = getPlayers().find(x => x.tgUsername===q || x.tgId===q || x.tgName===q);
-  if (!p) { toast('[X] Player not found'); return; }
+  if (!p) { toast('❌ Player not found', 'error'); return; }
   foundPlayerId = p.tgId;
   document.getElementById('fpName').textContent    = p.tgName;
   document.getElementById('fpId').textContent      = '@'+(p.tgUsername||p.tgId);
@@ -1231,8 +1238,8 @@ function quickBalance(id) {
 }
 
 function applyBalance() {
-  if (!foundPlayerId) { toast('[X] Search for a player first'); return; }
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!foundPlayerId) { toast('❌ Search for a player first', 'error'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   const op  = document.getElementById('balOp').value;
   const amt = parseFloat(document.getElementById('balAmount').value);
   if (isNaN(amt) || amt < 0) { toast('❌ Enter a valid non-negative amount'); return; }
@@ -1249,8 +1256,8 @@ function applyBalance() {
     else                 newBal = amt;
     newBal = parseFloat(newBal.toFixed(4));
     return db.ref('players/'+foundPlayerId).update({ balance: newBal, adminBalanceOverride: newBal });
-  }).then(() => { toast('[OK] Balance updated! Player gets it on next sync.'); refreshData(); })
-    .catch(e => toast('[X] ' + e.message));
+  }).then(() => { toast('✅ Balance updated! Player gets it on next sync.', 'success'); refreshData(); })
+    .catch(e => toast('❌ ' + e.message, 'error'));
 }
 
 // -- GIFTS -----------------------------------------------------
@@ -1277,12 +1284,12 @@ function sendGifts() {
   if (!ant && !workers) { toast('❌ Enter $ANT or Workers to gift', 'error'); return; }
   if (ant > 999999) { toast('❌ $ANT gift too large (max 999,999)', 'error'); return; }
   if (workers > 100000) { toast('❌ Workers gift too large (max 100,000)', 'error'); return; }
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
 
   let targets = giftTarget==='all'
     ? getPlayers().map(p => p.tgId).filter(Boolean)
     : Array.from(document.querySelectorAll('.gift-check:checked')).map(c => c.value);
-  if (!targets.length) { toast('[X] No players selected'); return; }
+  if (!targets.length) { toast('❌ No players selected', 'error'); return; }
 
   const giftSummary = [];
   if (ant > 0) giftSummary.push(ant + ' $ANT');
@@ -1298,8 +1305,8 @@ function sendGifts() {
       if (msg) updates[`players/${id}/pendingGiftMsg`] = String(msg).substring(0, 200);
     });
     db.ref().update(updates)
-      .then(() => { toast(`[gift] Gifts sent to ${targets.length} players!`); refreshData(); })
-      .catch(e => toast('[X] '+e.message));
+      .then(() => { toast(`🎁 Gifts sent to ${targets.length} players!`, 'success'); refreshData(); })
+      .catch(e => toast('❌ '+e.message, 'error'));
   });
 }
 
@@ -1307,26 +1314,26 @@ function sendGifts() {
 
 // Execute wipe by Firebase key — verifies existence first, then deletes
 function doWipe(fbKey, label) {
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   confirmAction('[!]', 'Wipe Player?', `Delete ALL data for "${label}"? Cannot be undone.`, () => {
     db.ref('players/' + fbKey).once('value').then(snap => {
       if (!snap.exists()) {
-        toast('[X] No data found in Firebase for this player');
+        toast('❌ No data found in Firebase for this player', 'error');
         return;
       }
       return db.ref('players/' + fbKey).remove()
         .then(() => db.ref('players/' + fbKey).set({ forceReset: true }))
         .then(() => {
-          toast('[del] Wiped! Player resets on next app open.');
+          toast('🗑️ Wiped! Player resets on next app open.', 'success');
           refreshData();
         });
-    }).catch(e => toast('[X] ' + e.message));
+    }).catch(e => toast('❌ ' + e.message, 'error'));
   });
 }
 
 // Called from leaderboard quick-wipe button
 function confirmWipePlayer(id, name) {
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   // id = tgId field value; find actual Firebase key in memory, fallback to id itself
   const fbKey = Object.keys(allPlayers).find(k => String(allPlayers[k]?.tgId) === String(id)) || String(id);
   doWipe(fbKey, name || id);
@@ -1334,9 +1341,9 @@ function confirmWipePlayer(id, name) {
 
 // Called from Wipeout panel search form
 function wipePlayer() {
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   const q = document.getElementById('wipeUsername').value.trim().replace('@','');
-  if (!q) { toast('[X] Enter a Telegram ID or username'); return; }
+  if (!q) { toast('❌ Enter a Telegram ID or username', 'error'); return; }
 
   // Try in-memory cache first for the display name
   let fbKey = null, label = q;
@@ -1359,9 +1366,9 @@ function wipePlayer() {
 }
 
 function resetPlayerBalance() {
-  if (!db) { toast('[!] Firebase not connected'); return; }
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   const q = document.getElementById('resetUsername').value.trim().replace('@','');
-  if (!q) { toast('[X] Enter a username or Telegram ID'); return; }
+  if (!q) { toast('❌ Enter a username or Telegram ID', 'error'); return; }
   let fbKey = allPlayers[q] ? q : null;
   if (!fbKey) {
     for (const k of Object.keys(allPlayers)) {
@@ -1373,7 +1380,7 @@ function resetPlayerBalance() {
   const name = allPlayers[fbKey]?.tgName || fbKey;
   confirmAction('[!]','Reset Balance?',`Reset "${name}" balance to 0?`, () => {
     db.ref('players/'+fbKey).update({ balance:0, adminBalanceOverride:0 })
-      .then(() => { toast('[OK] Balance reset'); refreshData(); }).catch(e => toast('[X] '+e.message));
+      .then(() => { toast('✅ Balance reset', 'success'); refreshData(); }).catch(e => toast('❌ '+e.message, 'error'));
   });
 }
 
@@ -1397,8 +1404,8 @@ function wipeoutAll() {
       .then(() => {
         allPlayers = {}; updateDashboard(); updateLeaderboard();
         document.getElementById('wipeConfirmText').value = '';
-        toast('[nuke] Complete wipeout done — all players reset on next app open');
-      }).catch(e => toast('[X] '+e.message));
+        toast('💥 Complete wipeout done — all players reset on next app open', 'success');
+      }).catch(e => toast('❌ '+e.message, 'error'));
   }, true);
 }
 
@@ -1449,7 +1456,7 @@ function saveMiningRates() {
   s.harvestInterval  = (hi > 0) ? hi : 60;
   saveSettings(s);
   loadSettingsIntoForms();
-  toast(db ? '[OK] Mining rates saved & pushed to Firebase!' : '[OK] Mining rates saved locally!');
+  toast(db ? '✅ Mining rates saved & pushed to Firebase!' : '✅ Mining rates saved locally!', 'success');
 }
 
 function saveReferralRates() {
@@ -1460,7 +1467,7 @@ function saveReferralRates() {
   s.joinAnt     = parseFloat(document.getElementById('inJoinAnt')?.value) || 0.05;
   saveSettings(s);
   loadSettingsIntoForms();
-  toast(db ? '[OK] Referral rates saved & pushed to Firebase!' : '[OK] Referral rates saved locally!');
+  toast(db ? '✅ Referral rates saved & pushed to Firebase!' : '✅ Referral rates saved locally!', 'success');
 }
 
 // -- ANNOUNCEMENTS ---------------------------------------------
@@ -1544,32 +1551,32 @@ async function tgSend(chatId, text, extra={}) {
 // Test to self - full diagnostics
 async function testAnnouncement() {
   const token = getBotToken();
-  if (!token) { toast('[X] Add bot token in Security tab first!'); showPanel('security'); return; }
+  if (!token) { toast('❌ Add bot token in Security tab first!', 'error'); showPanel('security'); return; }
   if (!currentAdminId) {
     toast('❌ Set your Admin Telegram ID in Security tab first!');
     showPanel('security');
     return;
   }
 
-  toast('[send] Testing...');
+  toast('📤 Testing...');
   const text = document.getElementById('annText').value.trim() || '[ant] Test message from Admin Panel!';
 
   if (selectedFile) {
     const d = await tgSendFileDirect(currentAdminId, selectedFile, selectedFileType, text, {});
-    if (d.ok) { toast('[OK] File sent! Check your Telegram.'); return; }
-    else { toast('[X] File failed: ' + (d.description||'unknown')); return; }
+    if (d.ok) { toast('✅ File sent! Check your Telegram.', 'success'); return; }
+    else { toast('❌ File failed: ' + (d.description||'unknown'), 'error'); return; }
   }
 
   const d = await tgSendRaw(currentAdminId, text, {});
-  if (d.ok) toast('[OK] Test sent! Check your Telegram chat.');
-  else      toast('[X] Failed: ' + (d.description || 'unknown error'));
+  if (d.ok) toast('✅ Test sent! Check your Telegram chat.', 'success');
+  else      toast('❌ Failed: ' + (d.description || 'unknown error'), 'error');
 }
 
 async function sendAnnouncement() {
   const text = document.getElementById('annText').value.trim();
-  if (!text && !selectedFile) { toast('[X] Write a message or attach a file'); return; }
+  if (!text && !selectedFile) { toast('❌ Write a message or attach a file', 'error'); return; }
   const token = getBotToken();
-  if (!token) { toast('[X] Add bot token in Security tab!'); showPanel('security'); return; }
+  if (!token) { toast('❌ Add bot token in Security tab!', 'error'); showPanel('security'); return; }
 
   let players = getPlayers();
   const target = document.getElementById('annTarget').value;
@@ -1580,7 +1587,7 @@ async function sendAnnouncement() {
     players = [{ chatId: adminId }];
   }
   const chatIds = [...new Set(players.map(p => p.chatId||p.tgId).filter(id => id && String(id)!=='99999999'))];
-  if (!chatIds.length) { toast('[X] No real players in database yet'); return; }
+  if (!chatIds.length) { toast('❌ No real players in database yet', 'error'); return; }
 
   const validBtns = annButtons.filter(b => b.text && b.url);
   const extra = validBtns.length ? { reply_markup:{ inline_keyboard:[validBtns.map(b=>({text:b.text,url:b.url}))] } } : {};
@@ -1618,9 +1625,9 @@ async function sendAnnouncement() {
 
   if (failed>0) {
     const topErr = [...new Set(errors)][0]||'';
-    toast('[!] '+sent+' sent, '+failed+' failed. '+topErr.substring(0,60));
+    toast('⚠️ '+sent+' sent, '+failed+' failed. '+topErr.substring(0,60), 'error');
   } else {
-    toast('[msg] Done! [OK] All '+sent+' messages sent!');
+    toast('📨 Done! ✅ All '+sent+' messages sent!', 'success');
   }
 
   document.getElementById('annText').value='';
@@ -2002,7 +2009,7 @@ function editAirdrop(id) {
     if (wrap) wrap.style.display = 'block';
     if (btn) btn.textContent = '\u2715 Cancel';
     wrap.scrollIntoView({behavior:'smooth', block:'start'});
-  });
+  }, function(e) { toast('❌ Error loading airdrop: ' + e.message, 'error'); });
 }
 
 function deleteAirdrop(id) {
@@ -2057,7 +2064,7 @@ function loadAirdropsAdmin() {
       '</div>';
     }
     list.innerHTML = html;
-  });
+  }, function(e) { list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red)">❌ Failed to load airdrops</div>'; });
 }
 
 // -- BOOT ------------------------------------------------------
@@ -2158,6 +2165,7 @@ function deleteOptTask(id) {
   var t = _optTaskData[id];
   var taskName = t ? t.name : id;
   confirmAction('🗑️', 'Delete Task', 'Delete "' + taskName + '"? This cannot be undone.', function() {
+    if (!db) { toast('❌ Firebase not connected', 'error'); return; }
     db.ref('optAirdrops/' + id).remove(function(err) {
       if (err) { toast('Error: ' + err.message, 'error'); return; }
       toast('🗑 Task deleted', 'success'); loadOptAdmin();
@@ -2246,6 +2254,10 @@ function loadOptAdmin() {
     }
     populate(list);
     populate(listB);
+  }).catch(function(e) {
+    var msg = '<div style="text-align:center;padding:24px;color:var(--red);font-size:13px">❌ Failed to load tasks</div>';
+    if (list) list.innerHTML = msg;
+    if (listB) listB.innerHTML = msg;
   });
 }
 
@@ -2336,6 +2348,10 @@ function viewOptSubmissions(taskId) {
     }
     var ld = document.createElement('div'); ld.setAttribute('data-loading','1'); ld.style.cssText='text-align:center;padding:20px;color:var(--text-dim)'; ld.textContent='Loading...'; subsList.appendChild(ld);
   }
+  if (!db) {
+    if (subsList) { var ldEl2 = subsList.querySelector('[data-loading]'); if (ldEl2) ldEl2.remove(); var noDb = document.createElement('div'); noDb.style.cssText='text-align:center;padding:20px;color:var(--red);font-size:13px'; noDb.textContent='❌ Firebase not connected'; subsList.appendChild(noDb); }
+    return;
+  }
   db.ref('optAirdropSubmits').once('value').then(function(snap) {
     var allSubs = snap.val() || {};
     var ldEl = subsList ? subsList.querySelector('[data-loading]') : null;
@@ -2350,6 +2366,10 @@ function viewOptSubmissions(taskId) {
       empty.textContent = 'No submissions yet';
       subsList.appendChild(empty);
     }
+  }).catch(function(e) {
+    var ldEl = subsList ? subsList.querySelector('[data-loading]') : null;
+    if (ldEl) ldEl.remove();
+    if (subsList) { var errDiv = document.createElement('div'); errDiv.style.cssText='text-align:center;padding:20px;color:var(--red);font-size:13px'; errDiv.textContent='❌ Failed to load submissions'; subsList.appendChild(errDiv); }
   });
 }
 

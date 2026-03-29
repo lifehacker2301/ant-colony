@@ -2290,7 +2290,6 @@ function claimDaily() {
   }
   // Streak: increment if claimed yesterday, reset to 1 otherwise
   const yesterday = new Date(Date.now() - 86400000).toDateString();
-  if (!STATE.dailyStreak) STATE.dailyStreak = 0;
   if (STATE.dailyClaimedDate === yesterday) {
     STATE.dailyStreak = (STATE.dailyStreak || 0) + 1;
   } else if (STATE.dailyClaimedDate !== today) {
