@@ -5863,16 +5863,20 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     leaveBtn.onclick     = _myRole === 'founder' ? confirmDisband : confirmLeave;
 
     // Founder: generate gift code button
-    var genBtn = null;
+    var genBtn = null, genHint = null;
     if (_myRole === 'founder') {
       genBtn = _el('button', 'alliance-gen-btn');
       genBtn.textContent = '🎟️ Generate Gift Code  (−5,000 $ANT)';
       genBtn.onclick = generateAllianceGiftCode;
+      genHint = _el('div');
+      genHint.style.cssText = 'font-size:10px;color:var(--text-dim);text-align:center;margin-top:4px;line-height:1.4;';
+      genHint.textContent = 'Deducted from your personal balance · not from the vault';
     }
 
     _ap(card, hdr); _ap(card, vr); _ap(card, ir); _ap(card, claimBtn);
     _ap(card, ri); _ap(card, mlTitle); _ap(card, mlList);
-    if (genBtn) _ap(card, genBtn);
+    if (genBtn)  _ap(card, genBtn);
+    if (genHint) _ap(card, genHint);
     _ap(card, leaveBtn);
     _ap(container, card);
   }
@@ -6108,8 +6112,9 @@ window.closeAirdropOverlay = closeAirdropOverlay;
       if (snap.exists()) { showToast('❌ Already in an alliance!'); closeJoinAlliance(); return; }
       STATE.balance -= JOIN_COST; saveAccount(); updateBalanceDisplay();
       var upd = {};
-      upd[ALLIANCE_DB + '/' + alliance._id + '/vault']       = (alliance.vault || 0) + JOIN_COST;
-      upd[ALLIANCE_DB + '/' + alliance._id + '/memberCount'] = (alliance.memberCount || 1) + 1;
+      // Use server-side increment so stale client values never overwrite the real total
+      upd[ALLIANCE_DB + '/' + alliance._id + '/vault']       = firebase.database.ServerValue.increment(JOIN_COST);
+      upd[ALLIANCE_DB + '/' + alliance._id + '/memberCount'] = firebase.database.ServerValue.increment(1);
       upd[MEMBERS_DB  + '/' + alliance._id + '/' + uid] = { tgId: uid, name: TG_USER.first_name || 'Unknown', username: TG_USER.username || '', contribution: JOIN_COST, role: 'member', joinedAt: now };
       upd[PLAYER_DB   + '/' + uid] = { allianceId: alliance._id, role: 'member' };
       upd[INCOME_DB   + '/' + alliance._id + '/' + uid] = { lastClaimedAt: now, claimedTotal: 0 };
@@ -6203,7 +6208,7 @@ window.closeAirdropOverlay = closeAirdropOverlay;
   function generateAllianceGiftCode() {
     if (!fbDb || !_allianceId || _myRole !== 'founder') return;
     if (STATE.balance < CODE_GEN_COST) {
-      showToast('❌ Need ' + fmtBig(CODE_GEN_COST) + ' $ANT to generate a code!'); return;
+      showToast('❌ Need ' + fmtBig(CODE_GEN_COST) + ' $ANT in your balance to generate a code!'); return;
     }
     var btn = document.querySelector('.alliance-gen-btn');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating...'; }
