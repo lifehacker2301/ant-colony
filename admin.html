@@ -336,9 +336,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           <div class="form-row">
             <div class="form-group">
               <div class="form-label">Alliance Code</div>
-              <input class="form-input" id="vaultBonusCode" placeholder="ALN-XXXXXX"
-                style="font-family:'Orbitron';letter-spacing:2px;text-transform:uppercase"
-                oninput="this.value=this.value.toUpperCase()"/>
+              <input class="form-input" id="vaultBonusCode" placeholder="ALN-XXXXXX or Firebase ID"
+                style="font-family:'Orbitron';letter-spacing:2px"/>
             </div>
             <div style="display:flex;align-items:flex-end">
               <button class="btn btn-ghost" onclick="lookupAllianceByCode()">🔍 Lookup</button>
@@ -1649,7 +1648,7 @@ function loadAlliancesPanel() {
         <td class="mono">${a.memberCount||1}</td>
         <td><div style="font-size:12px">${esc(a.founderName||'?')}</div></td>
         <td>
-          <button class="btn btn-green btn-sm" onclick="prefillVaultBonus(${JSON.stringify(esc(a.allianceCode||''))},${JSON.stringify(esc(a.name||''))})">🏦 Bonus</button>
+          <button class="btn btn-green btn-sm" onclick="prefillVaultBonus(${JSON.stringify(esc(a.allianceCode||a._id||''))},${JSON.stringify(esc(a.name||''))})">🏦 Bonus</button>
         </td>
       </tr>`).join('');
   }).catch(() => {
@@ -1668,24 +1667,36 @@ function lookupAllianceByCode() {
   const inp  = document.getElementById('vaultBonusCode');
   const card = document.getElementById('foundAllianceCard');
   if (!inp || !card) return;
-  const code = inp.value.trim().toUpperCase();
-  if (!code) { toast('⚠️ Enter an alliance code first'); return; }
-  if (!db)   { toast('❌ Firebase not connected'); return; }
+  const raw  = inp.value.trim();
+  if (!raw) { toast('⚠️ Enter an alliance code first'); return; }
+  if (!db)  { toast('❌ Firebase not connected'); return; }
   foundAllianceId = null;
   card.style.display = 'none';
-  db.ref('alliances').orderByChild('allianceCode').equalTo(code).limitToFirst(1).once('value').then(snap => {
-    if (!snap.exists()) { toast('❌ Alliance not found for code: ' + code, 'error'); return; }
-    snap.forEach(child => {
-      const a = child.val();
-      foundAllianceId = child.key;
-      document.getElementById('faName').textContent    = a.name || '?';
-      document.getElementById('faCode').textContent    = a.allianceCode || code;
-      document.getElementById('faVault').textContent   = fmtK(a.vault || 0);
-      document.getElementById('faMembers').textContent = a.memberCount || 1;
-      document.getElementById('faFounder').textContent = a.founderName || '?';
-    });
+  const code = raw.toUpperCase();
+  function _fillCard(key, a) {
+    foundAllianceId = key;
+    document.getElementById('faName').textContent    = a.name || '?';
+    document.getElementById('faCode').textContent    = a.allianceCode || key;
+    document.getElementById('faVault').textContent   = fmtK(a.vault || 0);
+    document.getElementById('faMembers').textContent = a.memberCount || 1;
+    document.getElementById('faFounder').textContent = a.founderName || '?';
     card.style.display = 'block';
     toast('✅ Alliance found!', 'success');
+  }
+  // First try ALN-XXXXXX code lookup
+  db.ref('alliances').orderByChild('allianceCode').equalTo(code).limitToFirst(1).once('value').then(snap => {
+    if (snap.exists()) {
+      snap.forEach(child => _fillCard(child.key, child.val()));
+    } else {
+      // Fallback: try direct Firebase ID lookup (alliances without an allianceCode)
+      return db.ref('alliances/' + raw).once('value').then(snap2 => {
+        if (!snap2.exists() || !snap2.val()) {
+          toast('❌ Alliance not found for: ' + raw, 'error');
+          return;
+        }
+        _fillCard(raw, snap2.val());
+      });
+    }
   }).catch(e => toast('❌ Lookup failed: ' + e.message, 'error'));
 }
 
