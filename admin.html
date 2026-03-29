@@ -1641,7 +1641,7 @@ function loadAlliancesPanel() {
         <td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${medals[i]||'#'+(i+1)}</span></td>
         <td>
           <div class="player-name">${esc(a.name)}</div>
-          <div class="player-id" style="font-size:9px;color:var(--text-dim)">${esc(a._id)}</div>
+          <div class="player-id" style="font-size:9px;color:var(--text-dim);font-family:'Courier New',monospace;letter-spacing:0.3px">ID: ${esc(a._id)}</div>
         </td>
         <td>${a.allianceCode ? '<span class="alliance-code-pill">'+esc(a.allianceCode)+'</span>' : '<span style="color:var(--text-dim);font-size:10px">—</span>'}</td>
         <td class="mono">${fmtK(a.vault||0)}</td>
