@@ -5698,6 +5698,14 @@ window.closeAirdropOverlay = closeAirdropOverlay;
   var CREATE_COST  = 10000;
   var JOIN_COST    = 5000;
 
+  // Generate a short human-readable alliance code: ALN-XXXXXX (admin uses this to send vault bonuses)
+  function _genAllianceCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var s = '';
+    for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+    return 'ALN-' + s;
+  }
+
   // Module state
   var _allianceId   = null;
   var _alliance     = null;
@@ -5811,6 +5819,12 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     var inf = _el('div');
     _ap(inf, _tx('div', alliance.name,                                          'alliance-card-name'));
     _ap(inf, _tx('div', _myRole === 'founder' ? '⚜️ Founder' : '🤝 Member',    'alliance-card-role'));
+    if (alliance.allianceCode) {
+      var codeTag = _el('div');
+      codeTag.style.cssText = 'font-family:"Orbitron",sans-serif;font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-top:2px;';
+      codeTag.textContent = alliance.allianceCode;
+      _ap(inf, codeTag);
+    }
     _ap(hdr, sh); _ap(hdr, inf);
 
     // Vault row
@@ -5956,7 +5970,7 @@ window.closeAirdropOverlay = closeAirdropOverlay;
       var ref = fbDb.ref(ALLIANCE_DB).push();
       var aid = ref.key;
       var upd = {};
-      upd[ALLIANCE_DB + '/' + aid] = { name: name, groupLink: groupLink, founderId: uid, founderName: TG_USER.first_name || 'Unknown', vault: CREATE_COST, memberCount: 1, createdAt: now };
+      upd[ALLIANCE_DB + '/' + aid] = { name: name, allianceCode: _genAllianceCode(), groupLink: groupLink, founderId: uid, founderName: TG_USER.first_name || 'Unknown', vault: CREATE_COST, memberCount: 1, createdAt: now };
       upd[MEMBERS_DB  + '/' + aid + '/' + uid] = { tgId: uid, name: TG_USER.first_name || 'Unknown', username: TG_USER.username || '', contribution: CREATE_COST, role: 'founder', joinedAt: now };
       upd[PLAYER_DB   + '/' + uid] = { allianceId: aid, role: 'founder' };
       upd[INCOME_DB   + '/' + aid + '/' + uid] = { lastClaimedAt: now, claimedTotal: 0 };

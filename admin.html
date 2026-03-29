@@ -172,6 +172,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .airdrop-admin-edit{background:rgba(245,166,35,0.12);border:1px solid var(--border-br);border-radius:8px;padding:6px 11px;font-size:11px;color:var(--amber);cursor:pointer;font-family:'Orbitron';}
 .airdrop-admin-del{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.35);border-radius:8px;padding:6px 11px;font-size:11px;color:var(--red);cursor:pointer;font-family:'Orbitron';}
 .airdrop-logo-preview{width:52px;height:52px;border-radius:12px;object-fit:cover;background:#1a0033;border:1px solid rgba(120,0,255,0.3);display:block;margin-top:8px;}
+/* ALLIANCE ADMIN */
+.alliance-admin-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.alliance-admin-row:last-child{border-bottom:none;}
+.alliance-admin-icon{font-size:22px;flex-shrink:0;}
+.alliance-admin-info{flex:1;min-width:0;}
+.alliance-admin-name{font-weight:700;font-size:13px;color:var(--amber-br);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.alliance-admin-meta{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.alliance-code-pill{display:inline-block;font-family:'Orbitron';font-size:9px;color:var(--amber);background:rgba(245,166,35,0.08);border:1px solid var(--border-br);border-radius:6px;padding:2px 8px;letter-spacing:1px;}
+.alliance-vault-num{font-family:'Orbitron';font-size:12px;color:var(--amber-br);text-align:right;white-space:nowrap;}
+.vault-bonus-found{background:var(--bg-mid);border:1px solid var(--border-br);border-radius:12px;padding:14px;margin-bottom:12px;display:none;}
 </style>
 </head>
 <body>
@@ -219,6 +229,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="nav-lbl" style="margin-top:8px">Content</div>
       <div class="nav-item" onclick="showPanel('airdrops')"><span class="nav-icon">🪂</span>Airdrops</div>
       <div class="nav-item" onclick="showPanel('opttasks')"><span class="nav-icon">💰</span>Opt. Tasks</div>
+      <div class="nav-lbl" style="margin-top:8px">Alliances</div>
+      <div class="nav-item" onclick="showPanel('alliances')"><span class="nav-icon">🛡️</span>Alliances</div>
       <div class="nav-lbl" style="margin-top:8px">Config</div>
       <div class="nav-item" onclick="showPanel('security')"><span class="nav-icon">🔐</span>Security</div>
     </nav>
@@ -254,6 +266,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="card">
           <div class="card-title">👥 Recent Players</div>
           <div id="recentPlayersList" style="font-size:13px;color:var(--text-dim)">Loading...</div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>🛡️ Top Alliances by Vault</span>
+            <button class="btn btn-ghost btn-sm" onclick="showPanel('alliances')">View All</button>
+          </div>
+          <div id="dashAllianceList" style="font-size:13px;color:var(--text-dim)">Loading...</div>
         </div>
       </div>
 
@@ -306,6 +325,47 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <div class="form-group"><div class="form-label">Amount</div><input class="form-input" id="balAmount" type="number" placeholder="0.000" step="0.001"/></div>
           </div>
           <button class="btn btn-primary btn-full" onclick="applyBalance()">⚡ Apply Change</button>
+        </div>
+
+        <!-- Alliance Vault Bonus -->
+        <div class="card">
+          <div class="card-title">🛡️ Alliance Vault Bonus</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.6">
+            Send a bonus directly into an alliance vault. Use the <span style="color:var(--amber);font-family:'Orbitron';font-size:10px">ALN-XXXXXX</span> code shown on each alliance's card.
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="form-label">Alliance Code</div>
+              <input class="form-input" id="vaultBonusCode" placeholder="ALN-XXXXXX"
+                style="font-family:'Orbitron';letter-spacing:2px;text-transform:uppercase"
+                oninput="this.value=this.value.toUpperCase()"/>
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn btn-ghost" onclick="lookupAllianceByCode()">🔍 Lookup</button>
+            </div>
+          </div>
+          <div class="vault-bonus-found" id="foundAllianceCard">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="font-size:22px">🛡️</span>
+              <div style="flex:1">
+                <div style="font-weight:700;font-size:14px;color:var(--amber-br)" id="faName">-</div>
+                <div style="margin-top:3px"><span class="alliance-code-pill" id="faCode">-</span></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+              <div><div class="mono" id="faVault">-</div><div style="font-size:10px;color:var(--text-dim)">Vault $ANT</div></div>
+              <div><div class="mono" id="faMembers">-</div><div style="font-size:10px;color:var(--text-dim)">Members</div></div>
+              <div><div class="mono" id="faFounder" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div><div style="font-size:10px;color:var(--text-dim)">Founder</div></div>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:6px">
+            <div class="form-group">
+              <div class="form-label">Bonus Amount ($ANT)</div>
+              <input class="form-input" id="vaultBonusAmount" type="number" placeholder="1000" min="1000" max="100000000"/>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">Range: 1,000 — 100,000,000 $ANT · Added directly to vault, not to any member balance</div>
+          <button class="btn btn-green btn-full" onclick="sendVaultBonus()">🏦 Send Vault Bonus</button>
         </div>
       </div>
 
@@ -483,6 +543,35 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
             <button class="btn btn-primary" style="flex:2" onclick="sendAnnouncement()">🚀 Send to All Players</button>
           </div>
           <div style="font-size:11px;color:var(--text-dim);margin-top:8px;text-align:center">💡 Always test to yourself first before sending to all players!</div>
+        </div>
+      </div>
+
+      <!-- ALLIANCES -->
+      <div class="panel" id="panel-alliances">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div>
+            <h1 style="font-family:'Cinzel Decorative';font-size:15px;color:var(--amber-br)">🛡️ Alliances</h1>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px" id="alliancePanelMeta">—</div>
+          </div>
+          <button class="btn btn-ghost" onclick="loadAlliancesPanel()">🔄 Refresh</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="admin-table" id="allianceTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Alliance</th>
+                <th>Code</th>
+                <th>Vault $ANT</th>
+                <th>Members</th>
+                <th>Founder</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allianceTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -767,6 +856,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="mobile-nav-item" onclick="showPanel('announce')"><div class="mni">📢</div><div class="mnl">Announce</div></div>
     <div class="mobile-nav-item" onclick="showPanel('airdrops')"><div class="mni">🪂</div><div class="mnl">Airdrops</div></div>
     <div class="mobile-nav-item" onclick="showPanel('opttasks')"><div class="mni">💰</div><div class="mnl">Opt.Tasks</div></div>
+    <div class="mobile-nav-item" onclick="showPanel('alliances')"><div class="mni">🛡️</div><div class="mnl">Alliances</div></div>
     <div class="mobile-nav-item" onclick="showPanel('security')"><div class="mni">🔐</div><div class="mnl">Security</div></div>
   </div>
 </div>
@@ -812,6 +902,7 @@ let giftTarget = 'all';
 let pendingModal = null;
 let currentAdminId = null;
 let lbSortKey = 'colonySize';
+let foundAllianceId = null;   // used by vault bonus lookup
 let sessionStart = new Date();
 let annButtons = [];
 
@@ -930,6 +1021,7 @@ function refreshData() {
     updateDashboard();
     updateLeaderboard();
     updateGiftList();
+    loadAlliancesDashboard();
   }).catch(() => { loadDemo(); });
 }
 
@@ -1503,6 +1595,121 @@ function closeModal() { document.getElementById('confirmModal').classList.remove
 function executeModal() { if(pendingModal) pendingModal(); closeModal(); }
 document.getElementById('confirmModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
 
+// -- ALLIANCES -------------------------------------------------
+function loadAlliancesDashboard() {
+  const el = document.getElementById('dashAllianceList');
+  if (!el) return;
+  if (!db) { el.innerHTML = '<div style="color:var(--text-dim)">No connection</div>'; return; }
+  el.innerHTML = '<div style="color:var(--text-dim);padding:8px 0">Loading...</div>';
+  db.ref('alliances').orderByChild('vault').limitToLast(5).once('value').then(snap => {
+    const items = [];
+    snap.forEach(c => { const v = c.val(); v._id = c.key; items.push(v); });
+    items.reverse();
+    if (!items.length) { el.innerHTML = '<div style="color:var(--text-dim)">No alliances yet</div>'; return; }
+    el.innerHTML = items.map((a, i) => `
+      <div class="alliance-admin-row">
+        <div style="font-family:'Orbitron';font-size:11px;color:var(--text-dim);width:22px;text-align:center">${['🥇','🥈','🥉'][i] || '#'+(i+1)}</div>
+        <div class="alliance-admin-icon">🛡️</div>
+        <div class="alliance-admin-info">
+          <div class="alliance-admin-name">${esc(a.name)}</div>
+          <div class="alliance-admin-meta">${a.memberCount||1} members · ${esc(a.founderName||'?')}
+            ${a.allianceCode ? ' · <span class="alliance-code-pill">'+esc(a.allianceCode)+'</span>' : ''}
+          </div>
+        </div>
+        <div class="alliance-vault-num">${fmtK(a.vault||0)}<br><span style="font-size:9px;color:var(--text-dim)">$ANT</span></div>
+      </div>`).join('');
+  }).catch(() => { el.innerHTML = '<div style="color:var(--red)">Failed to load</div>'; });
+}
+
+function loadAlliancesPanel() {
+  const tbody = document.getElementById('allianceTableBody');
+  const meta  = document.getElementById('alliancePanelMeta');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim)">Loading...</td></tr>';
+  if (!db) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim)">No connection</td></tr>'; return; }
+  db.ref('alliances').orderByChild('vault').once('value').then(snap => {
+    const items = [];
+    snap.forEach(c => { const v = c.val(); v._id = c.key; items.push(v); });
+    items.reverse();
+    if (meta) meta.textContent = items.length + ' alliance' + (items.length !== 1 ? 's' : '') + ' · sorted by vault size';
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim)">No alliances found</td></tr>';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    tbody.innerHTML = items.map((a, i) => `
+      <tr>
+        <td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${medals[i]||'#'+(i+1)}</span></td>
+        <td>
+          <div class="player-name">${esc(a.name)}</div>
+          <div class="player-id" style="font-size:9px;color:var(--text-dim)">${esc(a._id)}</div>
+        </td>
+        <td>${a.allianceCode ? '<span class="alliance-code-pill">'+esc(a.allianceCode)+'</span>' : '<span style="color:var(--text-dim);font-size:10px">—</span>'}</td>
+        <td class="mono">${fmtK(a.vault||0)}</td>
+        <td class="mono">${a.memberCount||1}</td>
+        <td><div style="font-size:12px">${esc(a.founderName||'?')}</div></td>
+        <td>
+          <button class="btn btn-green btn-sm" onclick="prefillVaultBonus(${JSON.stringify(esc(a.allianceCode||''))},${JSON.stringify(esc(a.name||''))})">🏦 Bonus</button>
+        </td>
+      </tr>`).join('');
+  }).catch(() => {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--red)">Failed to load</td></tr>';
+  });
+}
+
+function prefillVaultBonus(code, name) {
+  // Navigate to balance panel and pre-fill the vault bonus code
+  showPanel('balance');
+  const inp = document.getElementById('vaultBonusCode');
+  if (inp) { inp.value = code; lookupAllianceByCode(); }
+}
+
+function lookupAllianceByCode() {
+  const inp  = document.getElementById('vaultBonusCode');
+  const card = document.getElementById('foundAllianceCard');
+  if (!inp || !card) return;
+  const code = inp.value.trim().toUpperCase();
+  if (!code) { toast('⚠️ Enter an alliance code first'); return; }
+  if (!db)   { toast('❌ Firebase not connected'); return; }
+  foundAllianceId = null;
+  card.style.display = 'none';
+  db.ref('alliances').orderByChild('allianceCode').equalTo(code).limitToFirst(1).once('value').then(snap => {
+    if (!snap.exists()) { toast('❌ Alliance not found for code: ' + code, 'error'); return; }
+    snap.forEach(child => {
+      const a = child.val();
+      foundAllianceId = child.key;
+      document.getElementById('faName').textContent    = a.name || '?';
+      document.getElementById('faCode').textContent    = a.allianceCode || code;
+      document.getElementById('faVault').textContent   = fmtK(a.vault || 0);
+      document.getElementById('faMembers').textContent = a.memberCount || 1;
+      document.getElementById('faFounder').textContent = a.founderName || '?';
+    });
+    card.style.display = 'block';
+    toast('✅ Alliance found!', 'success');
+  }).catch(e => toast('❌ Lookup failed: ' + e.message, 'error'));
+}
+
+function sendVaultBonus() {
+  if (!foundAllianceId) { toast('⚠️ Look up an alliance first', 'error'); return; }
+  if (!db)              { toast('❌ Firebase not connected', 'error'); return; }
+  const amt = parseFloat(document.getElementById('vaultBonusAmount').value);
+  if (isNaN(amt) || amt < 1000)        { toast('❌ Minimum bonus is 1,000 $ANT', 'error'); return; }
+  if (amt > 100000000)                  { toast('❌ Maximum bonus is 100,000,000 $ANT', 'error'); return; }
+  const allianceName = document.getElementById('faName').textContent;
+  confirmAction('🏦', 'Send Vault Bonus?',
+    'Add ' + fmtK(amt) + ' $ANT to "' + allianceName + '" vault?',
+    () => {
+      db.ref('alliances/' + foundAllianceId).update({
+        vault: firebase.database.ServerValue.increment(amt)
+      }).then(() => {
+        toast('✅ Bonus of ' + fmtK(amt) + ' $ANT sent to "' + allianceName + '" vault!', 'success');
+        lookupAllianceByCode(); // re-fetch found card to show updated vault value
+        loadAlliancesDashboard();
+      }).catch(e => toast('❌ ' + e.message, 'error'));
+    }
+  );
+}
+
 // -- NAVIGATION -------------------------------------------------
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1515,6 +1722,7 @@ function showPanel(id) {
   if (id === 'announce') updateTokenStatus();
   if (id === 'mining' || id === 'referral') loadSettingsIntoForms();
   if (id === 'airdrops') loadAirdropsAdmin();
+  if (id === 'alliances') loadAlliancesPanel();
 }
 
 // -- UTILS -----------------------------------------------------
