@@ -973,6 +973,132 @@ body::before {
 .alliance-giftcode-copy-btn:active { transform:scale(.97); }
 .alliance-giftcode-close-btn { width:100%; padding:8px; background:transparent; border:1px solid rgba(255,255,255,.15); border-radius:10px; color:var(--text-dim); font-size:12px; cursor:pointer; }
 
+/* ── VIP PACKAGE ── */
+.vip-promo-card {
+  background: linear-gradient(135deg, #1a1000 0%, #2a1a00 50%, #1a1000 100%);
+  border: 1.5px solid #c8920a;
+  border-radius: 18px; padding: 16px; position: relative; overflow: hidden;
+}
+.vip-promo-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 0%, rgba(255,200,30,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+.vip-promo-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.vip-promo-title {
+  font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 900;
+  color: #ffe066; letter-spacing: 1px;
+  text-shadow: 0 0 14px rgba(255,220,60,0.5);
+}
+.vip-stars-badge {
+  background: linear-gradient(135deg, #1d1d40, #2e2e60);
+  border: 1px solid rgba(130,130,255,0.4); border-radius: 10px;
+  padding: 5px 10px; font-family: 'Orbitron', sans-serif;
+  font-size: 12px; color: #aaaaff; white-space: nowrap;
+}
+.vip-perks-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px;
+}
+.vip-perk {
+  background: rgba(255,200,30,0.06); border: 1px solid rgba(255,200,30,0.15);
+  border-radius: 10px; padding: 8px 10px; font-size: 11px; color: var(--text-secondary);
+  line-height: 1.4;
+}
+.vip-perk strong { display: block; color: #ffe066; font-size: 12px; margin-bottom: 1px; }
+.vip-buy-btn {
+  width: 100%; padding: 13px; border: none; border-radius: 13px;
+  background: linear-gradient(135deg, #ffd700 0%, #ff9900 50%, #ff6600 100%);
+  color: #1a0a00; font-family: 'Orbitron', sans-serif; font-size: 13px;
+  font-weight: 900; cursor: pointer; letter-spacing: 0.5px;
+  box-shadow: 0 4px 20px rgba(255,160,0,0.4);
+  transition: transform .15s, box-shadow .15s;
+}
+.vip-buy-btn:active { transform: scale(.97); box-shadow: 0 2px 10px rgba(255,160,0,0.3); }
+.vip-owned-card {
+  background: linear-gradient(135deg, #0a1a0a 0%, #0d2010 50%, #0a1a0a 100%);
+  border: 1.5px solid #2ecc71; border-radius: 18px; padding: 16px; position: relative; overflow: hidden;
+}
+.vip-owned-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(46,204,113,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.vip-owned-title {
+  font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900;
+  color: #2ecc71; text-align: center; margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(46,204,113,0.5);
+}
+.vip-owned-sub { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 12px; }
+.vip-owned-perks {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+}
+.vip-owned-perk {
+  font-size: 11px; color: #aaffcc;
+  background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.15);
+  border-radius: 8px; padding: 6px 8px;
+}
+/* VIP overlay (purchase confirmation) */
+#vipOverlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
+  display: none; align-items: flex-end; justify-content: center;
+}
+#vipSheet {
+  background: linear-gradient(180deg, #120d00 0%, #0a0800 100%);
+  border: 1.5px solid #c8920a; border-bottom: none;
+  border-radius: 24px 24px 0 0; padding: 24px 20px 36px;
+  width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+}
+.vip-sheet-handle { width:40px; height:4px; background:#3a2a05; border-radius:2px; margin:0 auto 18px; }
+.vip-sheet-title {
+  font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900;
+  color: #ffe066; text-align: center; margin-bottom: 4px;
+  text-shadow: 0 0 18px rgba(255,220,50,0.6);
+}
+.vip-sheet-subtitle { font-size: 12px; color: var(--text-dim); text-align: center; margin-bottom: 20px; }
+.vip-sheet-perks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.vip-sheet-perk {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,200,30,0.05); border: 1px solid rgba(255,200,30,0.15);
+  border-radius: 12px; padding: 11px 14px;
+}
+.vip-sheet-perk-icon { font-size: 22px; flex-shrink: 0; }
+.vip-sheet-perk-info { flex: 1; }
+.vip-sheet-perk-title { font-size: 13px; font-weight: 700; color: #ffe066; margin-bottom: 1px; }
+.vip-sheet-perk-desc { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+.vip-sheet-price-row {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(130,130,255,0.08); border: 1px solid rgba(130,130,255,0.25);
+  border-radius: 14px; padding: 14px; margin-bottom: 16px;
+}
+.vip-sheet-price-icon { font-size: 28px; }
+.vip-sheet-price-label { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #aaaaff; }
+.vip-sheet-price-sub { font-size: 11px; color: var(--text-dim); }
+.vip-sheet-confirm-btn {
+  width: 100%; padding: 15px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, #ffd700, #ff8800);
+  color: #1a0800; font-family: 'Orbitron', sans-serif; font-size: 14px;
+  font-weight: 900; cursor: pointer; letter-spacing: 0.5px;
+  box-shadow: 0 4px 24px rgba(255,180,0,0.45);
+  transition: transform .15s;
+}
+.vip-sheet-confirm-btn:active { transform: scale(.97); }
+.vip-sheet-cancel-btn {
+  width: 100%; padding: 11px; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px; background: transparent;
+  color: var(--text-dim); font-size: 13px; cursor: pointer; margin-top: 8px;
+}
+/* Leaderboard VIP badge */
+.lb-vip-badge {
+  display: inline-block; background: linear-gradient(135deg,#2a1a00,#4a3000);
+  border: 1px solid #c8920a; border-radius: 6px;
+  font-size: 9px; font-family: 'Orbitron', sans-serif; font-weight: 700;
+  color: #ffe066; padding: 1px 5px; margin-left: 5px; vertical-align: middle;
+  letter-spacing: 0.5px;
+}
+
 </style>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1450,6 +1576,9 @@ body::before {
       </div>
     </div>
 
+    <!-- VIP Package -->
+    <div class="section" id="vipSection"></div>
+
     <!-- Colony Name -->
     <div class="section">
       <div class="section-title">✏️ Colony Name</div>
@@ -1608,6 +1737,68 @@ body::before {
   </nav>
 </div>
 
+<!-- VIP PURCHASE OVERLAY -->
+<div id="vipOverlay" onclick="closeVipSheet()">
+  <div id="vipSheet" onclick="event.stopPropagation()">
+    <div class="vip-sheet-handle"></div>
+    <div class="vip-sheet-title">⭐ VIP PACKAGE</div>
+    <div class="vip-sheet-subtitle">Permanent perks, active immediately after purchase</div>
+    <div class="vip-sheet-perks">
+      <div class="vip-sheet-perk">
+        <div class="vip-sheet-perk-icon">⛏️</div>
+        <div class="vip-sheet-perk-info">
+          <div class="vip-sheet-perk-title">Mining ×5</div>
+          <div class="vip-sheet-perk-desc">All worker mining rates permanently multiplied by 5×</div>
+        </div>
+      </div>
+      <div class="vip-sheet-perk">
+        <div class="vip-sheet-perk-icon">👑</div>
+        <div class="vip-sheet-perk-info">
+          <div class="vip-sheet-perk-title">Queen Discount −20%</div>
+          <div class="vip-sheet-perk-desc">All Queen purchases cost 20% less $ANT</div>
+        </div>
+      </div>
+      <div class="vip-sheet-perk">
+        <div class="vip-sheet-perk-icon">🐜</div>
+        <div class="vip-sheet-perk-info">
+          <div class="vip-sheet-perk-title">+500 Worker Ants</div>
+          <div class="vip-sheet-perk-desc">Instant colony size boost on purchase</div>
+        </div>
+      </div>
+      <div class="vip-sheet-perk">
+        <div class="vip-sheet-perk-icon">👥</div>
+        <div class="vip-sheet-perk-info">
+          <div class="vip-sheet-perk-title">Referral Boost +20%</div>
+          <div class="vip-sheet-perk-desc">Daily referral rewards increased by 20%</div>
+        </div>
+      </div>
+      <div class="vip-sheet-perk">
+        <div class="vip-sheet-perk-icon">🏦</div>
+        <div class="vip-sheet-perk-info">
+          <div class="vip-sheet-perk-title">Vault Income +20%</div>
+          <div class="vip-sheet-perk-desc">Alliance vault earnings boosted 20%</div>
+        </div>
+      </div>
+      <div class="vip-sheet-perk">
+        <div class="vip-sheet-perk-icon">🏆</div>
+        <div class="vip-sheet-perk-info">
+          <div class="vip-sheet-perk-title">VIP Tag</div>
+          <div class="vip-sheet-perk-desc">⭐ VIP badge on global leaderboard &amp; alliance ranks</div>
+        </div>
+      </div>
+    </div>
+    <div class="vip-sheet-price-row">
+      <div class="vip-sheet-price-icon">⭐</div>
+      <div>
+        <div class="vip-sheet-price-label">1,000 Stars</div>
+        <div class="vip-sheet-price-sub">One-time purchase · All perks are permanent</div>
+      </div>
+    </div>
+    <button class="vip-sheet-confirm-btn" onclick="processVipPayment()">⭐ BUY VIP PACKAGE</button>
+    <button class="vip-sheet-cancel-btn" onclick="closeVipSheet()">Not now</button>
+  </div>
+</div>
+
 <canvas id="bgCanvas"></canvas>
 
 <script>
@@ -1688,6 +1879,7 @@ function syncToFirebase() {
       workers: STATE.workers,
       queens: STATE.queens || {},
       lastSeen: now,
+      vip: STATE.vip || false,
     });
   } catch(e) {}
 }
@@ -1809,6 +2001,8 @@ function saveAccount() {
     dailyStreak: STATE.dailyStreak || 0,
     _serverMultiplier: STATE._serverMultiplier || 1,
     customAvatar: STATE.customAvatar || null,
+    vip: STATE.vip || false,
+    vipPurchasedAt: STATE.vipPurchasedAt || null,
   };
   try { localStorage.setItem(STORAGE_KEY + '_' + TG_USER.id, JSON.stringify(data)); } catch(e){}
 }
@@ -1919,6 +2113,8 @@ function restoreAccount(saved) {
   STATE.dailyStreak     = saved.dailyStreak || 0;
   STATE._serverMultiplier = saved._serverMultiplier || 1;
   STATE.customAvatar    = saved.customAvatar || null;
+  STATE.vip             = saved.vip || false;
+  STATE.vipPurchasedAt  = saved.vipPurchasedAt || null;
 
   // Reset daily claim if it's a new day
   const today = new Date().toDateString();
@@ -1982,6 +2178,7 @@ const STATE = {
   dailyClaimed: false, dailyClaimedDate: null, dailyStreak: 0,
   createdAt: null, referredBy: null,
   _serverMultiplier: 1,
+  vip: false, vipPurchasedAt: null,
 };
 
 const WORKER_TYPES = [
@@ -2297,7 +2494,7 @@ function claimDaily() {
   }
   STATE.dailyStreak = Math.min(STATE.dailyStreak, 365);
   const streakReward = getDailyReward(STATE.dailyStreak);
-  const referralBonus = STATE.referrals * 0.05;
+  const referralBonus = STATE.referrals * 0.05 * (STATE.vip ? 1.2 : 1);
   const total = streakReward + referralBonus;
   STATE.balance += total;
   STATE.totalMined += total;
@@ -3024,7 +3221,7 @@ function updateBalanceDisplay() {
   const el = document.getElementById('headerBalance');
   if (el) el.textContent = STATE.balance.toFixed(3);
 }
-function getMiningRate(){let r=0;WORKER_TYPES.forEach(w=>{r+=(STATE.workers[w.key]||0)*w.rate;});const mult=STATE._serverMultiplier||1;r*=mult;if(STATE.boostActive&&Date.now()<STATE.boostEnd)r*=2;return Math.max(0.0001,r);}
+function getMiningRate(){let r=0;WORKER_TYPES.forEach(w=>{r+=(STATE.workers[w.key]||0)*w.rate;});const mult=STATE._serverMultiplier||1;r*=mult;if(STATE.boostActive&&Date.now()<STATE.boostEnd)r*=2;if(STATE.vip)r*=5;return Math.max(0.0001,r);}
 function getHarvestAmount(){return getMiningRate()*STATE.harvestInterval;}
 
 let boostCount=0;
@@ -3343,7 +3540,7 @@ function renderLeaderboard() {
   const colonyName = STATE.colonyCustomName || (TG_USER ? TG_USER.first_name+"'s Colony" : 'Your Colony');
   const avatarEmojis = ['🐜','⚔️','👑','🔍','💎','🌍','🏰','🐛','🦁','🔥'];
   const myEmoji = TG_USER ? avatarEmojis[TG_USER.id % avatarEmojis.length] : '🐜';
-  const myEntry = { emoji: myEmoji, name: colonyName, size: STATE.colonySize, ant: STATE.totalMined, recruits: STATE.referrals, isUser: true };
+  const myEntry = { emoji: myEmoji, name: colonyName, size: STATE.colonySize, ant: STATE.totalMined, recruits: STATE.referrals, isUser: true, vip: STATE.vip };
 
   function buildAndRenderLb(players) {
     // Merge real Firebase players with static fallback (deduplicate by name)
@@ -3378,7 +3575,7 @@ function renderLeaderboard() {
         <div class="lb-rank">${i<3?medals[i]:'#'+(i+1)}</div>
         <div style="font-size:22px">${item.emoji||'🐜'}</div>
         <div class="lb-info">
-          <div class="lb-name" style="${item.isUser?'color:var(--amber-bright)':''}">${item.name||'—'}${item.isUser?' ⭐':''}</div>
+          <div class="lb-name" style="${item.isUser?'color:var(--amber-bright)':''}"><span>${item.name||'—'}</span>${item.vip?'<span class="lb-vip-badge">⭐ VIP</span>':''}${item.isUser&&!item.vip?' <span style="opacity:0.6;font-size:10px">▶ You</span>':''}</div>
           <div class="lb-sub">${val}</div>
         </div>
         <div class="lb-amount">${currentLbTab==='workers'?fmtK(item.size||0):currentLbTab==='mined'?(item.ant||0).toFixed(1):(item.recruits||0)}<span>${currentLbTab==='workers'?'Workers':currentLbTab==='mined'?'$ANT':'Recruits'}</span></div>
@@ -3398,6 +3595,7 @@ function renderLeaderboard() {
           size: p.colonySize || 0,
           ant: p.totalMined || 0,
           recruits: p.referrals || 0,
+          vip: p.vip || false,
           isUser: TG_USER && String(p.tgId) === String(TG_USER.id) && !myEntry.isUser,
         }))
         // exclude current user (already in myEntry)
@@ -3522,6 +3720,7 @@ function renderProfilePage() {
   renderColorGrid();
   initNotifToggles();
   renderAchievements();
+  if (typeof renderVipSection === 'function') renderVipSection();
 }
 
 // ============================================================
@@ -3666,12 +3865,13 @@ function buyQueen(key) {
   const qt = QUEEN_TYPES.find(q => q.key === key);
   if (!qt) return;
   if (STATE.queens[key]) { showToast(`👑 You already own a ${qt.name}!`); return; }
-  if (STATE.balance < qt.price) {
-    showToast(`❌ Need ${fmtBig(qt.price)} $ANT!`);
+  const price = STATE.vip ? Math.floor(qt.price * 0.8) : qt.price;
+  if (STATE.balance < price) {
+    showToast(`❌ Need ${fmtBig(price)} $ANT!`);
     if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('error');
     return;
   }
-  STATE.balance -= qt.price;
+  STATE.balance -= price;
   STATE.queens[key] = true;
   STATE.lastQueenEgg[key] = Date.now();
   saveAccount();
@@ -3696,10 +3896,14 @@ function renderQueenShop() {
 
   grid.innerHTML = QUEEN_TYPES.map(qt => {
     const owned = STATE.queens[qt.key];
-    const canAfford = STATE.balance >= qt.price;
+    const price = STATE.vip ? Math.floor(qt.price * 0.8) : qt.price;
+    const canAfford = STATE.balance >= price;
     const btnClass = owned ? 'owned' : canAfford ? 'can-buy' : 'cant-afford';
-    const btnText  = owned ? '✅ OWNED' : canAfford ? 'BUY' : '🔒 ' + fmtBig(qt.price);
+    const btnText  = owned ? '✅ OWNED' : canAfford ? 'BUY' : '🔒 ' + fmtBig(price);
     const eggRate  = qt.eggsPerWeek >= 1000 ? (qt.eggsPerWeek/1000).toFixed(0)+'K/wk' : qt.eggsPerWeek+'/wk';
+    const priceHtml = STATE.vip && !owned
+      ? `<span style="text-decoration:line-through;color:var(--text-dim);font-size:11px">${fmtBig(qt.price)}</span> <span style="color:#ffe066">${fmtBig(price)} $ANT</span> <span style="color:#ff9900;font-size:10px">VIP -20%</span>`
+      : `${fmtBig(price)} $ANT`;
 
     return `<div class="queen-card ${qt.key}">
       <div class="queen-avatar-wrap">
@@ -3710,7 +3914,7 @@ function renderQueenShop() {
         <div class="queen-name">${qt.name}</div>
         <div class="queen-stat">🥚 Lays <span>${eggRate}</span></div>
         <div class="queen-stat">⏱ Hatch time: <span>8 hours</span></div>
-        <div class="queen-price">${fmtBig(qt.price)} $ANT</div>
+        <div class="queen-price">${priceHtml}</div>
       </div>
       <button class="queen-buy-btn ${btnClass}" onclick="${owned?'':canAfford?`buyQueen('${qt.key}')`:''}">${btnText}</button>
     </div>`;
@@ -5809,6 +6013,8 @@ window.closeAirdropOverlay = closeAirdropOverlay;
     } else {
       myShare = nonFounders > 0 ? totalIncome * 0.40 / nonFounders : 0;
     }
+    // VIP vault income +20%
+    if (STATE.vip) myShare *= 1.2;
 
     var card = _el('div', 'alliance-card');
 
@@ -6646,6 +6852,227 @@ window.addEventListener('load', () => {
     }
   }, 1200);
 });
+
+// ============================================================
+//  VIP PACKAGE — Telegram Stars Payment
+// ============================================================
+(function() {
+  'use strict';
+
+  // ── CONFIG ─────────────────────────────────────────────────
+  // Set this to your bot server URL once deployed (e.g. https://your-bot.up.railway.app)
+  // The server must expose POST /create-vip-invoice
+  var BOT_API_URL = '';
+
+  // ── Open / close VIP sheet ──────────────────────────────────
+  function openVipSheet() {
+    var overlay = document.getElementById('vipOverlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.impactOccurred('medium');
+  }
+
+  function closeVipSheet() {
+    var overlay = document.getElementById('vipOverlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  // ── Process payment ─────────────────────────────────────────
+  function processVipPayment() {
+    if (STATE.vip) {
+      closeVipSheet();
+      showToast('⭐ You are already a VIP member!');
+      return;
+    }
+    if (!tgApp) {
+      showToast('⚠️ Open in Telegram to purchase');
+      return;
+    }
+    if (!BOT_API_URL) {
+      // Dev mode / bot not yet deployed — simulate for testing
+      showToast('🔧 Bot not deployed yet. Contact admin to activate VIP.');
+      return;
+    }
+
+    var userId = String(TG_USER ? TG_USER.id : 0);
+    var btn = document.querySelector('.vip-sheet-confirm-btn');
+    if (btn) { btn.textContent = '⏳ Preparing...'; btn.disabled = true; }
+
+    fetch(BOT_API_URL + '/create-vip-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId })
+    }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.url) throw new Error('No invoice URL');
+      closeVipSheet();
+      tgApp.openInvoice(data.url, function(status) {
+        if (status === 'paid') {
+          applyVipPerks();
+        } else if (status === 'cancelled') {
+          showToast('Payment cancelled.');
+        } else if (status === 'failed') {
+          showToast('❌ Payment failed. Try again.');
+        }
+      });
+    }).catch(function(err) {
+      showToast('❌ Could not start payment. Try again.');
+      if (btn) { btn.textContent = '⭐ BUY VIP PACKAGE'; btn.disabled = false; }
+    });
+  }
+
+  // ── Apply all VIP perks after confirmed payment ─────────────
+  function applyVipPerks() {
+    STATE.vip = true;
+    STATE.vipPurchasedAt = Date.now();
+
+    // +500 Worker Ants (added as scout ants)
+    STATE.workers.scout = (STATE.workers.scout || 0) + 500;
+    STATE.colonySize = (STATE.colonySize || 0) + 500;
+
+    saveAccount();
+
+    // Write to Firebase so leaderboard shows VIP tag for this player
+    if (fbDb && TG_USER) {
+      fbDb.ref('players/' + TG_USER.id).update({
+        vip: true,
+        vipPurchasedAt: STATE.vipPurchasedAt
+      }).catch(function() {});
+    }
+
+    renderVipSection();
+    if (typeof renderQueenShop === 'function') renderQueenShop();
+    if (typeof renderLeaderboard === 'function') renderLeaderboard();
+
+    showToast('🎉 VIP Activated! +500 workers, ×5 mining & all perks unlocked!');
+    if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+  }
+
+  // ── Render VIP card on profile page ─────────────────────────
+  function renderVipSection() {
+    var sec = document.getElementById('vipSection');
+    if (!sec) return;
+    // Clear previous content
+    while (sec.firstChild) sec.removeChild(sec.firstChild);
+
+    if (STATE.vip) {
+      // ── OWNED card ──
+      var card = document.createElement('div');
+      card.className = 'vip-owned-card';
+
+      var title = document.createElement('div');
+      title.className = 'vip-owned-title';
+      title.textContent = '⭐ VIP MEMBER';
+      card.appendChild(title);
+
+      var sub = document.createElement('div');
+      sub.className = 'vip-owned-sub';
+      var since = STATE.vipPurchasedAt
+        ? 'Active since ' + new Date(STATE.vipPurchasedAt).toLocaleDateString()
+        : 'All perks active';
+      sub.textContent = since;
+      card.appendChild(sub);
+
+      var perksGrid = document.createElement('div');
+      perksGrid.className = 'vip-owned-perks';
+      var perks = [
+        '⛏️ Mining ×5',
+        '👑 Queen −20%',
+        '🐜 +500 Workers',
+        '👥 Referral +20%',
+        '🏦 Vault +20%',
+        '🏆 VIP Leaderboard'
+      ];
+      perks.forEach(function(p) {
+        var el = document.createElement('div');
+        el.className = 'vip-owned-perk';
+        el.textContent = p;
+        perksGrid.appendChild(el);
+      });
+      card.appendChild(perksGrid);
+      sec.appendChild(card);
+    } else {
+      // ── PROMO card ──
+      var card = document.createElement('div');
+      card.className = 'vip-promo-card';
+
+      var hdr = document.createElement('div');
+      hdr.className = 'vip-promo-header';
+
+      var titleEl = document.createElement('div');
+      titleEl.className = 'vip-promo-title';
+      titleEl.textContent = '⭐ VIP PACKAGE';
+      hdr.appendChild(titleEl);
+
+      var badge = document.createElement('div');
+      badge.className = 'vip-stars-badge';
+      badge.textContent = '1,000 ⭐ Stars';
+      hdr.appendChild(badge);
+      card.appendChild(hdr);
+
+      var grid = document.createElement('div');
+      grid.className = 'vip-perks-grid';
+      var miniPerks = [
+        ['⛏️ Mining ×5',    'Permanent multiplier'],
+        ['👑 Queen −20%',    'All queen prices'],
+        ['🐜 +500 Workers', 'Instant boost'],
+        ['👥 Referral +20%','Daily bonus boost'],
+        ['🏦 Vault +20%',   'Alliance income'],
+        ['🏆 VIP Tag',       'Leaderboard badge']
+      ];
+      miniPerks.forEach(function(p) {
+        var el = document.createElement('div');
+        el.className = 'vip-perk';
+        var strong = document.createElement('strong');
+        strong.textContent = p[0];
+        el.appendChild(strong);
+        el.appendChild(document.createTextNode(p[1]));
+        grid.appendChild(el);
+      });
+      card.appendChild(grid);
+
+      var btn = document.createElement('button');
+      btn.className = 'vip-buy-btn';
+      btn.textContent = '⭐ GET VIP — 1,000 Stars';
+      btn.onclick = openVipSheet;
+      card.appendChild(btn);
+      sec.appendChild(card);
+    }
+  }
+
+  // ── Grant VIP from admin (Firebase listener) ────────────────
+  // Admin can write players/{userId}/vip = true to grant VIP server-side
+  function checkVipFromFirebase() {
+    if (!fbDb || !TG_USER || STATE.vip) return;
+    fbDb.ref('players/' + TG_USER.id + '/vip').once('value').then(function(snap) {
+      if (snap.val() === true && !STATE.vip) {
+        var tsSnap = fbDb.ref('players/' + TG_USER.id + '/vipPurchasedAt');
+        tsSnap.once('value').then(function(ts) {
+          STATE.vip = true;
+          STATE.vipPurchasedAt = ts.val() || Date.now();
+          saveAccount();
+          renderVipSection();
+          showToast('⭐ VIP status activated!');
+        }).catch(function() {
+          STATE.vip = true;
+          STATE.vipPurchasedAt = Date.now();
+          saveAccount();
+          renderVipSection();
+        });
+      }
+    }).catch(function() {});
+  }
+
+  // ── Expose to global scope ───────────────────────────────────
+  window.openVipSheet    = openVipSheet;
+  window.closeVipSheet   = closeVipSheet;
+  window.processVipPayment = processVipPayment;
+  window.renderVipSection  = renderVipSection;
+  window.applyVipPerks     = applyVipPerks;
+
+  // Auto-check Firebase VIP grant on startup (slight delay to let Firebase init)
+  setTimeout(checkVipFromFirebase, 4000);
+})();
 </script>
 </body>
 </html>
