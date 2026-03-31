@@ -1123,7 +1123,11 @@ body::before {
 .w3-card { background:linear-gradient(145deg,#05080f,#0d1526); border:1px solid #1e3a6e; border-radius:18px; padding:18px; margin:0 12px 12px; }
 .w3-chain-bar { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
 .w3-chain-bar::-webkit-scrollbar { display:none; }
-.w3-chain-pill { flex-shrink:0; padding:5px 12px; border-radius:20px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-size:10px; font-family:'Orbitron'; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.5px; }
+.w3-chain-pill { flex-shrink:0; padding:5px 12px; border-radius:20px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-size:10px; font-family:'Orbitron'; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.5px; display:flex; align-items:center; gap:5px; }
+.w3-chain-logo { width:16px; height:16px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.w3-active-chain-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.w3-active-chain-logo { width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.w3-active-chain-name { font-family:'Orbitron'; font-size:10px; color:#60a5fa; font-weight:700; letter-spacing:1px; }
 .w3-chain-pill.active { background:#1e3a6e; border-color:#3b82f6; color:#fff; }
 .w3-addr-row { display:flex; align-items:center; gap:8px; margin-bottom:14px; background:#0a0f1e; border:1px solid #1a2d50; border-radius:10px; padding:8px 12px; }
 .w3-addr-text { font-family:'Orbitron'; font-size:9px; color:#4b6fa0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -7428,6 +7432,44 @@ window.addEventListener('load', () => {
     }
   };
 
+  // ── Chain logo helpers ────────────────────────────────────
+  var CHAIN_LOGO_SLUGS = {
+    1:     'ethereum',
+    56:    'bsc',
+    137:   'polygon',
+    42161: 'arbitrum',
+    8453:  'base',
+  };
+
+  function _logoUrl(cid, name) {
+    var slug = CHAIN_LOGO_SLUGS[cid];
+    if (!slug) {
+      // Derive slug from chain name: lowercase, strip non-alphanumeric
+      slug = (name || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+    }
+    return 'https://icons.llamao.fi/icons/chains/rsz_' + slug + '.jpg';
+  }
+
+  // Returns an <img> element; on load failure swaps itself with a colored initial circle
+  function _logoEl(cid, name, sym, size) {
+    size = size || 16;
+    var img = document.createElement('img');
+    img.src = _logoUrl(cid, name);
+    img.width = size; img.height = size;
+    img.className = size <= 18 ? 'w3-chain-logo' : 'w3-active-chain-logo';
+    img.alt = sym || '';
+    img.onerror = function() {
+      var circle = document.createElement('div');
+      // Deterministic color from chain ID
+      var palette = ['#627EEA','#F3BA2F','#8247E5','#28A0F0','#0052FF','#E84142','#FF0420','#FA4E09','#10B981','#6366F1'];
+      var bg = palette[Math.abs(cid || 0) % palette.length];
+      circle.style.cssText = 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:' + Math.floor(size * 0.42) + 'px;font-weight:900;color:#fff;flex-shrink:0;';
+      circle.textContent = ((sym || name || '?').charAt(0)).toUpperCase();
+      if (img.parentNode) img.parentNode.replaceChild(circle, img);
+    };
+    return img;
+  }
+
   // ── Main renderer ─────────────────────────────────────────
   function loadW3Wallet() {
     var root = document.getElementById('w3WalletRoot');
@@ -7499,21 +7541,32 @@ window.addEventListener('load', () => {
     bar.style.padding = '0 12px';
     var chainMap = _allChainsMap();
     _allChainIds().forEach(function(cid) {
+      var c = chainMap[cid];
       var pill = _el('button', 'w3-chain-pill' + (cid === _chainId ? ' active' : ''));
-      pill.textContent = chainMap[cid].name;
-      pill.onclick = (function(c) { return function() { _switchChain(c); }; })(cid);
+      pill.appendChild(_logoEl(cid, c.name, c.sym, 16));
+      pill.appendChild(document.createTextNode(c.name));
+      pill.onclick = (function(id) { return function() { _switchChain(id); }; })(cid);
       bar.appendChild(pill);
     });
     // "+ Add Chain" pill
     var addPill = _el('button', 'w3-chain-pill');
-    addPill.textContent = '＋ Chain';
     addPill.style.cssText += ';border-style:dashed;color:#2d4a70;';
+    addPill.textContent = '＋ Add Chain';
     addPill.onclick = w3OpenAddChain;
     bar.appendChild(addPill);
     wrap.appendChild(bar);
 
     // Main card
     var card = _el('div', 'w3-card');
+
+    // Active chain header (logo + name)
+    var chainInfo = _el('div', 'w3-active-chain-row');
+    var curChain = _chain();
+    chainInfo.appendChild(_logoEl(_chainId, curChain.name, curChain.sym, 22));
+    var chainNameEl = _el('span', 'w3-active-chain-name');
+    chainNameEl.textContent = curChain.name;
+    chainInfo.appendChild(chainNameEl);
+    card.appendChild(chainInfo);
 
     // Address row
     var aRow = _el('div', 'w3-addr-row');
@@ -7930,6 +7983,7 @@ window.addEventListener('load', () => {
         _customChains.forEach(function(c) {
           var row = _el('div');
           row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;background:#0a0f1e;border:1px solid #1e3a6e;border-radius:8px;padding:8px 10px';
+          row.appendChild(_logoEl(c.chainId, c.name, c.sym, 20));
           var info = _el('div');
           info.style.cssText = 'flex:1;font-family:Rajdhani;font-size:12px;color:#93c5fd;font-weight:600';
           info.textContent = c.name + ' (' + c.sym + ')';
