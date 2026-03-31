@@ -1099,10 +1099,98 @@ body::before {
   letter-spacing: 0.5px;
 }
 
+/* ═══════════════════════════════════════════════
+   WALLET TABS
+═══════════════════════════════════════════════ */
+.wlt-tabs { display:flex; gap:6px; padding:0 12px 10px; }
+.wlt-tab { flex:1; padding:10px; border-radius:10px; border:1px solid var(--border-bright); background:transparent; color:var(--text-dim); font-family:'Rajdhani'; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+.wlt-tab.active { background:linear-gradient(135deg,var(--earth-light),var(--earth)); border-color:var(--amber-dim); color:var(--amber-bright); }
+
+/* ═══════════════════════════════════════════════
+   WEB3 WALLET — EMPTY STATE
+═══════════════════════════════════════════════ */
+.w3-no-wallet { padding:30px 20px; text-align:center; }
+.w3-no-wallet-icon { font-size:52px; margin-bottom:12px; }
+.w3-no-wallet-title { font-family:'Orbitron'; font-size:14px; color:#93c5fd; margin-bottom:8px; letter-spacing:2px; }
+.w3-no-wallet-sub { font-size:11px; color:#4b6fa0; margin-bottom:22px; line-height:1.6; }
+.w3-create-btn { width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg,#1a3a6e,#2563eb); color:#fff; font-family:'Orbitron'; font-size:11px; font-weight:700; cursor:pointer; letter-spacing:1px; margin-bottom:8px; display:block; }
+.w3-import-btn { width:100%; padding:13px; border-radius:12px; border:1px solid #1e3a6e; background:transparent; color:#60a5fa; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:1px; display:block; }
+.w3-security-note { font-size:10px; color:#2d4a70; text-align:center; margin-top:16px; padding:0 8px; line-height:1.6; }
+
+/* ═══════════════════════════════════════════════
+   WEB3 WALLET — ACTIVE CARD
+═══════════════════════════════════════════════ */
+.w3-card { background:linear-gradient(145deg,#05080f,#0d1526); border:1px solid #1e3a6e; border-radius:18px; padding:18px; margin:0 12px 12px; }
+.w3-chain-bar { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+.w3-chain-bar::-webkit-scrollbar { display:none; }
+.w3-chain-pill { flex-shrink:0; padding:5px 12px; border-radius:20px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-size:10px; font-family:'Orbitron'; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.5px; }
+.w3-chain-pill.active { background:#1e3a6e; border-color:#3b82f6; color:#fff; }
+.w3-addr-row { display:flex; align-items:center; gap:8px; margin-bottom:14px; background:#0a0f1e; border:1px solid #1a2d50; border-radius:10px; padding:8px 12px; }
+.w3-addr-text { font-family:'Orbitron'; font-size:9px; color:#4b6fa0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.w3-copy-addr { background:transparent; border:1px solid #1e3a6e; border-radius:6px; padding:4px 8px; color:#60a5fa; font-size:10px; cursor:pointer; flex-shrink:0; }
+.w3-balance-big { font-family:'Orbitron'; font-size:28px; font-weight:900; color:#93c5fd; text-align:center; margin-bottom:4px; text-shadow:0 0 20px rgba(96,165,250,0.35); }
+.w3-balance-usd { font-size:12px; color:#4b6fa0; text-align:center; margin-bottom:6px; }
+.w3-refresh-btn { background:transparent; border:none; color:#2d4a70; font-size:10px; cursor:pointer; display:block; margin:0 auto 14px; letter-spacing:1px; }
+.w3-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.w3-action-btn { padding:12px 8px; border-radius:10px; border:1px solid #1e3a6e; background:transparent; color:#93c5fd; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; text-align:center; transition:all 0.2s; }
+.w3-action-btn:active { background:#1e3a6e; }
+.w3-action-btn.primary { background:linear-gradient(135deg,#1e3a6e,#1d4ed8); border-color:#3b82f6; color:#fff; }
+
+/* ═══════════════════════════════════════════════
+   WEB3 — OVERLAY SHEETS
+═══════════════════════════════════════════════ */
+.w3-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:300; display:flex; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
+.w3-sheet { background:linear-gradient(180deg,#0d1526,#050810); border:1px solid #1e3a6e; border-top:1px solid #2a4a80; border-radius:20px 20px 0 0; padding:24px 20px 36px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; }
+.w3-sheet-title { font-family:'Orbitron'; font-size:13px; font-weight:900; color:#93c5fd; text-align:center; margin-bottom:18px; letter-spacing:2px; }
+
+/* PIN numpad */
+.w3-pin-dots { display:flex; gap:14px; justify-content:center; margin-bottom:20px; }
+.w3-pin-dots span { width:14px; height:14px; border-radius:50%; background:#0d1526; border:2px solid #1e3a6e; transition:all 0.15s; }
+.w3-pin-dots span.filled { background:#3b82f6; border-color:#60a5fa; box-shadow:0 0 8px rgba(59,130,246,0.5); }
+.w3-numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.w3-numpad button { padding:16px; border-radius:12px; border:1px solid #1e3a6e; background:#0d1526; color:#93c5fd; font-family:'Orbitron'; font-size:18px; font-weight:700; cursor:pointer; transition:all 0.12s; }
+.w3-numpad button:active { background:#1e3a6e; transform:scale(0.93); }
+.w3-pin-error { text-align:center; color:#ef4444; font-size:11px; margin-bottom:8px; min-height:16px; font-family:'Rajdhani'; }
+
+/* Mnemonic grid */
+.w3-mnemonic-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.w3-mword { background:#0a0f1e; border:1px solid #1e3a6e; border-radius:8px; padding:8px 6px; display:flex; gap:5px; align-items:center; }
+.w3-mword-num { font-size:8px; color:#2d4a70; font-family:'Orbitron'; min-width:14px; text-align:right; }
+.w3-mword-text { font-size:11px; color:#93c5fd; font-weight:600; font-family:'Rajdhani'; }
+.w3-warn-box { background:rgba(234,179,8,0.07); border:1px solid rgba(234,179,8,0.25); border-radius:10px; padding:10px 12px; font-size:11px; color:#fbbf24; margin-bottom:14px; line-height:1.6; }
+
+/* Forms */
+.w3-form-group { margin-bottom:12px; }
+.w3-label { font-size:10px; color:#4b6fa0; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; display:block; font-family:'Orbitron'; }
+.w3-input { width:100%; background:#0a0f1e; border:1px solid #1e3a6e; border-radius:10px; padding:12px 14px; color:#93c5fd; font-family:'Rajdhani'; font-size:14px; outline:none; box-sizing:border-box; }
+.w3-input:focus { border-color:#3b82f6; }
+textarea.w3-input { resize:vertical; }
+.w3-gas-info { font-size:11px; color:#4b6fa0; text-align:center; margin-bottom:12px; font-family:'Rajdhani'; }
+
+/* Buttons */
+.w3-send-btn { width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg,#1e3a6e,#1d4ed8); color:#fff; font-family:'Orbitron'; font-size:11px; font-weight:700; cursor:pointer; letter-spacing:1px; margin-bottom:8px; display:block; }
+.w3-done-btn { width:100%; padding:12px; border-radius:12px; border:1px solid #3b82f6; background:transparent; color:#60a5fa; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; margin-bottom:8px; display:block; }
+.w3-copy-btn { width:100%; padding:12px; border-radius:12px; border:1px solid #1e3a6e; background:#0a0f1e; color:#60a5fa; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; margin-bottom:8px; display:block; }
+.w3-cancel-btn { width:100%; padding:12px; border-radius:12px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; display:block; }
+
+/* QR code */
+.w3-qr-wrap { display:flex; justify-content:center; margin-bottom:14px; }
+.w3-qr-wrap canvas, .w3-qr-wrap img { border-radius:12px; border:2px solid #1e3a6e; padding:6px; background:#05080f; }
+.w3-addr-display { font-family:'Orbitron'; font-size:9px; color:#60a5fa; text-align:center; word-break:break-all; margin-bottom:12px; line-height:1.8; background:#0a0f1e; border:1px solid #1e3a6e; border-radius:10px; padding:10px 12px; }
+
+/* Import tabs */
+.w3-import-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.w3-itab { flex:1; padding:9px; border-radius:8px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.w3-itab.active { background:#1e3a6e; color:#93c5fd; border-color:#3b82f6; }
+
 </style>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- ethers.js v5 — EVM wallet (non-custodial, client-side key gen + signing) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<!-- QRCode.js — receive address QR code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -1436,24 +1524,196 @@ body::before {
   <!-- PAGE: WALLET -->
   <div class="page" id="page-wallet">
     <div style="height:12px"></div>
-    <div class="section">
-      <div class="wallet-card">
-        <div class="wallet-balance-label">Your Balance</div>
-        <div class="wallet-balance" id="walletBalance">0.000</div>
-        <div class="wallet-usd">≈ $<span id="walletUSD">0.00</span> USD</div>
-        <div class="wallet-btns">
-          <button class="wallet-btn withdraw" onclick="requestWithdraw()">⬆ Withdraw</button>
-          <button class="wallet-btn convert" onclick="showToast('🔄 Connect TON wallet to convert')">🔄 Convert</button>
+
+    <!-- Wallet section tabs -->
+    <div class="wlt-tabs">
+      <button class="wlt-tab active" id="wltTab-ingame" onclick="switchWalletTab('ingame',this)">🐜 Ingame Wallet</button>
+      <button class="wlt-tab" id="wltTab-web3" onclick="switchWalletTab('web3',this)">🔷 Web3 Wallet</button>
+    </div>
+
+    <!-- ── INGAME WALLET panel ── -->
+    <div id="wlt-ingame">
+      <div class="section">
+        <div class="wallet-card">
+          <div class="wallet-balance-label">$ANT Balance</div>
+          <div class="wallet-balance" id="walletBalance">0.000</div>
+          <div class="wallet-usd">≈ $<span id="walletUSD">0.00</span> USD</div>
+          <div class="wallet-btns">
+            <button class="wallet-btn withdraw" onclick="requestWithdraw()">⬆ Withdraw</button>
+            <button class="wallet-btn convert" onclick="w3OpenWithdrawBridge()">🔷 To Web3</button>
+          </div>
         </div>
+        <div class="section-title">📈 Mining Stats</div>
+        <div class="wallet-stats">
+          <div class="wallet-stat"><div class="w-stat-val" id="wTodayMined">0.00</div><div class="w-stat-lbl">Today</div></div>
+          <div class="wallet-stat"><div class="w-stat-val" id="wTotalMined">0.00</div><div class="w-stat-lbl">All Time</div></div>
+          <div class="wallet-stat"><div class="w-stat-val" id="wBestDay">0.00</div><div class="w-stat-lbl">Best Day</div></div>
+        </div>
+        <button class="sync-btn" onclick="syncToBot()">🔄 Sync Progress to Bot</button>
       </div>
-      <div class="section-title">📈 Mining Stats</div>
-      <div class="wallet-stats">
-        <div class="wallet-stat"><div class="w-stat-val" id="wTodayMined">0.00</div><div class="w-stat-lbl">Today</div></div>
-        <div class="wallet-stat"><div class="w-stat-val" id="wTotalMined">0.00</div><div class="w-stat-lbl">All Time</div></div>
-        <div class="wallet-stat"><div class="w-stat-val" id="wBestDay">0.00</div><div class="w-stat-lbl">Best Day</div></div>
+    </div>
+
+    <!-- ── WEB3 WALLET panel ── -->
+    <div id="wlt-web3" style="display:none">
+      <div id="w3WalletRoot"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       WEB3 WALLET OVERLAYS
+  ════════════════════════════════════════════ -->
+
+  <!-- PIN Overlay -->
+  <div class="w3-overlay" id="w3PinOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title" id="w3PinTitle">🔐 Enter PIN</div>
+      <div class="w3-pin-dots" id="w3PinDots">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
-      <!-- Sync to bot -->
-      <button class="sync-btn" onclick="syncToBot()">🔄 Sync Progress to Bot</button>
+      <div class="w3-pin-error" id="w3PinError"></div>
+      <div class="w3-numpad">
+        <button onclick="w3PinKey('1')">1</button>
+        <button onclick="w3PinKey('2')">2</button>
+        <button onclick="w3PinKey('3')">3</button>
+        <button onclick="w3PinKey('4')">4</button>
+        <button onclick="w3PinKey('5')">5</button>
+        <button onclick="w3PinKey('6')">6</button>
+        <button onclick="w3PinKey('7')">7</button>
+        <button onclick="w3PinKey('8')">8</button>
+        <button onclick="w3PinKey('9')">9</button>
+        <button onclick="w3PinKey('clr')" style="color:#ef4444;font-size:12px;letter-spacing:0">CLR</button>
+        <button onclick="w3PinKey('0')">0</button>
+        <button onclick="w3PinKey('del')" style="font-size:16px">⌫</button>
+      </div>
+      <button class="w3-cancel-btn" id="w3PinCancelBtn" onclick="w3ClosePin()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Mnemonic / Recovery Phrase Overlay -->
+  <div class="w3-overlay" id="w3MnemonicOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title" id="w3MnemonicTitle">🔑 Recovery Phrase</div>
+      <div class="w3-warn-box" id="w3MnemonicWarn">⚠️ Write these 12 words in order and store them safely offline. Anyone with this phrase can access your wallet.</div>
+      <div class="w3-mnemonic-grid" id="w3MnemonicGrid"></div>
+      <button class="w3-copy-btn" onclick="w3CopyMnemonic()">📋 Copy Phrase</button>
+      <button class="w3-done-btn" onclick="w3CloseMnemonic()">✅ I've Saved It</button>
+    </div>
+  </div>
+
+  <!-- Private Key Overlay -->
+  <div class="w3-overlay" id="w3PkeyOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">🗝️ Private Key</div>
+      <div class="w3-warn-box">⚠️ Your private key grants full access to your wallet. Never share it with anyone — ever.</div>
+      <div id="w3PkeyDisplay" style="background:#0a0f1e;border:1px solid #1e3a6e;border-radius:10px;padding:14px;word-break:break-all;font-family:'Orbitron';font-size:9px;color:#93c5fd;line-height:1.9;margin-bottom:12px"></div>
+      <button class="w3-copy-btn" onclick="w3CopyPkey()">📋 Copy Key</button>
+      <button class="w3-done-btn" onclick="w3ClosePkey()">Close</button>
+    </div>
+  </div>
+
+  <!-- Send Overlay -->
+  <div class="w3-overlay" id="w3SendOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">⬆ Send Crypto</div>
+      <div class="w3-form-group">
+        <label class="w3-label">Recipient Address</label>
+        <input class="w3-input" id="w3SendTo" placeholder="0x..." autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Amount (<span id="w3SendSymbol">ETH</span>)</label>
+        <input class="w3-input" id="w3SendAmt" type="number" placeholder="0.0" step="any" inputmode="decimal"/>
+      </div>
+      <div class="w3-gas-info" id="w3GasInfo">⛽ Enter amount to estimate fee</div>
+      <button class="w3-send-btn" onclick="w3InitSend()">⬆ Send</button>
+      <button class="w3-cancel-btn" onclick="w3CloseSend()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Receive Overlay -->
+  <div class="w3-overlay" id="w3ReceiveOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">⬇ Receive</div>
+      <div class="w3-qr-wrap" id="w3QrWrap"></div>
+      <div class="w3-addr-display" id="w3ReceiveAddr"></div>
+      <button class="w3-copy-btn" onclick="w3CopyAddress()">📋 Copy Address</button>
+      <button class="w3-done-btn" onclick="w3CloseReceive()">Close</button>
+    </div>
+  </div>
+
+  <!-- Import Overlay -->
+  <div class="w3-overlay" id="w3ImportOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">↓ Import Wallet</div>
+      <div class="w3-import-tabs">
+        <button class="w3-itab active" onclick="w3SwitchImportTab('phrase',this)">Seed Phrase</button>
+        <button class="w3-itab" onclick="w3SwitchImportTab('pkey',this)">Private Key</button>
+      </div>
+      <div id="w3ImpPhraseWrap">
+        <textarea class="w3-input" id="w3PhraseInput" rows="4" placeholder="Enter 12 or 24-word seed phrase separated by spaces..."></textarea>
+      </div>
+      <div id="w3ImpPkeyWrap" style="display:none">
+        <input class="w3-input" id="w3PkeyInput" placeholder="Enter private key (0x...)" autocomplete="off" spellcheck="false"/>
+      </div>
+      <div style="margin:14px 0 6px">
+        <label class="w3-label">Set Wallet PIN (6 digits)</label>
+        <input class="w3-input" id="w3ImportPin1" type="password" maxlength="6" inputmode="numeric" placeholder="Set 6-digit PIN"/>
+      </div>
+      <input class="w3-input" id="w3ImportPin2" type="password" maxlength="6" inputmode="numeric" placeholder="Confirm PIN" style="margin-bottom:14px"/>
+      <button class="w3-send-btn" onclick="w3DoImport()">↓ Import Wallet</button>
+      <button class="w3-cancel-btn" style="margin-top:8px" onclick="w3CloseImport()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Backup Options Overlay -->
+  <div class="w3-overlay" id="w3BackupOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">🔑 Backup Wallet</div>
+      <div class="w3-warn-box">Requires your PIN. Store keys offline — they grant full access to your funds.</div>
+      <button class="w3-send-btn" style="margin-bottom:8px" onclick="w3RequestPhrase()">📝 Show Seed Phrase</button>
+      <button class="w3-done-btn" style="margin-bottom:8px" onclick="w3RequestPkey()">🗝️ Show Private Key</button>
+      <button class="w3-cancel-btn" onclick="w3CloseBackup()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Settings Overlay -->
+  <div class="w3-overlay" id="w3SettingsOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">⚙️ Wallet Settings</div>
+      <div style="font-family:'Orbitron';font-size:9px;color:#4b6fa0;text-align:center;margin-bottom:16px;letter-spacing:1px" id="w3SettingsAddr"></div>
+      <button class="w3-done-btn" style="margin-bottom:8px" onclick="w3LockWallet()">🔒 Lock Wallet</button>
+      <!-- Custom chains management -->
+      <div id="w3CustomChainsList"></div>
+      <button class="w3-cancel-btn" style="margin-bottom:8px;color:#ef4444;border-color:#7f1d1d" id="w3RemoveBtn" onclick="w3RemoveWallet()">🗑️ Remove Wallet</button>
+      <button class="w3-cancel-btn" onclick="w3CloseSettings()">Close</button>
+    </div>
+  </div>
+
+  <!-- Add Custom Chain Overlay -->
+  <div class="w3-overlay" id="w3AddChainOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">🔗 Add EVM Chain</div>
+      <div class="w3-form-group">
+        <label class="w3-label">Chain Name</label>
+        <input class="w3-input" id="w3AcName" placeholder="e.g. Avalanche"/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Chain ID</label>
+        <input class="w3-input" id="w3AcChainId" type="number" placeholder="e.g. 43114" inputmode="numeric"/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">RPC URL</label>
+        <input class="w3-input" id="w3AcRpc" placeholder="https://..."/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Native Token Symbol</label>
+        <input class="w3-input" id="w3AcSym" placeholder="e.g. AVAX" maxlength="10"/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Block Explorer TX URL <span style="color:#2d4a70">(optional)</span></label>
+        <input class="w3-input" id="w3AcExplorer" placeholder="https://.../tx/"/>
+      </div>
+      <button class="w3-send-btn" onclick="w3DoAddChain()">🔗 Add Chain</button>
+      <button class="w3-cancel-btn" style="margin-top:8px" onclick="w3CloseAddChain()">Cancel</button>
     </div>
   </div>
 
@@ -7072,6 +7332,748 @@ window.addEventListener('load', () => {
 
   // Auto-check Firebase VIP grant on startup (slight delay to let Firebase init)
   setTimeout(checkVipFromFirebase, 4000);
+})();
+
+// ============================================================
+//  WEB3 WALLET SYSTEM — Full EVM Wallet
+// ============================================================
+(function() {
+  'use strict';
+
+  // ── Chain registry ────────────────────────────────────────
+  var CHAINS = {
+    1:     { name:'Ethereum',  sym:'ETH', rpc:'https://eth.llamarpc.com',                explorer:'https://etherscan.io/tx/' },
+    56:    { name:'BNB Chain', sym:'BNB', rpc:'https://bsc-dataseed.binance.org/',       explorer:'https://bscscan.com/tx/' },
+    137:   { name:'Polygon',   sym:'POL', rpc:'https://polygon-rpc.com/',               explorer:'https://polygonscan.com/tx/' },
+    42161: { name:'Arbitrum',  sym:'ETH', rpc:'https://arb1.llamarpc.com',              explorer:'https://arbiscan.io/tx/' },
+    8453:  { name:'Base',      sym:'ETH', rpc:'https://mainnet.base.org',               explorer:'https://basescan.org/tx/' },
+  };
+  var CHAIN_IDS = [1, 56, 137, 42161, 8453];
+
+  // ── localStorage keys ─────────────────────────────────────
+  var LS_KS     = 'antColonyW3Ks';       // encrypted JSON keystore
+  var LS_ADDR   = 'antColonyW3Addr';     // public address (safe to store plain)
+  var LS_CHAIN  = 'antColonyW3Chain';    // last used chain ID
+  var LS_CUSTOM = 'antColonyW3Custom';   // user-added EVM chains (JSON array)
+
+  // ── Module state ──────────────────────────────────────────
+  var _wallet    = null;   // ethers.Wallet — only set when unlocked
+  var _chainId   = parseInt(localStorage.getItem(LS_CHAIN) || '1');
+  var _customChains = (function() {
+    try { return JSON.parse(localStorage.getItem(LS_CUSTOM) || '[]'); } catch(e) { return []; }
+  })();
+  var _balance   = '0.000000';
+  var _balUsd    = '0.00';
+
+  // PIN system
+  var _pinBuf        = '';
+  var _pinCb         = null;
+  var _pinSetupMode  = false;
+  var _pinFirstEntry = null;
+
+  // Misc
+  var _sendPending     = null;  // { to, value }
+  var _mnemonicBuf     = '';
+  var _pkeyBuf         = '';
+  var _impMode         = 'phrase';
+  var _removeConfirm   = false;
+  var _gasDebounce     = null;
+
+  // ── Utilities ─────────────────────────────────────────────
+  function _addr()    { return localStorage.getItem(LS_ADDR) || ''; }
+  function _ks()      { return localStorage.getItem(LS_KS);  }
+  function _chain()   { return _allChainsMap()[_chainId] || CHAINS[1]; }
+  function _provider(){ return new ethers.providers.JsonRpcProvider(_chain().rpc); }
+
+  // Merges built-in + user-added chains into one lookup map
+  function _allChainsMap() {
+    var map = {};
+    CHAIN_IDS.forEach(function(id) { map[id] = CHAINS[id]; });
+    _customChains.forEach(function(c) { map[c.chainId] = c; });
+    return map;
+  }
+  function _allChainIds() {
+    return CHAIN_IDS.concat(_customChains.map(function(c) { return c.chainId; }));
+  }
+
+  function _el(tag, cls)      { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function _tx(tag, text, cls){ var e = _el(tag, cls); e.textContent = text; return e; }
+
+  function _copy(text) {
+    if (typeof tgApp !== 'undefined' && tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.impactOccurred('light');
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text); return; }
+    } catch(e) {}
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch(e) {}
+  }
+
+  // ── Tab switcher (exposed globally) ──────────────────────
+  window.switchWalletTab = function(tab, btn) {
+    document.querySelectorAll('.wlt-tab').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    var ingame = document.getElementById('wlt-ingame');
+    var web3   = document.getElementById('wlt-web3');
+    if (tab === 'web3') {
+      if (ingame) ingame.style.display = 'none';
+      if (web3)   web3.style.display   = '';
+      loadW3Wallet();
+    } else {
+      if (ingame) ingame.style.display = '';
+      if (web3)   web3.style.display   = 'none';
+    }
+  };
+
+  // ── Main renderer ─────────────────────────────────────────
+  function loadW3Wallet() {
+    var root = document.getElementById('w3WalletRoot');
+    if (!root) return;
+    root.innerHTML = '';
+    if (!_ks()) {
+      _renderNoWallet(root);
+    } else if (!_wallet) {
+      _renderLocked(root);
+    } else {
+      _renderActive(root);
+      _refreshBalance();
+    }
+  }
+
+  // ── No-wallet empty state ─────────────────────────────────
+  function _renderNoWallet(root) {
+    var wrap = _el('div', 'w3-no-wallet');
+    wrap.appendChild(_tx('div', '🔷', 'w3-no-wallet-icon'));
+    wrap.appendChild(_tx('div', 'WEB3 WALLET', 'w3-no-wallet-title'));
+
+    var sub = _el('div', 'w3-no-wallet-sub');
+    sub.textContent = 'A non-custodial EVM wallet — supports Ethereum, BNB Chain, Polygon, Arbitrum, Base and all EVM networks. Your keys are encrypted with your PIN and stored on this device only.';
+    wrap.appendChild(sub);
+
+    var cBtn = _el('button', 'w3-create-btn');
+    cBtn.textContent = '+ Create New Wallet';
+    cBtn.onclick = _startCreate;
+    wrap.appendChild(cBtn);
+
+    var iBtn = _el('button', 'w3-import-btn');
+    iBtn.textContent = '↓ Import Existing Wallet';
+    iBtn.onclick = w3OpenImport;
+    wrap.appendChild(iBtn);
+
+    var note = _el('div', 'w3-security-note');
+    note.textContent = '🔒 Your private key never leaves this device. It is AES-256 encrypted with your PIN via ethers.js keystore v3.';
+    wrap.appendChild(note);
+    root.appendChild(wrap);
+  }
+
+  // ── Locked state ──────────────────────────────────────────
+  function _renderLocked(root) {
+    var wrap = _el('div', 'w3-no-wallet');
+    wrap.appendChild(_tx('div', '🔒', 'w3-no-wallet-icon'));
+    wrap.appendChild(_tx('div', 'WALLET LOCKED', 'w3-no-wallet-title'));
+
+    var addrEl = _el('div');
+    addrEl.style.cssText = 'font-family:Orbitron;font-size:10px;color:#4b6fa0;margin:6px 0 20px;word-break:break-all;text-align:center;line-height:1.7';
+    addrEl.textContent = _addr();
+    wrap.appendChild(addrEl);
+
+    var uBtn = _el('button', 'w3-create-btn');
+    uBtn.textContent = '🔐 Unlock Wallet';
+    uBtn.onclick = function() {
+      _openPin('🔐 Enter PIN to Unlock', false, function(pin) { _unlockWallet(pin); });
+    };
+    wrap.appendChild(uBtn);
+    root.appendChild(wrap);
+  }
+
+  // ── Active wallet ─────────────────────────────────────────
+  function _renderActive(root) {
+    var wrap = _el('div');
+    wrap.style.paddingBottom = '80px';
+
+    // Chain selector bar (built-in + custom + add button)
+    var bar = _el('div', 'w3-chain-bar');
+    bar.style.padding = '0 12px';
+    var chainMap = _allChainsMap();
+    _allChainIds().forEach(function(cid) {
+      var pill = _el('button', 'w3-chain-pill' + (cid === _chainId ? ' active' : ''));
+      pill.textContent = chainMap[cid].name;
+      pill.onclick = (function(c) { return function() { _switchChain(c); }; })(cid);
+      bar.appendChild(pill);
+    });
+    // "+ Add Chain" pill
+    var addPill = _el('button', 'w3-chain-pill');
+    addPill.textContent = '＋ Chain';
+    addPill.style.cssText += ';border-style:dashed;color:#2d4a70;';
+    addPill.onclick = w3OpenAddChain;
+    bar.appendChild(addPill);
+    wrap.appendChild(bar);
+
+    // Main card
+    var card = _el('div', 'w3-card');
+
+    // Address row
+    var aRow = _el('div', 'w3-addr-row');
+    var aText = _el('div', 'w3-addr-text');
+    aText.textContent = _addr();
+    var cAddrBtn = _el('button', 'w3-copy-addr');
+    cAddrBtn.textContent = '📋 Copy';
+    cAddrBtn.onclick = w3CopyAddress;
+    aRow.appendChild(aText); aRow.appendChild(cAddrBtn);
+    card.appendChild(aRow);
+
+    // Balance
+    var balBig = _el('div', 'w3-balance-big');
+    balBig.id = 'w3BalBig';
+    balBig.textContent = _balance + ' ' + _chain().sym;
+    card.appendChild(balBig);
+
+    var balUsd = _el('div', 'w3-balance-usd');
+    balUsd.id = 'w3BalUsd';
+    balUsd.textContent = '≈ $' + _balUsd + ' USD';
+    card.appendChild(balUsd);
+
+    var refBtn = _el('button', 'w3-refresh-btn');
+    refBtn.textContent = '🔄 Refresh Balance';
+    refBtn.onclick = _refreshBalance;
+    card.appendChild(refBtn);
+
+    // Action buttons (2×2 grid)
+    var grid = _el('div', 'w3-action-row');
+    var acts = [
+      { icon:'⬇', label:'Receive',  fn: w3OpenReceive,  cls: '' },
+      { icon:'⬆', label:'Send',     fn: w3OpenSend,     cls: 'primary' },
+      { icon:'🔑', label:'Backup',   fn: w3OpenBackup,   cls: '' },
+      { icon:'⚙️', label:'Settings', fn: w3OpenSettings, cls: '' },
+    ];
+    acts.forEach(function(a) {
+      var b = _el('button', 'w3-action-btn' + (a.cls ? ' ' + a.cls : ''));
+      b.textContent = a.icon + ' ' + a.label;
+      b.onclick = a.fn;
+      grid.appendChild(b);
+    });
+    card.appendChild(grid);
+    wrap.appendChild(card);
+    root.appendChild(wrap);
+  }
+
+  // ── Balance + USD price ───────────────────────────────────
+  function _refreshBalance() {
+    var addr = _addr();
+    if (!addr) return;
+    var sym = _chain().sym;
+    var el = document.getElementById('w3BalBig');
+    if (el) el.textContent = '... ' + sym;
+    _provider().getBalance(addr).then(function(raw) {
+      var fmt = parseFloat(ethers.utils.formatEther(raw)).toFixed(6);
+      _balance = fmt;
+      if (el) el.textContent = fmt + ' ' + sym;
+      _fetchUsdPrice(sym, function(price) {
+        _balUsd = (parseFloat(fmt) * price).toFixed(2);
+        var usdEl = document.getElementById('w3BalUsd');
+        if (usdEl) usdEl.textContent = '≈ $' + _balUsd + ' USD';
+      });
+    }).catch(function() {
+      if (el) el.textContent = '— ' + sym;
+    });
+  }
+
+  function _fetchUsdPrice(sym, cb) {
+    var map = { ETH:'ethereum', BNB:'binancecoin', POL:'matic-network' };
+    var id = map[sym];
+    if (!id) { cb(0); return; }
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + id + '&vs_currencies=usd')
+      .then(function(r) { return r.json(); })
+      .then(function(d) { cb((d[id] && d[id].usd) || 0); })
+      .catch(function() { cb(0); });
+  }
+
+  // ── Chain switch ──────────────────────────────────────────
+  function _switchChain(cid) {
+    _chainId = cid;
+    _balance = '0.000000'; _balUsd = '0.00';
+    localStorage.setItem(LS_CHAIN, String(cid));
+    if (_wallet) _wallet = _wallet.connect(_provider());
+    loadW3Wallet();
+  }
+
+  // ── Create wallet ─────────────────────────────────────────
+  function _startCreate() {
+    _openPin('🔐 Set a 6-Digit PIN', true, function(pin) {
+      showToast('🔐 Generating & encrypting wallet...');
+      var w = ethers.Wallet.createRandom();
+      w.encrypt(pin, { scrypt: { N: 4096 } }).then(function(ks) {
+        localStorage.setItem(LS_KS, ks);
+        localStorage.setItem(LS_ADDR, w.address);
+        _wallet = w.connect(_provider());
+        if (typeof fbDb !== 'undefined' && fbDb && typeof TG_USER !== 'undefined' && TG_USER) {
+          fbDb.ref('players/' + String(TG_USER.id) + '/evmAddress').set(w.address).catch(function(){});
+        }
+        _showMnemonicOverlay(w.mnemonic.phrase, true);
+      }).catch(function() { showToast('❌ Encryption failed. Try again.'); });
+    });
+  }
+
+  // ── Mnemonic overlay ──────────────────────────────────────
+  function _showMnemonicOverlay(phrase, isNew) {
+    var grid  = document.getElementById('w3MnemonicGrid');
+    var title = document.getElementById('w3MnemonicTitle');
+    var warn  = document.getElementById('w3MnemonicWarn');
+    if (!grid) return;
+    if (title) title.textContent = isNew ? '🔑 Save Your Recovery Phrase' : '🔑 Recovery Phrase';
+    if (warn)  warn.textContent  = isNew
+      ? '⚠️ Write all 12 words in order and store them safely offline. This phrase is the ONLY way to recover your wallet.'
+      : '⚠️ Keep this phrase secret. Anyone who has it can access your funds.';
+    grid.innerHTML = '';
+    phrase.trim().split(' ').forEach(function(word, i) {
+      var cell = _el('div', 'w3-mword');
+      var num = _el('span', 'w3-mword-num'); num.textContent = (i + 1) + '.';
+      var txt = _el('span', 'w3-mword-text'); txt.textContent = word;
+      cell.appendChild(num); cell.appendChild(txt);
+      grid.appendChild(cell);
+    });
+    _mnemonicBuf = phrase;
+    document.getElementById('w3MnemonicOverlay').style.display = 'flex';
+  }
+
+  window.w3CopyMnemonic = function() {
+    if (!_mnemonicBuf) return;
+    _copy(_mnemonicBuf);
+    showToast('📋 Phrase copied — store it safely offline!');
+  };
+  window.w3CloseMnemonic = function() {
+    document.getElementById('w3MnemonicOverlay').style.display = 'none';
+    _mnemonicBuf = '';
+    loadW3Wallet();
+  };
+
+  // ── Unlock ────────────────────────────────────────────────
+  function _unlockWallet(pin) {
+    var ks = _ks();
+    if (!ks) { showToast('❌ No wallet found'); return; }
+    var errEl = document.getElementById('w3PinError');
+    if (errEl) errEl.textContent = '⏳ Decrypting...';
+    ethers.Wallet.fromEncryptedJson(ks, pin).then(function(w) {
+      _wallet = w.connect(_provider());
+      w3ClosePin();
+      showToast('✅ Wallet unlocked!');
+      loadW3Wallet();
+    }).catch(function() {
+      if (errEl) errEl.textContent = '❌ Wrong PIN';
+      _pinBuf = ''; _updateDots();
+      setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
+    });
+  }
+
+  // ── Lock ──────────────────────────────────────────────────
+  window.w3LockWallet = function() {
+    _wallet = null;
+    w3CloseSettings();
+    showToast('🔒 Wallet locked');
+    loadW3Wallet();
+  };
+
+  // ── Remove wallet ─────────────────────────────────────────
+  window.w3RemoveWallet = function() {
+    var btn = document.getElementById('w3RemoveBtn');
+    if (!_removeConfirm) {
+      _removeConfirm = true;
+      if (btn) btn.textContent = '⚠️ Tap Again to Confirm Remove';
+      showToast('⚠️ Back up your phrase first! Tap again to confirm removal.');
+      setTimeout(function() {
+        _removeConfirm = false;
+        if (btn) btn.textContent = '🗑️ Remove Wallet';
+      }, 5000);
+      return;
+    }
+    _removeConfirm = false;
+    localStorage.removeItem(LS_KS);
+    localStorage.removeItem(LS_ADDR);
+    _wallet = null; _balance = '0.000000'; _balUsd = '0.00';
+    if (typeof fbDb !== 'undefined' && fbDb && typeof TG_USER !== 'undefined' && TG_USER) {
+      fbDb.ref('players/' + String(TG_USER.id) + '/evmAddress').remove().catch(function(){});
+    }
+    w3CloseSettings();
+    showToast('🗑️ Wallet removed');
+    loadW3Wallet();
+  };
+
+  // ── Send ──────────────────────────────────────────────────
+  window.w3OpenSend = function() {
+    var symEl = document.getElementById('w3SendSymbol');
+    if (symEl) symEl.textContent = _chain().sym;
+    var gasEl = document.getElementById('w3GasInfo');
+    if (gasEl) gasEl.textContent = '⛽ Enter amount to estimate fee';
+    var toEl  = document.getElementById('w3SendTo');
+    var amtEl = document.getElementById('w3SendAmt');
+    if (toEl)  toEl.value  = '';
+    if (amtEl) { amtEl.value = ''; amtEl.oninput = _scheduleGasEstimate; }
+    document.getElementById('w3SendOverlay').style.display = 'flex';
+  };
+
+  function _scheduleGasEstimate() {
+    clearTimeout(_gasDebounce);
+    _gasDebounce = setTimeout(function() {
+      var amtEl = document.getElementById('w3SendAmt');
+      var gasEl = document.getElementById('w3GasInfo');
+      if (!gasEl) return;
+      var amt = parseFloat((amtEl || {}).value);
+      if (!amt || amt <= 0) { gasEl.textContent = '⛽ Enter amount to estimate fee'; return; }
+      gasEl.textContent = '⛽ Estimating...';
+      _provider().getFeeData().then(function(fd) {
+        var gp = fd.gasPrice || ethers.BigNumber.from('5000000000');
+        var gl = ethers.BigNumber.from('21000');
+        var fee = parseFloat(ethers.utils.formatEther(gp.mul(gl))).toFixed(7);
+        gasEl.textContent = '⛽ Est. fee: ~' + fee + ' ' + _chain().sym;
+      }).catch(function() { gasEl.textContent = '⛽ Could not estimate fee'; });
+    }, 700);
+  }
+
+  window.w3InitSend = function() {
+    var toAddr = ((document.getElementById('w3SendTo') || {}).value || '').trim();
+    var amtStr = ((document.getElementById('w3SendAmt') || {}).value || '').trim();
+    if (!ethers.utils.isAddress(toAddr)) { showToast('❌ Invalid recipient address'); return; }
+    var amt = parseFloat(amtStr);
+    if (!amt || amt <= 0) { showToast('❌ Enter a valid amount'); return; }
+    var value;
+    try { value = ethers.utils.parseEther(String(amt)); } catch(e) { showToast('❌ Invalid amount'); return; }
+    _sendPending = { to: toAddr, value: value };
+    w3CloseSend();
+    _openPin('🔐 Confirm Transaction — Enter PIN', false, function(pin) { _executeSend(pin); });
+  };
+
+  function _executeSend(pin) {
+    if (!_sendPending) return;
+    var errEl = document.getElementById('w3PinError');
+    if (errEl) errEl.textContent = '⏳ Signing & broadcasting...';
+    ethers.Wallet.fromEncryptedJson(_ks(), pin).then(function(w) {
+      _wallet = w.connect(_provider());
+      return _wallet.sendTransaction({ to: _sendPending.to, value: _sendPending.value });
+    }).then(function(tx) {
+      _sendPending = null;
+      w3ClosePin();
+      showToast('✅ Sent! TX: ' + tx.hash.slice(0,12) + '...');
+      setTimeout(_refreshBalance, 5000);
+    }).catch(function(err) {
+      var msg = (err && err.message) || '';
+      if (msg.indexOf('password') !== -1 || msg.indexOf('invalid') !== -1) {
+        if (errEl) errEl.textContent = '❌ Wrong PIN';
+        _pinBuf = ''; _updateDots();
+        setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
+      } else {
+        w3ClosePin();
+        showToast('❌ Send failed: ' + msg.slice(0, 50));
+      }
+    });
+  }
+
+  window.w3CloseSend = function() { document.getElementById('w3SendOverlay').style.display = 'none'; };
+
+  // ── Receive ───────────────────────────────────────────────
+  window.w3OpenReceive = function() {
+    var addr  = _addr();
+    var wrap  = document.getElementById('w3QrWrap');
+    var aDisp = document.getElementById('w3ReceiveAddr');
+    if (aDisp) aDisp.textContent = addr;
+    if (wrap) {
+      wrap.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        try {
+          new QRCode(wrap, { text: addr, width: 180, height: 180,
+            colorDark: '#93c5fd', colorLight: '#050810', correctLevel: QRCode.CorrectLevel.M });
+        } catch(e) { wrap.textContent = addr; }
+      } else {
+        // Fallback: show address in styled box if QRCode.js hasn't loaded
+        var fb = _el('div');
+        fb.style.cssText = 'font-family:Orbitron;font-size:8px;color:#93c5fd;word-break:break-all;padding:20px;background:#0a0f1e;border-radius:10px;line-height:1.9;text-align:center';
+        fb.textContent = addr;
+        wrap.appendChild(fb);
+      }
+    }
+    document.getElementById('w3ReceiveOverlay').style.display = 'flex';
+  };
+
+  window.w3CopyAddress = function() { _copy(_addr()); showToast('📋 Address copied!'); };
+  window.w3CloseReceive = function() { document.getElementById('w3ReceiveOverlay').style.display = 'none'; };
+
+  // ── Import ────────────────────────────────────────────────
+  function w3OpenImport() {
+    _impMode = 'phrase';
+    ['w3PhraseInput','w3PkeyInput','w3ImportPin1','w3ImportPin2'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    var pw = document.getElementById('w3ImpPhraseWrap');
+    var kw = document.getElementById('w3ImpPkeyWrap');
+    if (pw) pw.style.display = '';
+    if (kw) kw.style.display = 'none';
+    document.querySelectorAll('.w3-itab').forEach(function(b,i) {
+      b.classList.toggle('active', i === 0);
+    });
+    document.getElementById('w3ImportOverlay').style.display = 'flex';
+  }
+  window.w3OpenImport = w3OpenImport;
+
+  window.w3SwitchImportTab = function(mode, btn) {
+    _impMode = mode;
+    document.querySelectorAll('.w3-itab').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    var pw = document.getElementById('w3ImpPhraseWrap');
+    var kw = document.getElementById('w3ImpPkeyWrap');
+    if (pw) pw.style.display = mode === 'phrase' ? '' : 'none';
+    if (kw) kw.style.display = mode === 'pkey'   ? '' : 'none';
+  };
+
+  window.w3DoImport = function() {
+    var pin1 = ((document.getElementById('w3ImportPin1') || {}).value || '').trim();
+    var pin2 = ((document.getElementById('w3ImportPin2') || {}).value || '').trim();
+    if (!/^\d{6}$/.test(pin1)) { showToast('❌ PIN must be exactly 6 digits'); return; }
+    if (pin1 !== pin2)          { showToast('❌ PINs do not match'); return; }
+    var w;
+    try {
+      if (_impMode === 'phrase') {
+        var phrase = ((document.getElementById('w3PhraseInput') || {}).value || '').trim().toLowerCase();
+        w = ethers.Wallet.fromMnemonic(phrase);
+      } else {
+        var pk = ((document.getElementById('w3PkeyInput') || {}).value || '').trim();
+        if (!pk.startsWith('0x')) pk = '0x' + pk;
+        w = new ethers.Wallet(pk);
+      }
+    } catch(e) {
+      showToast('❌ Invalid ' + (_impMode === 'phrase' ? 'seed phrase' : 'private key'));
+      return;
+    }
+    showToast('🔐 Encrypting wallet...');
+    w.encrypt(pin1, { scrypt: { N: 4096 } }).then(function(ks) {
+      localStorage.setItem(LS_KS, ks);
+      localStorage.setItem(LS_ADDR, w.address);
+      _wallet = w.connect(_provider());
+      if (typeof fbDb !== 'undefined' && fbDb && typeof TG_USER !== 'undefined' && TG_USER) {
+        fbDb.ref('players/' + String(TG_USER.id) + '/evmAddress').set(w.address).catch(function(){});
+      }
+      w3CloseImport();
+      showToast('✅ Wallet imported!');
+      loadW3Wallet();
+    }).catch(function() { showToast('❌ Encryption failed. Try again.'); });
+  };
+
+  window.w3CloseImport = function() { document.getElementById('w3ImportOverlay').style.display = 'none'; };
+
+  // ── Backup ────────────────────────────────────────────────
+  window.w3OpenBackup   = function() { document.getElementById('w3BackupOverlay').style.display = 'flex'; };
+  window.w3CloseBackup  = function() { document.getElementById('w3BackupOverlay').style.display = 'none'; };
+
+  window.w3RequestPhrase = function() {
+    w3CloseBackup();
+    _openPin('🔐 Enter PIN to View Phrase', false, function(pin) {
+      var errEl = document.getElementById('w3PinError');
+      if (errEl) errEl.textContent = '⏳ Decrypting...';
+      ethers.Wallet.fromEncryptedJson(_ks(), pin).then(function(w) {
+        w3ClosePin();
+        if (!w.mnemonic || !w.mnemonic.phrase) {
+          showToast('⚠️ No phrase — this wallet was imported by private key only');
+          return;
+        }
+        _showMnemonicOverlay(w.mnemonic.phrase, false);
+      }).catch(function() {
+        if (errEl) errEl.textContent = '❌ Wrong PIN';
+        _pinBuf = ''; _updateDots();
+        setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
+      });
+    });
+  };
+
+  window.w3RequestPkey = function() {
+    w3CloseBackup();
+    _openPin('🔐 Enter PIN to View Private Key', false, function(pin) {
+      var errEl = document.getElementById('w3PinError');
+      if (errEl) errEl.textContent = '⏳ Decrypting...';
+      ethers.Wallet.fromEncryptedJson(_ks(), pin).then(function(w) {
+        w3ClosePin();
+        _pkeyBuf = w.privateKey;
+        var dispEl = document.getElementById('w3PkeyDisplay');
+        if (dispEl) dispEl.textContent = w.privateKey;
+        document.getElementById('w3PkeyOverlay').style.display = 'flex';
+      }).catch(function() {
+        if (errEl) errEl.textContent = '❌ Wrong PIN';
+        _pinBuf = ''; _updateDots();
+        setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
+      });
+    });
+  };
+
+  window.w3CopyPkey = function() {
+    if (!_pkeyBuf) return;
+    _copy(_pkeyBuf);
+    showToast('📋 Private key copied — keep it secure!');
+  };
+  window.w3ClosePkey = function() {
+    document.getElementById('w3PkeyOverlay').style.display = 'none';
+    _pkeyBuf = '';
+  };
+
+  // ── Settings ──────────────────────────────────────────────
+  window.w3OpenSettings = function() {
+    var addrEl = document.getElementById('w3SettingsAddr');
+    if (addrEl) addrEl.textContent = _addr();
+    // Render custom chains management list
+    var listEl = document.getElementById('w3CustomChainsList');
+    if (listEl) {
+      listEl.innerHTML = '';
+      if (_customChains.length > 0) {
+        var hdr = _el('div');
+        hdr.style.cssText = 'font-family:Orbitron;font-size:9px;color:#4b6fa0;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase';
+        hdr.textContent = 'Custom Chains';
+        listEl.appendChild(hdr);
+        _customChains.forEach(function(c) {
+          var row = _el('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;background:#0a0f1e;border:1px solid #1e3a6e;border-radius:8px;padding:8px 10px';
+          var info = _el('div');
+          info.style.cssText = 'flex:1;font-family:Rajdhani;font-size:12px;color:#93c5fd;font-weight:600';
+          info.textContent = c.name + ' (' + c.sym + ')';
+          var rmBtn = _el('button');
+          rmBtn.style.cssText = 'background:transparent;border:1px solid #7f1d1d;border-radius:6px;color:#ef4444;font-size:10px;padding:3px 8px;cursor:pointer';
+          rmBtn.textContent = '✕';
+          rmBtn.onclick = (function(chainId) { return function() { w3RemoveCustomChain(chainId); }; })(c.chainId);
+          row.appendChild(info); row.appendChild(rmBtn);
+          listEl.appendChild(row);
+        });
+        var div = _el('div'); div.style.height = '10px';
+        listEl.appendChild(div);
+      }
+    }
+    document.getElementById('w3SettingsOverlay').style.display = 'flex';
+  };
+  window.w3CloseSettings = function() { document.getElementById('w3SettingsOverlay').style.display = 'none'; };
+
+  // ── PIN overlay engine ────────────────────────────────────
+  function _openPin(title, isSetupMode, onSuccess) {
+    _pinBuf = ''; _pinCb = null;
+    _pinSetupMode  = isSetupMode;
+    _pinFirstEntry = null;
+    var titleEl    = document.getElementById('w3PinTitle');
+    var cancelBtn  = document.getElementById('w3PinCancelBtn');
+    var errEl      = document.getElementById('w3PinError');
+    if (titleEl)   titleEl.textContent   = title;
+    if (errEl)     errEl.textContent     = '';
+    if (cancelBtn) cancelBtn.style.display = isSetupMode ? 'none' : '';
+    _updateDots();
+    document.getElementById('w3PinOverlay').style.display = 'flex';
+
+    if (isSetupMode) {
+      // Two-step: enter → confirm
+      _pinCb = function(pin) {
+        if (_pinFirstEntry === null) {
+          // Step 1: store first entry and ask to confirm
+          _pinFirstEntry = pin;
+          _pinBuf = ''; _updateDots();
+          if (titleEl) titleEl.textContent = '🔐 Confirm PIN';
+          if (errEl)   errEl.textContent   = '';
+        } else {
+          // Step 2: compare
+          if (pin !== _pinFirstEntry) {
+            _pinFirstEntry = null;
+            _pinBuf = ''; _updateDots();
+            if (titleEl) titleEl.textContent = title;
+            if (errEl)   errEl.textContent   = '❌ PINs did not match — try again';
+            setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
+          } else {
+            w3ClosePin();
+            onSuccess(pin);
+          }
+        }
+      };
+    } else {
+      _pinCb = function(pin) { onSuccess(pin); };
+    }
+  }
+
+  window.w3ClosePin = function() {
+    document.getElementById('w3PinOverlay').style.display = 'none';
+    _pinBuf = ''; _pinCb = null; _pinFirstEntry = null; _pinSetupMode = false;
+    _updateDots();
+  };
+
+  window.w3PinKey = function(k) {
+    if (k === 'clr') { _pinBuf = ''; _updateDots(); return; }
+    if (k === 'del') { _pinBuf = _pinBuf.slice(0, -1); _updateDots(); return; }
+    if (_pinBuf.length >= 6) return;
+    _pinBuf += k;
+    _updateDots();
+    if (_pinBuf.length === 6 && _pinCb) {
+      var pin = _pinBuf;
+      setTimeout(function() { if (_pinCb) _pinCb(pin); }, 130);
+    }
+  };
+
+  function _updateDots() {
+    var dots = document.querySelectorAll('#w3PinDots span');
+    dots.forEach(function(d, i) { d.classList.toggle('filled', i < _pinBuf.length); });
+  }
+
+  // ── Add / Remove custom chains ────────────────────────────
+  window.w3OpenAddChain = function() {
+    ['w3AcName','w3AcChainId','w3AcRpc','w3AcSym','w3AcExplorer'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('w3AddChainOverlay').style.display = 'flex';
+  };
+  window.w3CloseAddChain = function() {
+    document.getElementById('w3AddChainOverlay').style.display = 'none';
+  };
+
+  window.w3DoAddChain = function() {
+    var name     = ((document.getElementById('w3AcName')    || {}).value || '').trim();
+    var cidRaw   = ((document.getElementById('w3AcChainId') || {}).value || '').trim();
+    var rpc      = ((document.getElementById('w3AcRpc')     || {}).value || '').trim();
+    var sym      = ((document.getElementById('w3AcSym')     || {}).value || '').trim().toUpperCase();
+    var explorer = ((document.getElementById('w3AcExplorer')|| {}).value || '').trim();
+
+    if (!name)              { showToast('❌ Chain name required'); return; }
+    if (!cidRaw)            { showToast('❌ Chain ID required'); return; }
+    if (!rpc.startsWith('http')) { showToast('❌ RPC URL must start with http'); return; }
+    if (!sym)               { showToast('❌ Token symbol required'); return; }
+
+    var cid = parseInt(cidRaw);
+    if (!cid || cid <= 0)   { showToast('❌ Invalid Chain ID'); return; }
+
+    // Check for duplicate
+    var existing = _allChainsMap();
+    if (existing[cid]) {
+      showToast('❌ Chain ID ' + cid + ' already exists (' + existing[cid].name + ')'); return;
+    }
+
+    var newChain = { chainId: cid, name: name, sym: sym, rpc: rpc, explorer: explorer || '' };
+    _customChains.push(newChain);
+    localStorage.setItem(LS_CUSTOM, JSON.stringify(_customChains));
+    w3CloseAddChain();
+    showToast('✅ ' + name + ' added!');
+    // Switch to the new chain
+    _switchChain(cid);
+  };
+
+  window.w3RemoveCustomChain = function(cid) {
+    _customChains = _customChains.filter(function(c) { return c.chainId !== cid; });
+    localStorage.setItem(LS_CUSTOM, JSON.stringify(_customChains));
+    // If we were on this chain, fall back to Ethereum
+    if (_chainId === cid) { _chainId = 1; localStorage.setItem(LS_CHAIN, '1'); }
+    showToast('🗑️ Chain removed');
+    w3CloseSettings();
+    loadW3Wallet();
+  };
+
+  // ── Ingame → Web3 bridge ──────────────────────────────────
+  window.w3OpenWithdrawBridge = function() {
+    var addr = _addr();
+    if (!addr) {
+      showToast('🔷 Set up a Web3 wallet first — tap the Web3 Wallet tab!');
+      return;
+    }
+    showToast('🔜 $ANT on-chain withdrawal coming soon. Your EVM address is saved: ' + addr.slice(0,6) + '...' + addr.slice(-4));
+  };
+
 })();
 </script>
 </body>
