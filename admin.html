@@ -2374,10 +2374,12 @@ function viewOptSubmissions(taskId) {
 }
 
 function approveOptSub(uid, taskId) {
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'approved' }).then(function() { toast('\u2713 Submission approved', 'success'); viewOptSubmissions(taskId); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
 }
 
 function rejectOptSub(uid, taskId) {
+  if (!db) { toast('❌ Firebase not connected', 'error'); return; }
   db.ref('optAirdropSubmits/' + uid + '/' + taskId).update({ status: 'rejected' }).then(function() { toast('\u2715 Submission rejected', 'success'); viewOptSubmissions(taskId); }).catch(function(e){ toast('Error: ' + e.message, 'error'); });
 }
 

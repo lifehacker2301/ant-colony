@@ -1638,6 +1638,10 @@ textarea.w3-input { resize:vertical; }
     <div class="w3-sheet">
       <div class="w3-sheet-title">⬆ Send Crypto</div>
       <div class="w3-form-group">
+        <label class="w3-label">Token</label>
+        <select class="w3-input" id="w3SendTokenSelect" style="cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22><path d=%22M0 0l5 6 5-6z%22 fill=%22%2393c5fd%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;padding-right:28px"></select>
+      </div>
+      <div class="w3-form-group">
         <label class="w3-label">Recipient Address</label>
         <input class="w3-input" id="w3SendTo" placeholder="0x..." autocomplete="off" spellcheck="false"/>
       </div>
@@ -3567,12 +3571,12 @@ function updateMining(){
   }
   const rem=Math.max(0,STATE.harvestInterval-elapsed);
   const mm=Math.floor(rem/60).toString().padStart(2,'0'), ss=Math.floor(rem%60).toString().padStart(2,'0');
-  document.getElementById('harvestTime').textContent=mm+':'+ss;
-  document.getElementById('harvestAmount').textContent='+'+fmt(getHarvestAmount(),3)+' $ANT';
-  document.getElementById('statMined').textContent=fmt(STATE.totalMined,2);
-  document.getElementById('statReferrals').textContent=STATE.referrals;
-  document.getElementById('statRank').textContent='#'+STATE.rank;
-  document.getElementById('colonyPop').textContent=STATE.colonySize;
+  const _ht=document.getElementById('harvestTime');    if(_ht)_ht.textContent=mm+':'+ss;
+  const _ha=document.getElementById('harvestAmount'); if(_ha)_ha.textContent='+'+fmt(getHarvestAmount(),3)+' $ANT';
+  const _sm=document.getElementById('statMined');     if(_sm)_sm.textContent=fmt(STATE.totalMined,2);
+  const _sr=document.getElementById('statReferrals'); if(_sr)_sr.textContent=STATE.referrals;
+  const _sk=document.getElementById('statRank');      if(_sk)_sk.textContent='#'+STATE.rank;
+  const _cp=document.getElementById('colonyPop');     if(_cp)_cp.textContent=STATE.colonySize;
   updateTier(); updateWallet();
 }
 
@@ -4344,7 +4348,7 @@ function rebuildQueenAnims() {
   const W = queenCanvasEl?.width || 360;
   const H = queenCanvasEl?.height || 180;
   const floorY = H * 0.60;
-  const ownedQueens = QUEEN_TYPES.filter(qt => STATE.queens[qt.key]);
+  const ownedQueens = QUEEN_TYPES.filter(qt => (STATE.queens||{})[qt.key]);
   ownedQueens.forEach((qt, i) => {
     const n = ownedQueens.length;
     const spacing = W * 0.70 / Math.max(n, 1);
@@ -7404,6 +7408,7 @@ window.addEventListener('load', () => {
     'function decimals() view returns (uint8)',
     'function symbol() view returns (string)',
     'function name() view returns (string)',
+    'function transfer(address to, uint256 amount) returns (bool)',
   ];
 
   // Trust Wallet blockchain names for token logo CDN
@@ -7963,9 +7968,47 @@ window.addEventListener('load', () => {
   };
 
   // ── Send ──────────────────────────────────────────────────
-  window.w3OpenSend = function() {
-    var symEl = document.getElementById('w3SendSymbol');
-    if (symEl) symEl.textContent = _chain().sym;
+  // Helper: sync symbol label to currently selected token in send sheet
+  function _updateSendSymbol() {
+    var select = document.getElementById('w3SendTokenSelect');
+    var symEl  = document.getElementById('w3SendSymbol');
+    if (!symEl) return;
+    if (!select || select.value === 'native') {
+      symEl.textContent = _chain().sym;
+    } else {
+      var allTok = (CHAIN_TOKENS[_chainId] || []).concat(_customTokensForChain(_chainId));
+      var tok = null;
+      for (var i = 0; i < allTok.length; i++) {
+        if (allTok[i].addr.toLowerCase() === select.value.toLowerCase()) { tok = allTok[i]; break; }
+      }
+      symEl.textContent = tok ? tok.sym : _chain().sym;
+    }
+    var gasEl = document.getElementById('w3GasInfo');
+    if (gasEl) gasEl.textContent = '⛽ Enter amount to estimate fee';
+  }
+
+  // preselect: 'native' or a token contract address
+  window.w3OpenSend = function(preselect) {
+    // Populate token dropdown
+    var select = document.getElementById('w3SendTokenSelect');
+    if (select) {
+      select.innerHTML = '';
+      var c = _chain();
+      var nOpt = document.createElement('option');
+      nOpt.value = 'native';
+      nOpt.textContent = c.sym + ' (Native)';
+      select.appendChild(nOpt);
+      var allTok = (CHAIN_TOKENS[_chainId] || []).concat(_customTokensForChain(_chainId));
+      allTok.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.addr;
+        opt.textContent = t.sym + (t.name ? ' \u2014 ' + t.name : '');
+        select.appendChild(opt);
+      });
+      if (preselect) select.value = preselect;
+      select.onchange = _updateSendSymbol;
+    }
+    _updateSendSymbol();
     var gasEl = document.getElementById('w3GasInfo');
     if (gasEl) gasEl.textContent = '⛽ Enter amount to estimate fee';
     var toEl  = document.getElementById('w3SendTo');
@@ -7978,45 +8021,91 @@ window.addEventListener('load', () => {
   function _scheduleGasEstimate() {
     clearTimeout(_gasDebounce);
     _gasDebounce = setTimeout(function() {
-      var amtEl = document.getElementById('w3SendAmt');
-      var gasEl = document.getElementById('w3GasInfo');
+      var amtEl  = document.getElementById('w3SendAmt');
+      var gasEl  = document.getElementById('w3GasInfo');
+      var select = document.getElementById('w3SendTokenSelect');
       if (!gasEl) return;
       var amt = parseFloat((amtEl || {}).value);
       if (!amt || amt <= 0) { gasEl.textContent = '⛽ Enter amount to estimate fee'; return; }
       gasEl.textContent = '⛽ Estimating...';
-      _provider().getFeeData().then(function(fd) {
-        var gp = fd.gasPrice || ethers.BigNumber.from('5000000000');
-        var gl = ethers.BigNumber.from('21000');
-        var fee = parseFloat(ethers.utils.formatEther(gp.mul(gl))).toFixed(7);
-        gasEl.textContent = '⛽ Est. fee: ~' + fee + ' ' + _chain().sym;
-      }).catch(function() { gasEl.textContent = '⛽ Could not estimate fee'; });
+      var isNative = !select || select.value === 'native';
+      if (isNative) {
+        _provider().getFeeData().then(function(fd) {
+          var gp = fd.gasPrice || ethers.BigNumber.from('5000000000');
+          var fee = parseFloat(ethers.utils.formatEther(gp.mul(ethers.BigNumber.from('21000')))).toFixed(7);
+          gasEl.textContent = '⛽ Est. fee: ~' + fee + ' ' + _chain().sym;
+        }).catch(function() { gasEl.textContent = '⛽ Could not estimate fee'; });
+      } else {
+        var allTok = (CHAIN_TOKENS[_chainId] || []).concat(_customTokensForChain(_chainId));
+        var tok = null;
+        for (var i = 0; i < allTok.length; i++) {
+          if (allTok[i].addr.toLowerCase() === select.value.toLowerCase()) { tok = allTok[i]; break; }
+        }
+        if (!tok) { gasEl.textContent = '⛽ Could not estimate fee'; return; }
+        var toAddr = ((document.getElementById('w3SendTo') || {}).value || '').trim();
+        var dummy = ethers.utils.isAddress(toAddr) ? toAddr : _addr();
+        var prov = _provider();
+        var contract = new ethers.Contract(tok.addr, ERC20_ABI, prov);
+        Promise.all([
+          prov.getFeeData(),
+          contract.estimateGas.transfer(dummy, ethers.utils.parseUnits('1', tok.dec))
+            .catch(function() { return ethers.BigNumber.from('65000'); })
+        ]).then(function(res) {
+          var gp  = res[0].gasPrice || ethers.BigNumber.from('5000000000');
+          var fee = parseFloat(ethers.utils.formatEther(gp.mul(res[1]))).toFixed(7);
+          gasEl.textContent = '⛽ Est. fee: ~' + fee + ' ' + _chain().sym;
+        }).catch(function() { gasEl.textContent = '⛽ Could not estimate fee'; });
+      }
     }, 700);
   }
 
   window.w3InitSend = function() {
     var toAddr = ((document.getElementById('w3SendTo') || {}).value || '').trim();
     var amtStr = ((document.getElementById('w3SendAmt') || {}).value || '').trim();
+    var select = document.getElementById('w3SendTokenSelect');
     if (!ethers.utils.isAddress(toAddr)) { showToast('❌ Invalid recipient address'); return; }
     var amt = parseFloat(amtStr);
     if (!amt || amt <= 0) { showToast('❌ Enter a valid amount'); return; }
-    var value;
-    try { value = ethers.utils.parseEther(String(amt)); } catch(e) { showToast('❌ Invalid amount'); return; }
-    _sendPending = { to: toAddr, value: value };
+    var isNative = !select || select.value === 'native';
+    if (isNative) {
+      var value;
+      try { value = ethers.utils.parseEther(String(amt)); } catch(e) { showToast('❌ Invalid amount'); return; }
+      _sendPending = { to: toAddr, value: value, token: null };
+    } else {
+      var allTok = (CHAIN_TOKENS[_chainId] || []).concat(_customTokensForChain(_chainId));
+      var tok = null;
+      for (var i = 0; i < allTok.length; i++) {
+        if (allTok[i].addr.toLowerCase() === select.value.toLowerCase()) { tok = allTok[i]; break; }
+      }
+      if (!tok) { showToast('❌ Token not found'); return; }
+      var tokenAmt;
+      try { tokenAmt = ethers.utils.parseUnits(String(amt), tok.dec); } catch(e) { showToast('❌ Invalid amount'); return; }
+      _sendPending = { to: toAddr, value: tokenAmt, token: tok };
+    }
     w3CloseSend();
     _openPin('🔐 Confirm Transaction — Enter PIN', false, function(pin) { _executeSend(pin); });
   };
 
   function _executeSend(pin) {
     if (!_sendPending) return;
+    var pending = _sendPending;
     var errEl = document.getElementById('w3PinError');
     if (errEl) errEl.textContent = '⏳ Signing & broadcasting...';
     ethers.Wallet.fromEncryptedJson(_ks(), pin).then(function(w) {
       _wallet = w.connect(_provider());
-      return _wallet.sendTransaction({ to: _sendPending.to, value: _sendPending.value });
+      if (!pending.token) {
+        // Native coin transfer
+        return _wallet.sendTransaction({ to: pending.to, value: pending.value });
+      } else {
+        // ERC-20 transfer via contract
+        var contract = new ethers.Contract(pending.token.addr, ERC20_ABI, _wallet);
+        return contract.transfer(pending.to, pending.value);
+      }
     }).then(function(tx) {
+      var sym = pending.token ? pending.token.sym : _chain().sym;
       _sendPending = null;
       w3ClosePin();
-      showToast('✅ Sent! TX: ' + tx.hash.slice(0,12) + '...');
+      showToast('✅ ' + sym + ' sent! TX: ' + tx.hash.slice(0,12) + '...');
       setTimeout(_refreshBalance, 5000);
     }).catch(function(err) {
       var msg = (err && err.message) || '';
@@ -8025,6 +8114,7 @@ window.addEventListener('load', () => {
         _pinBuf = ''; _updateDots();
         setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
       } else {
+        _sendPending = null;
         w3ClosePin();
         showToast('❌ Send failed: ' + msg.slice(0, 50));
       }
@@ -8317,6 +8407,9 @@ window.addEventListener('load', () => {
 
   function _renderTokenRow(token, bal, usd) {
     var row = _el('div', 'w3-token-row');
+    row.style.cursor = 'pointer';
+    row.title = 'Tap to send ' + token.sym;
+    row.onclick = (function(addr) { return function() { w3OpenSend(addr); }; })(token.addr);
     row.appendChild(_tokenLogoEl(token, _chainId));
     var info = _el('div', 'w3-token-info');
     info.appendChild(_tx('div', token.sym, 'w3-token-sym'));
