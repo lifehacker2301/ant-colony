@@ -1187,6 +1187,24 @@ textarea.w3-input { resize:vertical; }
 .w3-itab { flex:1; padding:9px; border-radius:8px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
 .w3-itab.active { background:#1e3a6e; color:#93c5fd; border-color:#3b82f6; }
 
+/* ═══════════════════════════════════════════════
+   TOKEN LIST
+═══════════════════════════════════════════════ */
+.w3-token-section { margin:0 12px 20px; }
+.w3-token-list { max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; scrollbar-width:thin; scrollbar-color:#1e3a6e transparent; padding-right:2px; }
+.w3-token-list::-webkit-scrollbar { width:3px; }
+.w3-token-list::-webkit-scrollbar-thumb { background:#1e3a6e; border-radius:2px; }
+.w3-token-row { display:flex; align-items:center; gap:12px; background:#0a0f1e; border:1px solid #1e3a6e; border-radius:12px; padding:12px 14px; }
+.w3-token-logo { width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.w3-token-info { flex:1; min-width:0; }
+.w3-token-sym { font-family:'Orbitron'; font-size:11px; color:#93c5fd; font-weight:700; }
+.w3-token-fullname { font-size:10px; color:#4b6fa0; margin-top:2px; font-family:'Rajdhani'; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.w3-token-right { text-align:right; flex-shrink:0; }
+.w3-token-amount { font-family:'Orbitron'; font-size:11px; color:#93c5fd; font-weight:700; }
+.w3-token-usd { font-size:10px; color:#4b6fa0; margin-top:2px; font-family:'Rajdhani'; }
+.w3-token-add-btn { width:100%; padding:10px; border-radius:10px; border:1px dashed #1a2d50; background:transparent; color:#2d4a70; font-family:'Rajdhani'; font-size:12px; font-weight:700; cursor:pointer; margin-top:8px; letter-spacing:1px; }
+.w3-token-loading { text-align:center; padding:20px; color:#4b6fa0; font-size:11px; font-family:'Rajdhani'; letter-spacing:1px; }
+
 </style>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1689,6 +1707,32 @@ textarea.w3-input { resize:vertical; }
       <div id="w3CustomChainsList"></div>
       <button class="w3-cancel-btn" style="margin-bottom:8px;color:#ef4444;border-color:#7f1d1d" id="w3RemoveBtn" onclick="w3RemoveWallet()">🗑️ Remove Wallet</button>
       <button class="w3-cancel-btn" onclick="w3CloseSettings()">Close</button>
+    </div>
+  </div>
+
+  <!-- Add Custom Token Overlay -->
+  <div class="w3-overlay" id="w3AddTokenOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">🪙 Add Token</div>
+      <div class="w3-form-group">
+        <label class="w3-label">Contract Address</label>
+        <input class="w3-input" id="w3AtAddr" placeholder="0x..." autocomplete="off" spellcheck="false" oninput="w3AutoFetchToken()"/>
+      </div>
+      <div id="w3AtFetchStatus" style="font-size:10px;color:#4b6fa0;font-family:Rajdhani;margin-bottom:8px;min-height:14px"></div>
+      <div class="w3-form-group">
+        <label class="w3-label">Symbol</label>
+        <input class="w3-input" id="w3AtSym" placeholder="e.g. USDT" maxlength="20"/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Decimals</label>
+        <input class="w3-input" id="w3AtDec" type="number" placeholder="18" inputmode="numeric"/>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Name <span style="color:#2d4a70">(optional)</span></label>
+        <input class="w3-input" id="w3AtName" placeholder="Token full name"/>
+      </div>
+      <button class="w3-send-btn" onclick="w3DoAddToken()">+ Add Token</button>
+      <button class="w3-cancel-btn" style="margin-top:8px" onclick="w3CloseAddToken()">Cancel</button>
     </div>
   </div>
 
@@ -7354,11 +7398,107 @@ window.addEventListener('load', () => {
   };
   var CHAIN_IDS = [1, 56, 137, 42161, 8453];
 
+  // ── ERC-20 minimal ABI ────────────────────────────────────
+  var ERC20_ABI = [
+    'function balanceOf(address owner) view returns (uint256)',
+    'function decimals() view returns (uint8)',
+    'function symbol() view returns (string)',
+    'function name() view returns (string)',
+  ];
+
+  // Trust Wallet blockchain names for token logo CDN
+  var TW_NAMES = {
+    1:'ethereum', 56:'smartchain', 137:'polygon',
+    42161:'arbitrum', 8453:'base', 10:'optimism',
+    43114:'avalanchec', 250:'fantom', 25:'cronos',
+  };
+
+  // CoinGecko IDs for common token symbols (USD price lookup)
+  var TOKEN_CG = {
+    USDT:'tether', USDC:'usd-coin', DAI:'dai', BUSD:'binance-usd',
+    WETH:'weth', WBNB:'wbnb', WMATIC:'matic-network', WAVAX:'avalanche-2',
+    WFTM:'fantom', WCRO:'crypto-com-chain', ARB:'arbitrum', OP:'optimism',
+    stCORE:'coredaoorg', USDB:'usdb',
+  };
+
+  // Common tokens per chain — always:true = shown even at zero balance
+  var CHAIN_TOKENS = {
+    1: [
+      { sym:'USDT',  name:'Tether USD',     addr:'0xdAC17F958D2ee523a2206206994597C13D831ec7', dec:6,  always:true },
+      { sym:'USDC',  name:'USD Coin',        addr:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', dec:6  },
+      { sym:'DAI',   name:'Dai',             addr:'0x6B175474E89094C44Da98b954EedeAC495271d0F', dec:18 },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', dec:18 },
+    ],
+    56: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0x55d398326f99059fF775485246999027B3197955', dec:18, always:true },
+      { sym:'USDC',  name:'USD Coin',         addr:'0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', dec:18 },
+      { sym:'BUSD',  name:'Binance USD',      addr:'0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', dec:18 },
+      { sym:'WBNB',  name:'Wrapped BNB',      addr:'0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', dec:18 },
+    ],
+    137: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0xc2132D05D31c914a87C6611C10748AEb04B58e8F', dec:6,  always:true },
+      { sym:'USDC',  name:'USD Coin',         addr:'0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', dec:6  },
+      { sym:'DAI',   name:'Dai',             addr:'0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', dec:18 },
+      { sym:'WMATIC',name:'Wrapped MATIC',   addr:'0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', dec:18 },
+    ],
+    42161: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', dec:6,  always:true },
+      { sym:'USDC',  name:'USD Coin',         addr:'0xaf88d065e77c8cC2239327C5EDb3A432268e5831', dec:6  },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', dec:18 },
+      { sym:'ARB',   name:'Arbitrum',        addr:'0x912CE59144191C1204E64559FE8253a0e49E6548', dec:18 },
+    ],
+    8453: [
+      { sym:'USDC',  name:'USD Coin',         addr:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', dec:6,  always:true },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0x4200000000000000000000000000000000000006', dec:18 },
+      { sym:'cbETH', name:'Coinbase ETH',    addr:'0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22', dec:18 },
+    ],
+    10: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0x94b008aA00579c1307B0EF2c499aD98a8ce58e58', dec:6,  always:true },
+      { sym:'USDC',  name:'USD Coin',         addr:'0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', dec:6  },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0x4200000000000000000000000000000000000006', dec:18 },
+      { sym:'OP',    name:'Optimism',        addr:'0x4200000000000000000000000000000000000042', dec:18 },
+    ],
+    43114: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7', dec:6,  always:true },
+      { sym:'USDC',  name:'USD Coin',         addr:'0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E', dec:6  },
+      { sym:'WAVAX', name:'Wrapped AVAX',    addr:'0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', dec:18 },
+    ],
+    250: [
+      { sym:'USDC',  name:'USD Coin',         addr:'0x04068DA6C83AFCFA0e13ba15A6696662335D5B75', dec:6,  always:true },
+      { sym:'WFTM',  name:'Wrapped FTM',     addr:'0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83', dec:18 },
+    ],
+    25: [
+      { sym:'USDC',  name:'USD Coin',         addr:'0xc21223249CA28397B4B6541dfFaEcC539BfF0c59', dec:6,  always:true },
+      { sym:'WCRO',  name:'Wrapped CRO',     addr:'0x5C7F8A570d578ED84E63fdFA7b1eE72dEae1AE23', dec:18 },
+    ],
+    1116: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0x900101d06A7426441Ae63e9AB3B9b0F63Be145F1', dec:6,  always:true },
+      { sym:'stCORE',name:'Staked CORE',     addr:'0x50E40614C6B84Df93e1beBCfDe73Fdf66f7cBB5', dec:18 },
+    ],
+    59144: [
+      { sym:'USDC',  name:'USD Coin',         addr:'0x176211869cA2b568f2A7D4EE941E073a821EE1ff', dec:6,  always:true },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34', dec:18 },
+    ],
+    534352: [
+      { sym:'USDC',  name:'USD Coin',         addr:'0x06eFdBFf2a14a7c8E15944D1F4A48F9F95F663A4', dec:6,  always:true },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0x5300000000000000000000000000000000000004', dec:18 },
+    ],
+    5000: [
+      { sym:'USDT',  name:'Tether USD',      addr:'0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE', dec:6,  always:true },
+      { sym:'USDC',  name:'USD Coin',         addr:'0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9', dec:6  },
+    ],
+    81457: [
+      { sym:'USDB',  name:'USDB',            addr:'0x4300000000000000000000000000000000000003', dec:18, always:true },
+      { sym:'WETH',  name:'Wrapped ETH',     addr:'0x4300000000000000000000000000000000000004', dec:18 },
+    ],
+  };
+
   // ── localStorage keys ─────────────────────────────────────
   var LS_KS     = 'antColonyW3Ks';       // encrypted JSON keystore
   var LS_ADDR   = 'antColonyW3Addr';     // public address (safe to store plain)
   var LS_CHAIN  = 'antColonyW3Chain';    // last used chain ID
   var LS_CUSTOM = 'antColonyW3Custom';   // user-added EVM chains (JSON array)
+  var LS_TOK    = 'antColonyW3Tok_';    // prefix + chainId = user-added tokens
 
   // ── Module state ──────────────────────────────────────────
   var _wallet    = null;   // ethers.Wallet — only set when unlocked
@@ -7366,8 +7506,9 @@ window.addEventListener('load', () => {
   var _customChains = (function() {
     try { return JSON.parse(localStorage.getItem(LS_CUSTOM) || '[]'); } catch(e) { return []; }
   })();
-  var _balance   = '0.000000';
-  var _balUsd    = '0.00';
+  var _balance     = '0.000000';
+  var _balUsd      = '0.00';
+  var _nativePrice = 0;   // cached native token USD price
 
   // PIN system
   var _pinBuf        = '';
@@ -7675,6 +7816,7 @@ window.addEventListener('load', () => {
     });
     card.appendChild(grid);
     wrap.appendChild(card);
+    _renderTokenList(wrap);
     root.appendChild(wrap);
   }
 
@@ -7690,6 +7832,7 @@ window.addEventListener('load', () => {
       _balance = fmt;
       if (el) el.textContent = fmt + ' ' + sym;
       _fetchUsdPrice(sym, function(price) {
+        _nativePrice = price;
         _balUsd = (parseFloat(fmt) * price).toFixed(2);
         var usdEl = document.getElementById('w3BalUsd');
         if (usdEl) usdEl.textContent = '≈ $' + _balUsd + ' USD';
@@ -8131,6 +8274,209 @@ window.addEventListener('load', () => {
     var dots = document.querySelectorAll('#w3PinDots span');
     dots.forEach(function(d, i) { d.classList.toggle('filled', i < _pinBuf.length); });
   }
+
+  // ── Token list ────────────────────────────────────────────
+  function _customTokensForChain(cid) {
+    try { return JSON.parse(localStorage.getItem(LS_TOK + cid) || '[]'); } catch(e) { return []; }
+  }
+
+  function _saveCustomTokens(cid, arr) {
+    localStorage.setItem(LS_TOK + cid, JSON.stringify(arr));
+  }
+
+  function _erc20Balance(owner, contractAddr, decimals, provider) {
+    var c = new ethers.Contract(contractAddr, ERC20_ABI, provider);
+    return c.balanceOf(owner).then(function(raw) {
+      return parseFloat(ethers.utils.formatUnits(raw, decimals));
+    });
+  }
+
+  function _tokenLogoEl(token, cid) {
+    var size = 34;
+    var img = document.createElement('img');
+    img.width = size; img.height = size;
+    img.className = 'w3-token-logo';
+    img.alt = token.sym;
+    var twChain = TW_NAMES[cid];
+    if (twChain && token.addr) {
+      try {
+        var cs = ethers.utils.getAddress(token.addr);
+        img.src = 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/' + twChain + '/assets/' + cs + '/logo.png';
+      } catch(e) {}
+    }
+    img.onerror = function() {
+      var palette = ['#26a17b','#2775ca','#627EEA','#F3BA2F','#8247E5','#E84142','#10B981'];
+      var bg = palette[token.sym.charCodeAt(0) % palette.length];
+      var circle = document.createElement('div');
+      circle.style.cssText = 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:9px;font-weight:900;color:#fff;flex-shrink:0;letter-spacing:0';
+      circle.textContent = token.sym.slice(0, 4);
+      if (img.parentNode) img.parentNode.replaceChild(circle, img);
+    };
+    return img;
+  }
+
+  function _renderTokenRow(token, bal, usd) {
+    var row = _el('div', 'w3-token-row');
+    row.appendChild(_tokenLogoEl(token, _chainId));
+    var info = _el('div', 'w3-token-info');
+    info.appendChild(_tx('div', token.sym, 'w3-token-sym'));
+    info.appendChild(_tx('div', token.name || token.sym, 'w3-token-fullname'));
+    row.appendChild(info);
+    var right = _el('div', 'w3-token-right');
+    var amtStr = bal >= 0.000001 ? bal.toFixed(6) : '0.000000';
+    right.appendChild(_tx('div', amtStr, 'w3-token-amount'));
+    var usdStr = usd > 0 ? '≈ $' + (bal * usd).toFixed(2) : '≈ $0.00';
+    right.appendChild(_tx('div', usdStr, 'w3-token-usd'));
+    row.appendChild(right);
+    return row;
+  }
+
+  function _renderNativeRow(listEl) {
+    var c = _chain();
+    var bal = parseFloat(_balance) || 0;
+    var row = _el('div', 'w3-token-row');
+    row.appendChild(_logoEl(_chainId, c.name, c.sym, 34));
+    var info = _el('div', 'w3-token-info');
+    info.appendChild(_tx('div', c.sym, 'w3-token-sym'));
+    info.appendChild(_tx('div', c.name + ' (Native)', 'w3-token-fullname'));
+    row.appendChild(info);
+    var right = _el('div', 'w3-token-right');
+    right.appendChild(_tx('div', bal.toFixed(6), 'w3-token-amount'));
+    var usdStr = _nativePrice > 0 ? '≈ $' + (bal * _nativePrice).toFixed(2) : '≈ $0.00';
+    right.appendChild(_tx('div', usdStr, 'w3-token-usd'));
+    row.appendChild(right);
+    listEl.appendChild(row);
+  }
+
+  function _renderTokenList(parentEl) {
+    var sec = _el('div', 'w3-token-section');
+    var titleRow = _el('div', 'section-title');
+    titleRow.textContent = '🪙 Tokens';
+    sec.appendChild(titleRow);
+
+    var list = _el('div', 'w3-token-list');
+    list.id = 'w3TokenList';
+    var loading = _el('div', 'w3-token-loading');
+    loading.textContent = '⏳ Loading balances...';
+    list.appendChild(loading);
+    sec.appendChild(list);
+
+    var addBtn = _el('button', 'w3-token-add-btn');
+    addBtn.textContent = '＋ Add Custom Token';
+    addBtn.onclick = w3OpenAddToken;
+    sec.appendChild(addBtn);
+    parentEl.appendChild(sec);
+
+    // Async load
+    _loadTokenBalances(list);
+  }
+
+  function _loadTokenBalances(listEl) {
+    var addr = _addr();
+    if (!addr) { listEl.innerHTML = ''; return; }
+    var provider = _provider();
+    var builtIn  = CHAIN_TOKENS[_chainId] || [];
+    var custom   = _customTokensForChain(_chainId);
+    var tokens   = builtIn.concat(custom);
+
+    // Collect unique CoinGecko IDs for batch price fetch
+    var cgIds = [];
+    tokens.forEach(function(t) { if (TOKEN_CG[t.sym] && cgIds.indexOf(TOKEN_CG[t.sym]) === -1) cgIds.push(TOKEN_CG[t.sym]); });
+
+    // Fetch all ERC-20 balances + token prices in parallel
+    var balPromises = tokens.map(function(t) {
+      return _erc20Balance(addr, t.addr, t.dec, provider)
+        .then(function(b) { return { t: t, b: b }; })
+        .catch(function()  { return { t: t, b: 0 }; });
+    });
+
+    var pricePromise = cgIds.length > 0
+      ? fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + cgIds.join(',') + '&vs_currencies=usd')
+          .then(function(r) { return r.json(); }).catch(function() { return {}; })
+      : Promise.resolve({});
+
+    Promise.all([Promise.all(balPromises), pricePromise]).then(function(res) {
+      var results = res[0], prices = res[1];
+      listEl.innerHTML = '';
+
+      // Native token row first (always)
+      _renderNativeRow(listEl);
+
+      // ERC-20 tokens: always-show OR balance > 0
+      results.forEach(function(r) {
+        if (!r.t.always && r.b <= 0) return;
+        var cgId = TOKEN_CG[r.t.sym];
+        var price = (cgId && prices[cgId] && prices[cgId].usd) || 0;
+        listEl.appendChild(_renderTokenRow(r.t, r.b, price));
+      });
+
+      // If only native row, add a subtle note
+      if (listEl.children.length === 1) {
+        var note = _el('div');
+        note.style.cssText = 'text-align:center;padding:10px;color:#2d4a70;font-size:10px;font-family:Rajdhani';
+        note.textContent = 'No token balances on this chain yet';
+        listEl.appendChild(note);
+      }
+    }).catch(function() {
+      listEl.innerHTML = '';
+      _renderNativeRow(listEl);
+    });
+  }
+
+  // ── Add custom token ──────────────────────────────────────
+  var _atDebounce = null;
+  window.w3OpenAddToken = function() {
+    ['w3AtAddr','w3AtSym','w3AtDec','w3AtName'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    var st = document.getElementById('w3AtFetchStatus');
+    if (st) st.textContent = '';
+    document.getElementById('w3AddTokenOverlay').style.display = 'flex';
+  };
+
+  window.w3AutoFetchToken = function() {
+    clearTimeout(_atDebounce);
+    _atDebounce = setTimeout(function() {
+      var addrEl = document.getElementById('w3AtAddr');
+      var addr = (addrEl || {}).value || '';
+      var st = document.getElementById('w3AtFetchStatus');
+      if (!ethers.utils.isAddress(addr.trim())) { if (st) st.textContent = ''; return; }
+      if (st) st.textContent = '⏳ Fetching token info...';
+      var c = new ethers.Contract(addr.trim(), ERC20_ABI, _provider());
+      Promise.all([c.symbol(), c.decimals(), c.name()]).then(function(vals) {
+        var symEl = document.getElementById('w3AtSym');
+        var decEl = document.getElementById('w3AtDec');
+        var nmEl  = document.getElementById('w3AtName');
+        if (symEl) symEl.value = vals[0];
+        if (decEl) decEl.value = vals[1];
+        if (nmEl)  nmEl.value  = vals[2];
+        if (st) st.textContent = '✅ Token info loaded';
+      }).catch(function() { if (st) st.textContent = '⚠️ Could not auto-fetch — fill in manually'; });
+    }, 600);
+  };
+
+  window.w3DoAddToken = function() {
+    var addr = ((document.getElementById('w3AtAddr') || {}).value || '').trim();
+    var sym  = ((document.getElementById('w3AtSym')  || {}).value || '').trim().toUpperCase();
+    var dec  = parseInt(((document.getElementById('w3AtDec')  || {}).value || '18'));
+    var name = ((document.getElementById('w3AtName') || {}).value || '').trim() || sym;
+    if (!ethers.utils.isAddress(addr)) { showToast('❌ Invalid contract address'); return; }
+    if (!sym)  { showToast('❌ Symbol required'); return; }
+    if (isNaN(dec) || dec < 0 || dec > 18) { showToast('❌ Decimals must be 0-18'); return; }
+    var existing = _customTokensForChain(_chainId);
+    if (existing.some(function(t) { return t.addr.toLowerCase() === addr.toLowerCase(); })) {
+      showToast('❌ Token already added'); return;
+    }
+    existing.push({ addr: addr, sym: sym, dec: dec, name: name, always: true });
+    _saveCustomTokens(_chainId, existing);
+    w3CloseAddToken();
+    showToast('✅ ' + sym + ' added!');
+    loadW3Wallet();
+  };
+
+  window.w3CloseAddToken = function() {
+    document.getElementById('w3AddTokenOverlay').style.display = 'none';
+  };
 
   // ── Add / Remove custom chains ────────────────────────────
   window.w3OpenAddChain = function() {
