@@ -1205,6 +1205,24 @@ textarea.w3-input { resize:vertical; }
 .w3-token-add-btn { width:100%; padding:10px; border-radius:10px; border:1px dashed #1a2d50; background:transparent; color:#2d4a70; font-family:'Rajdhani'; font-size:12px; font-weight:700; cursor:pointer; margin-top:8px; letter-spacing:1px; }
 .w3-token-loading { text-align:center; padding:20px; color:#4b6fa0; font-size:11px; font-family:'Rajdhani'; letter-spacing:1px; }
 
+/* ═══════════════════════════════════════════════
+   ASSET TABS (Tokens / NFTs)
+═══════════════════════════════════════════════ */
+.w3-asset-tabs { display:flex; gap:6px; margin-bottom:10px; }
+.w3-asset-tab { flex:1; padding:9px; border-radius:8px; border:1px solid #1e3a6e; background:transparent; color:#4b6fa0; font-family:'Rajdhani'; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.w3-asset-tab.active { background:#1e3a6e; color:#93c5fd; border-color:#3b82f6; }
+/* NFT grid */
+.w3-nft-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px; }
+.w3-nft-card { background:#0a0f1e; border:1px solid #1e3a6e; border-radius:12px; overflow:hidden; }
+.w3-nft-img-wrap { width:100%; aspect-ratio:1/1; background:#050810; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.w3-nft-img { width:100%; height:100%; object-fit:cover; display:block; }
+.w3-nft-img-ph { font-size:36px; }
+.w3-nft-body { padding:8px 10px 10px; }
+.w3-nft-col { font-size:9px; color:#2d4a70; font-family:'Rajdhani'; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.w3-nft-name { font-family:'Orbitron'; font-size:9px; color:#93c5fd; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.w3-nft-id { font-size:10px; color:#4b6fa0; font-family:'Rajdhani'; margin-top:1px; }
+.w3-nft-send { width:100%; margin-top:8px; padding:7px; border-radius:8px; border:none; background:linear-gradient(135deg,#1e3a6e,#1d4ed8); color:#fff; font-family:'Orbitron'; font-size:8px; font-weight:700; cursor:pointer; letter-spacing:1px; }
+
 </style>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1766,6 +1784,45 @@ textarea.w3-input { resize:vertical; }
       </div>
       <button class="w3-send-btn" onclick="w3DoAddChain()">🔗 Add Chain</button>
       <button class="w3-cancel-btn" style="margin-top:8px" onclick="w3CloseAddChain()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Add NFT Collection Overlay -->
+  <div class="w3-overlay" id="w3AddNFTOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">🖼 Add NFT Collection</div>
+      <div class="w3-form-group">
+        <label class="w3-label">Contract Address (ERC-721)</label>
+        <input class="w3-input" id="w3AnAddr" placeholder="0x..." autocomplete="off" spellcheck="false" oninput="w3AutoFetchNFT()"/>
+      </div>
+      <div id="w3AnFetchStatus" style="font-size:10px;color:#4b6fa0;font-family:Rajdhani;margin-bottom:8px;min-height:14px"></div>
+      <div class="w3-form-group">
+        <label class="w3-label">Collection Name</label>
+        <input class="w3-input" id="w3AnName" placeholder="e.g. Bored Ape Yacht Club"/>
+      </div>
+      <button class="w3-send-btn" onclick="w3DoAddNFT()">🖼 Add Collection</button>
+      <button class="w3-cancel-btn" style="margin-top:8px" onclick="w3CloseAddNFT()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Send NFT Overlay -->
+  <div class="w3-overlay" id="w3SendNFTOverlay" style="display:none">
+    <div class="w3-sheet">
+      <div class="w3-sheet-title">⬆ Send NFT</div>
+      <div style="display:flex;align-items:center;gap:12px;background:#0a0f1e;border:1px solid #1e3a6e;border-radius:12px;padding:12px 14px;margin-bottom:14px">
+        <img id="w3SNFTImg" style="width:52px;height:52px;border-radius:8px;object-fit:cover;background:#050810;flex-shrink:0;display:none" src="" alt=""/>
+        <div style="min-width:0">
+          <div id="w3SNFTName" style="font-family:Orbitron;font-size:11px;color:#93c5fd;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="w3SNFTId" style="font-size:10px;color:#4b6fa0;font-family:Rajdhani;margin-top:3px"></div>
+        </div>
+      </div>
+      <div class="w3-form-group">
+        <label class="w3-label">Recipient Address</label>
+        <input class="w3-input" id="w3SNFTTo" placeholder="0x..." autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="w3-gas-info">⛽ ~65,000 gas — paid in <span id="w3SNFTGasSym">ETH</span></div>
+      <button class="w3-send-btn" onclick="w3InitSendNFT()">⬆ Send NFT</button>
+      <button class="w3-cancel-btn" style="margin-top:8px" onclick="w3CloseSendNFT()">Cancel</button>
     </div>
   </div>
 
@@ -7411,6 +7468,15 @@ window.addEventListener('load', () => {
     'function transfer(address to, uint256 amount) returns (bool)',
   ];
 
+  var ERC721_ABI = [
+    'function balanceOf(address owner) view returns (uint256)',
+    'function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)',
+    'function tokenURI(uint256 tokenId) view returns (string)',
+    'function name() view returns (string)',
+    'function symbol() view returns (string)',
+    'function safeTransferFrom(address from, address to, uint256 tokenId)',
+  ];
+
   // Trust Wallet blockchain names for token logo CDN
   var TW_NAMES = {
     1:'ethereum', 56:'smartchain', 137:'polygon',
@@ -7504,6 +7570,7 @@ window.addEventListener('load', () => {
   var LS_CHAIN  = 'antColonyW3Chain';    // last used chain ID
   var LS_CUSTOM = 'antColonyW3Custom';   // user-added EVM chains (JSON array)
   var LS_TOK    = 'antColonyW3Tok_';    // prefix + chainId = user-added tokens
+  var LS_NFT    = 'antColonyW3NFT_';    // prefix + chainId = user-tracked NFT contracts
 
   // ── Module state ──────────────────────────────────────────
   var _wallet    = null;   // ethers.Wallet — only set when unlocked
@@ -7522,12 +7589,15 @@ window.addEventListener('load', () => {
   var _pinFirstEntry = null;
 
   // Misc
-  var _sendPending     = null;  // { to, value }
+  var _sendPending     = null;  // { to, value, token }
+  var _nftSendPending  = null;  // { contractAddr, tokenId, to, displayName }
   var _mnemonicBuf     = '';
   var _pkeyBuf         = '';
   var _impMode         = 'phrase';
   var _removeConfirm   = false;
   var _gasDebounce     = null;
+  var _anDebounce      = null;
+  var _activeAssetTab  = 'tokens'; // 'tokens' | 'nfts'
 
   // ── Utilities ─────────────────────────────────────────────
   function _addr()    { return localStorage.getItem(LS_ADDR) || ''; }
@@ -7821,7 +7891,7 @@ window.addEventListener('load', () => {
     });
     card.appendChild(grid);
     wrap.appendChild(card);
-    _renderTokenList(wrap);
+    _renderTokenSection(wrap);
     root.appendChild(wrap);
   }
 
@@ -8374,6 +8444,45 @@ window.addEventListener('load', () => {
     localStorage.setItem(LS_TOK + cid, JSON.stringify(arr));
   }
 
+  // ── NFT contract storage ──────────────────────────────────
+  function _customNFTsForChain(cid) {
+    try { return JSON.parse(localStorage.getItem(LS_NFT + cid) || '[]'); } catch(e) { return []; }
+  }
+  function _saveCustomNFTs(cid, arr) {
+    localStorage.setItem(LS_NFT + cid, JSON.stringify(arr));
+  }
+
+  // ── IPFS / metadata helpers ────────────────────────────────
+  function _ipfsToHttp(uri) {
+    if (!uri) return '';
+    if (uri.startsWith('ipfs://')) return 'https://ipfs.io/ipfs/' + uri.slice(7);
+    if (uri.startsWith('ipfs/'))   return 'https://ipfs.io/' + uri;
+    return uri;
+  }
+
+  function _decodeDataUri(uri) {
+    if (!uri) return null;
+    try {
+      if (uri.startsWith('data:application/json;base64,'))
+        return JSON.parse(atob(uri.replace('data:application/json;base64,', '')));
+      if (uri.startsWith('data:application/json,'))
+        return JSON.parse(decodeURIComponent(uri.replace('data:application/json,', '')));
+    } catch(e) {}
+    return null;
+  }
+
+  function _resolveNFTMeta(uri, cb) {
+    if (!uri) { cb(null); return; }
+    var inline = _decodeDataUri(uri);
+    if (inline) { cb(inline); return; }
+    var url = _ipfsToHttp(uri);
+    if (!url || !url.startsWith('http')) { cb(null); return; }
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(meta) { cb(meta); })
+      .catch(function() { cb(null); });
+  }
+
   function _erc20Balance(owner, contractAddr, decimals, provider) {
     var c = new ethers.Contract(contractAddr, ERC20_ABI, provider);
     return c.balanceOf(owner).then(function(raw) {
@@ -8441,27 +8550,172 @@ window.addEventListener('load', () => {
     listEl.appendChild(row);
   }
 
-  function _renderTokenList(parentEl) {
+  // ── Tabbed asset section (Tokens / NFTs) ─────────────────
+  function _renderTokenSection(parentEl) {
     var sec = _el('div', 'w3-token-section');
-    var titleRow = _el('div', 'section-title');
-    titleRow.textContent = '🪙 Tokens';
-    sec.appendChild(titleRow);
 
+    // Tab bar
+    var tabBar = _el('div', 'w3-asset-tabs');
+    var tokTab = _el('button', 'w3-asset-tab' + (_activeAssetTab === 'tokens' ? ' active' : ''));
+    tokTab.textContent = '🪙 Tokens';
+    var nftTab = _el('button', 'w3-asset-tab' + (_activeAssetTab === 'nfts' ? ' active' : ''));
+    nftTab.textContent = '🖼 NFTs';
+    tabBar.appendChild(tokTab);
+    tabBar.appendChild(nftTab);
+    sec.appendChild(tabBar);
+
+    var content = _el('div');
+    sec.appendChild(content);
+    parentEl.appendChild(sec);
+
+    tokTab.onclick = function() {
+      _activeAssetTab = 'tokens';
+      tokTab.classList.add('active'); nftTab.classList.remove('active');
+      _buildTokensContent(content);
+    };
+    nftTab.onclick = function() {
+      _activeAssetTab = 'nfts';
+      nftTab.classList.add('active'); tokTab.classList.remove('active');
+      _buildNFTsContent(content);
+    };
+
+    if (_activeAssetTab === 'nfts') _buildNFTsContent(content);
+    else _buildTokensContent(content);
+  }
+
+  function _buildTokensContent(parentEl) {
+    parentEl.innerHTML = '';
     var list = _el('div', 'w3-token-list');
     list.id = 'w3TokenList';
     var loading = _el('div', 'w3-token-loading');
     loading.textContent = '⏳ Loading balances...';
     list.appendChild(loading);
-    sec.appendChild(list);
-
+    parentEl.appendChild(list);
     var addBtn = _el('button', 'w3-token-add-btn');
     addBtn.textContent = '＋ Add Custom Token';
     addBtn.onclick = w3OpenAddToken;
-    sec.appendChild(addBtn);
-    parentEl.appendChild(sec);
-
-    // Async load
+    parentEl.appendChild(addBtn);
     _loadTokenBalances(list);
+  }
+
+  function _buildNFTsContent(parentEl) {
+    parentEl.innerHTML = '';
+    var grid = _el('div', 'w3-nft-grid');
+    grid.id = 'w3NFTGrid';
+    var loading = _el('div');
+    loading.style.cssText = 'grid-column:1/-1;text-align:center;padding:24px;color:#4b6fa0;font-size:11px;font-family:Rajdhani;letter-spacing:1px';
+    loading.textContent = '⏳ Loading NFTs...';
+    grid.appendChild(loading);
+    parentEl.appendChild(grid);
+    var addBtn = _el('button', 'w3-token-add-btn');
+    addBtn.textContent = '＋ Add NFT Collection';
+    addBtn.onclick = w3OpenAddNFT;
+    parentEl.appendChild(addBtn);
+    _loadNFTs(grid);
+  }
+
+  function _loadNFTs(gridEl) {
+    var addr     = _addr();
+    var cols     = _customNFTsForChain(_chainId);
+    var provider = _provider();
+
+    if (cols.length === 0) {
+      gridEl.innerHTML = '';
+      var empty = _el('div');
+      empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:30px 20px;color:#2d4a70;font-size:12px;font-family:Rajdhani;line-height:1.8';
+      empty.innerHTML = '<div style="font-size:36px;margin-bottom:10px">🖼</div>No NFT collections added yet.<br>Tap <b>＋ Add NFT Collection</b> below.';
+      gridEl.appendChild(empty);
+      return;
+    }
+
+    var fetchAll = cols.map(function(col) {
+      var c = new ethers.Contract(col.addr, ERC721_ABI, provider);
+      return c.balanceOf(addr).then(function(rawBal) {
+        var bal = rawBal.toNumber ? rawBal.toNumber() : parseInt(rawBal.toString());
+        if (bal === 0) return [];
+        var idxs = [];
+        for (var i = 0; i < Math.min(bal, 20); i++) idxs.push(i);
+        return Promise.all(idxs.map(function(idx) {
+          return c.tokenOfOwnerByIndex(addr, idx).then(function(tokenId) {
+            var tid = tokenId.toString();
+            return c.tokenURI(tokenId).catch(function() { return ''; }).then(function(uri) {
+              return { contractAddr: col.addr, contractName: col.name, tokenId: tid, uri: uri };
+            });
+          }).catch(function() { return null; });
+        }));
+      }).catch(function() { return []; });
+    });
+
+    Promise.all(fetchAll).then(function(results) {
+      var all = [];
+      results.forEach(function(arr) { (arr || []).forEach(function(n) { if (n) all.push(n); }); });
+
+      gridEl.innerHTML = '';
+      if (all.length === 0) {
+        var empty = _el('div');
+        empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:30px 20px;color:#2d4a70;font-size:12px;font-family:Rajdhani;line-height:1.8';
+        empty.innerHTML = '<div style="font-size:36px;margin-bottom:10px">📭</div>No NFTs found in added collections.';
+        gridEl.appendChild(empty);
+        return;
+      }
+
+      all.forEach(function(nft) {
+        var card = _buildNFTCard(nft);
+        gridEl.appendChild(card);
+        _resolveNFTMeta(nft.uri, function(meta) {
+          var img  = meta && meta.image ? _ipfsToHttp(meta.image) : '';
+          var name = meta && meta.name  ? meta.name : ('#' + nft.tokenId);
+          _fillNFTCard(card, img, name, nft);
+        });
+      });
+    }).catch(function() {
+      gridEl.innerHTML = '';
+      var err = _el('div');
+      err.style.cssText = 'grid-column:1/-1;text-align:center;padding:20px;color:#ef4444;font-size:11px;font-family:Rajdhani';
+      err.textContent = '❌ Failed to load NFTs — check your RPC connection';
+      gridEl.appendChild(err);
+    });
+  }
+
+  function _buildNFTCard(nft) {
+    var card = _el('div', 'w3-nft-card');
+    var imgWrap = _el('div', 'w3-nft-img-wrap');
+    var ph = _el('div', 'w3-nft-img-ph'); ph.textContent = '🖼';
+    imgWrap.appendChild(ph);
+    card.appendChild(imgWrap);
+    var body = _el('div', 'w3-nft-body');
+    var col  = _el('div', 'w3-nft-col');  col.textContent = nft.contractName || 'NFT';
+    var name = _el('div', 'w3-nft-name'); name.textContent = '#' + nft.tokenId;
+    var id   = _el('div', 'w3-nft-id');   id.textContent = 'ID: ' + nft.tokenId;
+    var btn  = _el('button', 'w3-nft-send'); btn.textContent = '⬆ SEND';
+    btn.onclick = (function(n) { return function() {
+      w3OpenSendNFT(n.contractAddr, n.tokenId, '#' + n.tokenId, '');
+    }; })(nft);
+    body.appendChild(col); body.appendChild(name); body.appendChild(id); body.appendChild(btn);
+    card.appendChild(body);
+    return card;
+  }
+
+  function _fillNFTCard(card, imgUrl, displayName, nft) {
+    var imgWrap = card.querySelector('.w3-nft-img-wrap');
+    if (imgWrap && imgUrl) {
+      imgWrap.innerHTML = '';
+      var img = document.createElement('img');
+      img.className = 'w3-nft-img'; img.alt = displayName;
+      img.onerror = function() {
+        imgWrap.innerHTML = '';
+        var ph = _el('div', 'w3-nft-img-ph'); ph.textContent = '🖼';
+        imgWrap.appendChild(ph);
+      };
+      img.src = imgUrl;
+      imgWrap.appendChild(img);
+    }
+    var nameEl = card.querySelector('.w3-nft-name');
+    if (nameEl) nameEl.textContent = displayName;
+    var btn = card.querySelector('.w3-nft-send');
+    if (btn) btn.onclick = (function(n, dn, iu) { return function() {
+      w3OpenSendNFT(n.contractAddr, n.tokenId, dn, iu);
+    }; })(nft, displayName, imgUrl);
   }
 
   function _loadTokenBalances(listEl) {
@@ -8621,6 +8875,103 @@ window.addEventListener('load', () => {
     w3CloseSettings();
     loadW3Wallet();
   };
+
+  // ── Add NFT Collection ────────────────────────────────────
+  window.w3OpenAddNFT = function() {
+    ['w3AnAddr','w3AnName'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+    var st = document.getElementById('w3AnFetchStatus'); if (st) st.textContent = '';
+    document.getElementById('w3AddNFTOverlay').style.display = 'flex';
+  };
+  window.w3CloseAddNFT = function() { document.getElementById('w3AddNFTOverlay').style.display = 'none'; };
+
+  window.w3AutoFetchNFT = function() {
+    clearTimeout(_anDebounce);
+    _anDebounce = setTimeout(function() {
+      var addr = ((document.getElementById('w3AnAddr') || {}).value || '').trim();
+      var st   = document.getElementById('w3AnFetchStatus');
+      if (!ethers.utils.isAddress(addr)) { if (st) st.textContent = ''; return; }
+      if (st) st.textContent = '⏳ Fetching collection info...';
+      var c = new ethers.Contract(addr, ERC721_ABI, _provider());
+      c.name().then(function(name) {
+        var el = document.getElementById('w3AnName'); if (el) el.value = name;
+        if (st) st.textContent = '✅ Collection found: ' + name;
+      }).catch(function() { if (st) st.textContent = '⚠️ Could not auto-fetch — enter name manually'; });
+    }, 600);
+  };
+
+  window.w3DoAddNFT = function() {
+    var addr = ((document.getElementById('w3AnAddr') || {}).value || '').trim();
+    var name = ((document.getElementById('w3AnName') || {}).value || '').trim() || 'NFT Collection';
+    if (!ethers.utils.isAddress(addr)) { showToast('❌ Invalid contract address'); return; }
+    var existing = _customNFTsForChain(_chainId);
+    if (existing.some(function(c) { return c.addr.toLowerCase() === addr.toLowerCase(); })) {
+      showToast('❌ Collection already added'); return;
+    }
+    existing.push({ addr: addr, name: name });
+    _saveCustomNFTs(_chainId, existing);
+    window.w3CloseAddNFT();
+    showToast('✅ ' + name + ' added!');
+    _activeAssetTab = 'nfts';
+    loadW3Wallet();
+  };
+
+  // ── Send NFT ──────────────────────────────────────────────
+  window.w3OpenSendNFT = function(contractAddr, tokenId, displayName, imgUrl) {
+    _nftSendPending = { contractAddr: contractAddr, tokenId: tokenId, displayName: displayName };
+    var nameEl = document.getElementById('w3SNFTName');
+    var idEl   = document.getElementById('w3SNFTId');
+    var imgEl  = document.getElementById('w3SNFTImg');
+    var gsEl   = document.getElementById('w3SNFTGasSym');
+    var toEl   = document.getElementById('w3SNFTTo');
+    if (nameEl) nameEl.textContent = displayName;
+    if (idEl)   idEl.textContent   = 'Token ID: ' + tokenId;
+    if (imgEl)  { if (imgUrl) { imgEl.src = imgUrl; imgEl.style.display = ''; } else imgEl.style.display = 'none'; }
+    if (gsEl)   gsEl.textContent = _chain().sym;
+    if (toEl)   toEl.value = '';
+    document.getElementById('w3SendNFTOverlay').style.display = 'flex';
+  };
+
+  window.w3CloseSendNFT = function() {
+    document.getElementById('w3SendNFTOverlay').style.display = 'none';
+  };
+
+  window.w3InitSendNFT = function() {
+    if (!_nftSendPending) return;
+    var toAddr = ((document.getElementById('w3SNFTTo') || {}).value || '').trim();
+    if (!ethers.utils.isAddress(toAddr)) { showToast('❌ Invalid recipient address'); return; }
+    _nftSendPending.to = toAddr;
+    document.getElementById('w3SendNFTOverlay').style.display = 'none';
+    _openPin('🔐 Confirm NFT Transfer — Enter PIN', false, function(pin) { _executeNFTSend(pin); });
+  };
+
+  function _executeNFTSend(pin) {
+    if (!_nftSendPending) return;
+    var pending = _nftSendPending;
+    var errEl   = document.getElementById('w3PinError');
+    if (errEl) errEl.textContent = '⏳ Signing & broadcasting...';
+    ethers.Wallet.fromEncryptedJson(_ks(), pin).then(function(w) {
+      _wallet = w.connect(_provider());
+      var contract = new ethers.Contract(pending.contractAddr, ERC721_ABI, _wallet);
+      return contract.safeTransferFrom(_addr(), pending.to, pending.tokenId);
+    }).then(function(tx) {
+      _nftSendPending = null;
+      w3ClosePin();
+      showToast('✅ NFT sent! TX: ' + tx.hash.slice(0,12) + '...');
+      _activeAssetTab = 'nfts';
+      setTimeout(loadW3Wallet, 5000);
+    }).catch(function(err) {
+      var msg = (err && err.message) || '';
+      if (msg.indexOf('password') !== -1 || msg.indexOf('invalid') !== -1) {
+        if (errEl) errEl.textContent = '❌ Wrong PIN';
+        _pinBuf = ''; _updateDots();
+        setTimeout(function() { if (errEl) errEl.textContent = ''; }, 2500);
+      } else {
+        _nftSendPending = null;
+        w3ClosePin();
+        showToast('❌ Transfer failed: ' + msg.slice(0, 50));
+      }
+    });
+  }
 
   // ── Ingame → Web3 bridge ──────────────────────────────────
   window.w3OpenWithdrawBridge = function() {
