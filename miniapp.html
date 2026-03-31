@@ -7482,33 +7482,56 @@ window.addEventListener('load', () => {
     1151111081099185: 'solana',
   };
 
-  function _logoUrl(cid, name) {
-    var slug = CHAIN_LOGO_SLUGS[cid];
-    if (!slug) {
-      // Fallback: try just the first word of the chain name (covers "Core Blockchain" → "core")
-      var firstName = (name || '').split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-      slug = firstName || 'ethereum';
+  // Build an ordered list of candidate URLs to try for a given chain
+  function _logoUrls(cid, name) {
+    var urls = [];
+    var seen = {};
+    function add(slug) {
+      if (!slug || seen[slug]) return;
+      seen[slug] = 1;
+      urls.push('https://icons.llamao.fi/icons/chains/rsz_' + slug + '.jpg');
     }
-    return 'https://icons.llamao.fi/icons/chains/rsz_' + slug + '.jpg';
+    // 1. Hardcoded slug (most reliable)
+    if (CHAIN_LOGO_SLUGS[cid]) add(CHAIN_LOGO_SLUGS[cid]);
+    // 2. First word of name  ("Core Dao" → "core", "BNB Chain" → "bnb")
+    var words = (name || '').trim().split(/\s+/);
+    add(words[0].toLowerCase().replace(/[^a-z0-9]/g, ''));
+    // 3. Last word of name  ("Core Dao" → "dao" — sometimes the brand name is last)
+    if (words.length > 1) add(words[words.length - 1].toLowerCase().replace(/[^a-z0-9]/g, ''));
+    // 4. All words joined  ("coredao", "coreblockchain")
+    add(words.map(function(w){ return w.toLowerCase().replace(/[^a-z0-9]/g,''); }).join(''));
+    // 5. All words joined with underscore  ("core_dao")
+    add(words.map(function(w){ return w.toLowerCase().replace(/[^a-z0-9]/g,''); }).join('_'));
+    return urls;
   }
 
-  // Returns an <img> element; on load failure swaps itself with a colored initial circle
+  // Returns an <img> that walks through candidate URLs; falls back to a colored initial circle
   function _logoEl(cid, name, sym, size) {
     size = size || 16;
+    var candidates = _logoUrls(cid, name);
+    var tryIdx = 0;
+
     var img = document.createElement('img');
-    img.src = _logoUrl(cid, name);
     img.width = size; img.height = size;
     img.className = size <= 18 ? 'w3-chain-logo' : 'w3-active-chain-logo';
     img.alt = sym || '';
-    img.onerror = function() {
-      var circle = document.createElement('div');
-      // Deterministic color from chain ID
-      var palette = ['#627EEA','#F3BA2F','#8247E5','#28A0F0','#0052FF','#E84142','#FF0420','#FA4E09','#10B981','#6366F1'];
-      var bg = palette[Math.abs(cid || 0) % palette.length];
-      circle.style.cssText = 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:' + Math.floor(size * 0.42) + 'px;font-weight:900;color:#fff;flex-shrink:0;';
-      circle.textContent = ((sym || name || '?').charAt(0)).toUpperCase();
-      if (img.parentNode) img.parentNode.replaceChild(circle, img);
-    };
+    img.style.cssText += ';border-radius:50%;object-fit:cover;flex-shrink:0';
+
+    function tryNext() {
+      if (tryIdx < candidates.length) {
+        img.src = candidates[tryIdx++];
+      } else {
+        // All URLs exhausted — show colored initial circle
+        var palette = ['#627EEA','#F3BA2F','#8247E5','#28A0F0','#0052FF','#E84142','#FF0420','#FA4E09','#10B981','#6366F1'];
+        var bg = palette[Math.abs(cid || 0) % palette.length];
+        var circle = document.createElement('div');
+        circle.style.cssText = 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:' + Math.floor(size * 0.42) + 'px;font-weight:900;color:#fff;flex-shrink:0';
+        circle.textContent = ((sym || name || '?').charAt(0)).toUpperCase();
+        if (img.parentNode) img.parentNode.replaceChild(circle, img);
+      }
+    }
+    img.onerror = tryNext;
+    tryNext(); // kick off with first candidate
     return img;
   }
 
