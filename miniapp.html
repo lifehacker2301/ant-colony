@@ -7433,19 +7433,61 @@ window.addEventListener('load', () => {
   };
 
   // ── Chain logo helpers ────────────────────────────────────
+  // Chain ID → DeFiLlama icon slug (covers 50+ popular EVM chains)
   var CHAIN_LOGO_SLUGS = {
-    1:     'ethereum',
-    56:    'bsc',
-    137:   'polygon',
-    42161: 'arbitrum',
-    8453:  'base',
+    1:          'ethereum',
+    56:         'bsc',
+    137:        'polygon',
+    42161:      'arbitrum',
+    8453:       'base',
+    10:         'optimism',
+    43114:      'avax',
+    250:        'fantom',
+    25:         'cronos',
+    100:        'xdai',
+    1284:       'moonbeam',
+    1285:       'moonriver',
+    42220:      'celo',
+    1666600000: 'harmony',
+    321:        'kcc',
+    40:         'telos',
+    1313161554: 'aurora',
+    2222:       'kava',
+    1088:       'metis',
+    288:        'boba',
+    1101:       'polygon_zkevm',
+    324:        'era',
+    59144:      'linea',
+    534352:     'scroll',
+    5000:       'mantle',
+    81457:      'blast',
+    34443:      'mode',
+    1116:       'core',
+    204:        'op_bnb',
+    169:        'manta',
+    196:        'x_layer',
+    534:        'candle',
+    2000:       'dogechain',
+    7700:       'canto',
+    1030:       'conflux',
+    66:         'okexchain',
+    128:        'heco',
+    32659:      'fusion',
+    88:         'tomochain',
+    57:         'syscoin',
+    19:         'songbird',
+    14:         'flare',
+    369:        'pulse',
+    8217:       'klaytn',
+    1151111081099185: 'solana',
   };
 
   function _logoUrl(cid, name) {
     var slug = CHAIN_LOGO_SLUGS[cid];
     if (!slug) {
-      // Derive slug from chain name: lowercase, strip non-alphanumeric
-      slug = (name || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+      // Fallback: try just the first word of the chain name (covers "Core Blockchain" → "core")
+      var firstName = (name || '').split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      slug = firstName || 'ethereum';
     }
     return 'https://icons.llamao.fi/icons/chains/rsz_' + slug + '.jpg';
   }
