@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Ant Colony</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='97' fill='%230a0005'/%3E%3Ccircle cx='100' cy='100' r='94' fill='%231a0a00'/%3E%3Cpath d='M100 60 C70 58,44 68,40 88 C36 108,38 128,44 142 C50 156,66 166,82 170 C90 172,100 173,100 173 C110 172,118 170,118 170 C134 166,150 156,156 142 C162 128,164 108,160 88 C156 68,130 58,100 60Z' fill='%231a0800'/%3E%3Cellipse cx='72' cy='93' rx='15' ry='17' fill='%23ff2200'/%3E%3Ccircle cx='67' cy='87' r='3' fill='%23fff' opacity='.6'/%3E%3Cellipse cx='128' cy='93' rx='15' ry='17' fill='%23ff2200'/%3E%3Ccircle cx='123' cy='87' r='3' fill='%23fff' opacity='.6'/%3E%3Cpath d='M72 158 C58 158,38 162,30 150 C22 138,32 124,44 130 C64 153,70 155,72 158Z' fill='%230d0400'/%3E%3Cpath d='M128 158 C142 158,162 162,170 150 C178 138,168 124,156 130 C136 153,130 155,128 158Z' fill='%230d0400'/%3E%3Cpath d='M82 62 Q68 38 42 18' stroke='%23ff4400' stroke-width='2.2' fill='none'/%3E%3Cpath d='M118 62 Q132 38 158 18' stroke='%23ff4400' stroke-width='2.2' fill='none'/%3E%3Ccircle cx='42' cy='18' r='4' fill='%23ff4400'/%3E%3Ccircle cx='158' cy='18' r='4' fill='%23ff4400'/%3E%3Ccircle cx='100' cy='100' r='94' fill='none' stroke='%23ff4400' stroke-width='1' opacity='.5'/%3E%3C/svg%3E"/>
 <!-- Telegram Mini App SDK — REQUIRED -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
@@ -71,8 +72,6 @@ body::before {
 .logo { display:flex; align-items:center; gap:8px; }
 .logo-icon {
   width:36px; height:36px; border-radius:50%;
-  background: radial-gradient(circle, #f5a623 0%, #7a3d00 100%);
-  display:flex; align-items:center; justify-content:center; font-size:20px;
   box-shadow: 0 0 12px rgba(245,166,35,0.5);
   animation: pulse-glow 3s ease-in-out infinite;
 }
@@ -1295,11 +1294,48 @@ textarea.w3-input { resize:vertical; }
   </div>
 </div>
 
+<!-- ANT LOGO SHARED DEFS — referenced by all inline SVG logo instances -->
+<svg style="display:none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="al_bgGlow" cx="50%" cy="55%" r="45%">
+      <stop offset="0%" stop-color="#1a0a00"/><stop offset="100%" stop-color="#0a0005"/>
+    </radialGradient>
+    <radialGradient id="al_headGrad" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#3a1a0a"/><stop offset="60%" stop-color="#1a0800"/><stop offset="100%" stop-color="#0d0400"/>
+    </radialGradient>
+    <radialGradient id="al_eyeGlow" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ff6600"/><stop offset="50%" stop-color="#ff2200"/><stop offset="100%" stop-color="#7a0000"/>
+    </radialGradient>
+    <linearGradient id="al_mandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3a1a0a"/><stop offset="100%" stop-color="#0d0400"/>
+    </linearGradient>
+    <radialGradient id="al_headShine" cx="38%" cy="28%" r="35%">
+      <stop offset="0%" stop-color="#6a3010" stop-opacity="0.9"/><stop offset="100%" stop-color="#1a0800" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="al_antGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2a1005"/><stop offset="100%" stop-color="#ff4400"/>
+    </linearGradient>
+    <filter id="al_glowEye" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="al_glowHead" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="al_glowTip" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="al_circleClip"><circle cx="100" cy="100" r="94"/></clipPath>
+  </defs>
+</svg>
+
 <!-- APP -->
 <div id="app" style="display:none">
   <header class="header">
     <div class="logo">
-      <div class="logo-icon">🐜</div>
+      <svg class="logo-icon" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Ant Colony"><circle cx="100" cy="100" r="97" fill="#0a0005"/><circle cx="100" cy="100" r="94" fill="url(#al_bgGlow)"/><g clip-path="url(#al_circleClip)" opacity="0.06"><line x1="50" y1="0" x2="50" y2="200" stroke="#ff5500" stroke-width="0.5"/><line x1="100" y1="0" x2="100" y2="200" stroke="#ff5500" stroke-width="0.5"/><line x1="150" y1="0" x2="150" y2="200" stroke="#ff5500" stroke-width="0.5"/><line x1="0" y1="60" x2="200" y2="60" stroke="#ff5500" stroke-width="0.5"/><line x1="0" y1="100" x2="200" y2="100" stroke="#ff5500" stroke-width="0.5"/><line x1="0" y1="140" x2="200" y2="140" stroke="#ff5500" stroke-width="0.5"/><line x1="25" y1="0" x2="125" y2="200" stroke="#ff5500" stroke-width="0.5"/><line x1="75" y1="0" x2="175" y2="200" stroke="#ff5500" stroke-width="0.5"/><line x1="175" y1="0" x2="75" y2="200" stroke="#ff5500" stroke-width="0.5"/><line x1="125" y1="0" x2="25" y2="200" stroke="#ff5500" stroke-width="0.5"/></g><path d="M 82 62 Q 68 38 42 18" stroke="url(#al_antGrad)" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M 58 35 Q 46 28 38 34" stroke="#cc3300" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8"/><path d="M 118 62 Q 132 38 158 18" stroke="url(#al_antGrad)" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M 142 35 Q 154 28 162 34" stroke="#cc3300" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8"/><circle cx="42" cy="18" r="4.5" fill="#ff4400" filter="url(#al_glowTip)"/><circle cx="42" cy="18" r="2.5" fill="#ffaa44"/><circle cx="158" cy="18" r="4.5" fill="#ff4400" filter="url(#al_glowTip)"/><circle cx="158" cy="18" r="2.5" fill="#ffaa44"/><circle cx="38" cy="34" r="3" fill="#ff3300" filter="url(#al_glowTip)" opacity="0.85"/><circle cx="162" cy="34" r="3" fill="#ff3300" filter="url(#al_glowTip)" opacity="0.85"/><ellipse cx="102" cy="113" rx="57" ry="52" fill="#000" opacity="0.5"/><path d="M 100 60 C 70 58,44 68,40 88 C 36 108,38 128,44 142 C 50 156,66 166,82 170 C 90 172,100 173,100 173 C 100 173,110 172,118 170 C 134 166,150 156,156 142 C 162 128,164 108,160 88 C 156 68,130 58,100 60 Z" fill="url(#al_headGrad)" filter="url(#al_glowHead)"/><path d="M 100 60 C 78 58,52 66,50 82 C 48 94,55 105,70 110 C 82 114,100 113,100 113 C 100 113,118 114,130 110 C 145 105,152 94,150 82 C 148 66,122 58,100 60 Z" fill="url(#al_headShine)" opacity="0.7"/><path d="M 56 100 Q 100 95 144 100" stroke="#3a1a08" stroke-width="1.2" fill="none" opacity="0.6"/><path d="M 50 120 Q 100 114 150 120" stroke="#3a1a08" stroke-width="1" fill="none" opacity="0.4"/><line x1="100" y1="62" x2="100" y2="168" stroke="#1a0800" stroke-width="1" opacity="0.5"/><ellipse cx="72" cy="95" rx="18" ry="20" fill="#7a0000" opacity="0.4" filter="url(#al_glowEye)"/><ellipse cx="72" cy="93" rx="15" ry="17" fill="url(#al_eyeGlow)"/><ellipse cx="72" cy="93" rx="15" ry="17" fill="none" stroke="#ff6600" stroke-width="0.8" opacity="0.5"/><line x1="67" y1="79" x2="72" y2="110" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="72" y1="76" x2="72" y2="110" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="77" y1="79" x2="72" y2="110" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="58" y1="90" x2="87" y2="93" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="57" y1="97" x2="87" y2="97" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><ellipse cx="70" cy="91" rx="6" ry="7" fill="#cc1100"/><ellipse cx="68" cy="89" rx="2.5" ry="3" fill="#ff8844" opacity="0.8"/><circle cx="67" cy="87" r="2" fill="#fff" opacity="0.6"/><ellipse cx="128" cy="95" rx="18" ry="20" fill="#7a0000" opacity="0.4" filter="url(#al_glowEye)"/><ellipse cx="128" cy="93" rx="15" ry="17" fill="url(#al_eyeGlow)"/><ellipse cx="128" cy="93" rx="15" ry="17" fill="none" stroke="#ff6600" stroke-width="0.8" opacity="0.5"/><line x1="123" y1="79" x2="128" y2="110" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="128" y1="76" x2="128" y2="110" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="133" y1="79" x2="128" y2="110" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="114" y1="90" x2="143" y2="93" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><line x1="113" y1="97" x2="143" y2="97" stroke="#ff3300" stroke-width="0.6" opacity="0.4"/><ellipse cx="126" cy="91" rx="6" ry="7" fill="#cc1100"/><ellipse cx="124" cy="89" rx="2.5" ry="3" fill="#ff8844" opacity="0.8"/><circle cx="123" cy="87" r="2" fill="#fff" opacity="0.6"/><path d="M 72 158 C 58 158,38 162,30 150 C 22 138,32 124,44 130 C 50 133,54 140,60 148 C 64 153,70 155,72 158 Z" fill="url(#al_mandGrad)" stroke="#2a0f00" stroke-width="1"/><path d="M 44 132 C 48 136,52 142,58 150" stroke="#4a1f08" stroke-width="1.2" fill="none" opacity="0.7"/><path d="M 30 150 L 36 140 L 38 152 Z" fill="#1a0800" opacity="0.8"/><path d="M 128 158 C 142 158,162 162,170 150 C 178 138,168 124,156 130 C 150 133,146 140,140 148 C 136 153,130 155,128 158 Z" fill="url(#al_mandGrad)" stroke="#2a0f00" stroke-width="1"/><path d="M 156 132 C 152 136,148 142,142 150" stroke="#4a1f08" stroke-width="1.2" fill="none" opacity="0.7"/><path d="M 170 150 L 164 140 L 162 152 Z" fill="#1a0800" opacity="0.8"/><path d="M 84 140 Q 100 148 116 140 Q 110 155 100 158 Q 90 155 84 140 Z" fill="#1a0800" opacity="0.8"/><path d="M 88 152 L 84 160 L 92 156 Z" fill="#0d0400"/><path d="M 112 152 L 116 160 L 108 156 Z" fill="#0d0400"/><circle cx="100" cy="100" r="94" fill="none" stroke="#3a1200" stroke-width="2.5"/><circle cx="100" cy="100" r="91" fill="none" stroke="#ff4400" stroke-width="0.8" opacity="0.3"/><circle cx="100" cy="7" r="3" fill="#ff4400" opacity="0.7"/><circle cx="100" cy="193" r="3" fill="#ff4400" opacity="0.7"/><circle cx="7" cy="100" r="3" fill="#ff4400" opacity="0.7"/><circle cx="193" cy="100" r="3" fill="#ff4400" opacity="0.7"/></svg>
       <div>
         <div class="logo-text">Ant Colony</div>
         <div class="logo-sub">$ANT Network</div>
